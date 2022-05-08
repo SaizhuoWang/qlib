@@ -26,7 +26,7 @@ class RollingTaskExample:
         self,
         provider_uri="~/.qlib/qlib_data/cn_data",
         region=REG_CN,
-        task_url="mongodb://10.0.0.4:27017/",
+        task_url="mongodb://192.168.205.17:9835/",
         task_db_name="rolling_db",
         experiment_name="rolling_exp",
         task_pool=None,  # if user want to  "rolling_task"
