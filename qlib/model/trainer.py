@@ -22,7 +22,7 @@ from qlib.workflow import R
 from qlib.workflow.recorder import Recorder
 from qlib.workflow.task.manage import TaskManager, run_task
 from qlib.data.dataset.weight import Reweighter
-
+from logging import Logger
 
 def _log_task_info(task_config: dict):
     R.log_params(**flatten_dict(task_config))
@@ -372,6 +372,7 @@ class TrainerRM(Trainer):
         experiment_name: str = None,
         before_status: str = TaskManager.STATUS_WAITING,
         after_status: str = TaskManager.STATUS_DONE,
+        logger: Logger = None,
         **kwargs,
     ) -> List[Recorder]:
         """

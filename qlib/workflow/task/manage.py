@@ -212,7 +212,7 @@ class TaskManager:
         insert_result = self.insert_task(task)
         return insert_result
 
-    def create_task(self, task_def_l, dry_run=False, print_nt=False) -> List[str]:
+    def create_task(self, task_def_l, dry_run=False, print_nt=False, logger=None) -> List[str]:
         """
         If the tasks in task_def_l are new, then insert new tasks into the task_pool, and record inserted_id.
         If a task is not new, then just query its _id.
@@ -247,6 +247,8 @@ class TaskManager:
                 else:
                     _id_list.append(None)
             else:
+                print("task already exists, it is: {}".format(t))
+                print("In MongoDB it is : {}".format(self._decode_task(r)))
                 _id_list.append(self._decode_task(r)["_id"])
 
         self.logger.info(f"Total Tasks: {len(task_def_l)}, New Tasks: {len(new_tasks)}")
@@ -275,7 +277,9 @@ class TaskManager:
         query = self._decode_query(query)
         query.update({"status": status})
         task = self.task_pool.find_one_and_update(
-            query, {"$set": {"status": self.STATUS_RUNNING}}, sort=[("priority", pymongo.DESCENDING)]
+            query,
+            {"$set": {"status": self.STATUS_RUNNING}},
+            sort=[("priority", pymongo.DESCENDING)],
         )
         # null will be at the top after sorting when using ASCENDING, so the larger the number higher, the higher the priority
         if task is None:
@@ -363,7 +367,12 @@ class TaskManager:
             status = TaskManager.STATUS_DONE
         self.task_pool.update_one(
             {"_id": task["_id"]},
-            {"$set": {"status": status, "res": Binary(pickle.dumps(res, protocol=C.dump_protocol_version))}},
+            {
+                "$set": {
+                    "status": status,
+                    "res": Binary(pickle.dumps(res, protocol=C.dump_protocol_version)),
+                }
+            },
         )
 
     def return_task(self, task, status=STATUS_WAITING):
@@ -466,7 +475,9 @@ class TaskManager:
         last_undone_n = self._get_undone_n(task_stat)
         if last_undone_n == 0:
             return
-        self.logger.warning(f"Waiting for {last_undone_n} undone tasks. Please make sure they are running.")
+        self.logger.warning(
+            f"Waiting for {last_undone_n} undone tasks. Please make sure they are running."
+        )
         with tqdm(total=total, initial=total - last_undone_n) as pbar:
             while True:
                 time.sleep(10)
@@ -537,6 +548,7 @@ def run_task(
                 param = task["res"]
             else:
                 raise ValueError("The fetched task must be `STATUS_WAITING` or `STATUS_PART_DONE`!")
+            kwargs['task_mongodb_id'] = task['_id']
             if force_release:
                 with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
                     res = executor.submit(task_func, param, **kwargs).result()
