@@ -19,6 +19,7 @@ import torch.optim as optim
 from ...model.base import Model
 from ...data.dataset import DatasetH
 from ...data.dataset.handler import DataHandlerLP
+from ...workflow import R
 
 
 class LSTM(Model):
@@ -70,7 +71,9 @@ class LSTM(Model):
         self.optimizer = optimizer.lower()
         self.loss = loss
         GPU = int(GPU)
-        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
+        self.device = torch.device(
+            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
+        )
         self.seed = seed
 
         self.logger.info(
@@ -152,7 +155,9 @@ class LSTM(Model):
 
             vx = x - torch.mean(x)
             vy = y - torch.mean(y)
-            return torch.sum(vx * vy) / (torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2)))
+            return torch.sum(vx * vy) / (
+                torch.sqrt(torch.sum(vx ** 2)) * torch.sqrt(torch.sum(vy ** 2))
+            )
 
         if self.metric == ("", "loss"):
             return -self.loss_fn(pred[mask], label[mask])
@@ -174,8 +179,16 @@ class LSTM(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = torch.from_numpy(x_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            label = torch.from_numpy(y_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            feature = (
+                torch.from_numpy(x_train_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
+            )
+            label = (
+                torch.from_numpy(y_train_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
+            )
 
             pred = self.lstm_model(feature)
             loss = self.loss_fn(pred, label)
@@ -203,8 +216,12 @@ class LSTM(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            label = torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            feature = (
+                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            )
+            label = (
+                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            )
 
             pred = self.lstm_model(feature)
             loss = self.loss_fn(pred, label)
@@ -252,6 +269,16 @@ class LSTM(Model):
             self.logger.info("evaluating...")
             train_loss, train_score = self.test_epoch(x_train, y_train)
             val_loss, val_score = self.test_epoch(x_valid, y_valid)
+            R.log_metrics(
+                step=step,
+                **{
+                    "train_loss": train_loss,
+                    "train_score": train_score,
+                    "val_loss": val_loss,
+                    "val_score": val_score,
+                }
+            )
+
             self.logger.info("train %.6f, valid %.6f" % (train_score, val_score))
             evals_result["train"].append(train_score)
             evals_result["valid"].append(val_score)
