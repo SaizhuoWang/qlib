@@ -44,7 +44,7 @@ class LSTM(Model):
         dropout=0.0,
         n_epochs=200,
         lr=0.001,
-        metric="",
+        metric="ic",
         batch_size=2000,
         early_stop=20,
         loss="mse",
@@ -146,7 +146,15 @@ class LSTM(Model):
 
         mask = torch.isfinite(label)
 
-        if self.metric in ("", "loss"):
+        if self.metric == "ic":
+            x = pred[mask]
+            y = label[mask]
+
+            vx = x - torch.mean(x)
+            vy = y - torch.mean(y)
+            return torch.sum(vx * vy) / (torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2)))
+
+        if self.metric == ("", "loss"):
             return -self.loss_fn(pred[mask], label[mask])
 
         raise ValueError("unknown metric `%s`" % self.metric)
