@@ -24,6 +24,7 @@ from ...data.dataset import DatasetH
 from ...data.dataset.handler import DataHandlerLP
 from ...contrib.model.pytorch_lstm import LSTMModel
 from ...contrib.model.pytorch_gru import GRUModel
+import pickle
 
 
 class HIST(Model):
@@ -298,17 +299,21 @@ class HIST(Model):
         evals_result["train"] = []
         evals_result["valid"] = []
 
-        # load pretrained base_model
-        if self.base_model == "LSTM":
-            pretrained_model = LSTMModel()
-        elif self.base_model == "GRU":
-            pretrained_model = GRUModel()
-        else:
-            raise ValueError("unknown base model name `%s`" % self.base_model)
+        # # load pretrained base_model
+        # if self.base_model == "LSTM":
+        #     pretrained_model = LSTMModel()
+        # elif self.base_model == "GRU":
+        #     pretrained_model = GRUModel()
+        # else:
+        #     raise ValueError("unknown base model name `%s`" % self.base_model)
 
+        # load pretrained base_model
         if self.model_path is not None:
+            pretrained_model = LSTMModel()
             self.logger.info("Loading pretrained model...")
-            pretrained_model.load_state_dict(torch.load(self.model_path))
+            with open(self.model_path, "rb") as f:
+                params = pickle.load(f)
+            pretrained_model.load_state_dict(params.lstm_model.state_dict())
 
         model_dict = self.HIST_model.state_dict()
         pretrained_dict = {
