@@ -214,6 +214,8 @@ class RollingGen(TaskGen):
                     segments[k] = self.ta.shift(seg, step=self.step, rtype=rtype)
                 if segments[self.test_key][0] > test_end:
                     break
+                if segments[self.test_key][1] > test_end:
+                    segments[self.test_key] = (segments[self.test_key][0], test_end)
             except KeyError:
                 # We reach the end of tasks
                 # No more rolling
@@ -286,7 +288,10 @@ class RollingGen(TaskGen):
         test_end = transform_end_date(segments[self.test_key][1])
         # 2) and init test segments
         test_start_idx = self.ta.align_idx(segments[self.test_key][0])
-        segments[self.test_key] = (self.ta.get(test_start_idx), self.ta.get(test_start_idx + self.step - 1))
+        segments[self.test_key] = (
+            self.ta.get(test_start_idx),
+            self.ta.get(test_start_idx + self.step - 1),
+        )
         if self.trunc_days is not None:
             trunc_segments(self.ta, segments, self.trunc_days, self.test_key)
 

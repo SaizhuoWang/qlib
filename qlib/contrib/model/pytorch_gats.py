@@ -21,6 +21,7 @@ from ...data.dataset import DatasetH
 from ...data.dataset.handler import DataHandlerLP
 from ...contrib.model.pytorch_lstm import LSTMModel
 from ...contrib.model.pytorch_gru import GRUModel
+import pickle
 
 
 class GATs(Model):
@@ -75,6 +76,7 @@ class GATs(Model):
         self.loss = loss
         self.base_model = base_model
         self.model_path = model_path
+        GPU = int(GPU)
         self.device = torch.device(
             "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
         )
@@ -166,7 +168,7 @@ class GATs(Model):
             vx = x - torch.mean(x)
             vy = y - torch.mean(y)
             return torch.sum(vx * vy) / (
-                torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2))
+                torch.sqrt(torch.sum(vx ** 2)) * torch.sqrt(torch.sum(vy ** 2))
             )
 
         if self.metric == ("", "loss"):
@@ -269,9 +271,13 @@ class GATs(Model):
         else:
             raise ValueError("unknown base model name `%s`" % self.base_model)
 
+        # load pretrained base_model
         if self.model_path is not None:
+            pretrained_model = LSTMModel()
             self.logger.info("Loading pretrained model...")
-            pretrained_model.load_state_dict(torch.load(self.model_path, map_location=self.device))
+            with open(self.model_path, "rb") as f:
+                params = pickle.load(f)
+            pretrained_model.load_state_dict(params.lstm_model.state_dict())
 
         model_dict = self.GAT_model.state_dict()
         pretrained_dict = {
