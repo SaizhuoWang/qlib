@@ -290,7 +290,7 @@ class RollingGen(TaskGen):
         test_start_idx = self.ta.align_idx(segments[self.test_key][0])
         segments[self.test_key] = (
             self.ta.get(test_start_idx),
-            self.ta.get(test_start_idx + self.step - 1),
+            min(self.ta.get(test_start_idx + self.step - 1), test_end),
         )
         if self.trunc_days is not None:
             trunc_segments(self.ta, segments, self.trunc_days, self.test_key)
