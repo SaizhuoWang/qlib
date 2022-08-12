@@ -11,6 +11,8 @@ import pandas as pd
 from typing import Text, Union
 import urllib.request
 import copy
+
+from qlib.workflow import R
 from ...utils import get_or_create_path
 from ...log import get_module_logger
 import torch
@@ -22,6 +24,7 @@ from ...data.dataset import DatasetH
 from ...data.dataset.handler import DataHandlerLP
 from ...contrib.model.pytorch_lstm import LSTMModel
 from ...contrib.model.pytorch_gru import GRUModel
+import pickle
 
 
 class HIST(Model):
@@ -81,7 +84,9 @@ class HIST(Model):
         self.stock2concept = stock2concept
         self.stock_index = stock_index
         GPU = int(GPU)
-        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
+        self.device = torch.device(
+            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
+        )
         self.seed = seed
 
         self.logger.info(
@@ -170,7 +175,9 @@ class HIST(Model):
 
             vx = x - torch.mean(x)
             vy = y - torch.mean(y)
-            return torch.sum(vx * vy) / (torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2)))
+            return torch.sum(vx * vy) / (
+                torch.sqrt(torch.sum(vx ** 2)) * torch.sqrt(torch.sum(vy ** 2))
+            )
 
         if self.metric == ("", "loss"):
             return -self.loss_fn(pred[mask], label[mask])
@@ -204,7 +211,9 @@ class HIST(Model):
         for idx, count in zip(daily_index, daily_count):
             batch = slice(idx, idx + count)
             feature = torch.from_numpy(x_train_values[batch]).float().to(self.device)
-            concept_matrix = torch.from_numpy(stock2concept_matrix[stock_index[batch]]).float().to(self.device)
+            concept_matrix = (
+                torch.from_numpy(stock2concept_matrix[stock_index[batch]]).float().to(self.device)
+            )
             label = torch.from_numpy(y_train_values[batch]).float().to(self.device)
             pred = self.HIST_model(feature, concept_matrix)
             loss = self.loss_fn(pred, label)
@@ -233,7 +242,9 @@ class HIST(Model):
         for idx, count in zip(daily_index, daily_count):
             batch = slice(idx, idx + count)
             feature = torch.from_numpy(x_values[batch]).float().to(self.device)
-            concept_matrix = torch.from_numpy(stock2concept_matrix[stock_index[batch]]).float().to(self.device)
+            concept_matrix = (
+                torch.from_numpy(stock2concept_matrix[stock_index[batch]]).float().to(self.device)
+            )
             label = torch.from_numpy(y_values[batch]).float().to(self.device)
             with torch.no_grad():
                 pred = self.HIST_model(feature, concept_matrix)
@@ -269,8 +280,16 @@ class HIST(Model):
         df_valid["stock_index"] = 733
         df_valid["stock_index"] = df_valid.index.get_level_values("instrument").map(stock_index)
 
-        x_train, y_train, stock_index_train = df_train["feature"], df_train["label"], df_train["stock_index"]
-        x_valid, y_valid, stock_index_valid = df_valid["feature"], df_valid["label"], df_valid["stock_index"]
+        x_train, y_train, stock_index_train = (
+            df_train["feature"],
+            df_train["label"],
+            df_train["stock_index"],
+        )
+        x_valid, y_valid, stock_index_valid = (
+            df_valid["feature"],
+            df_valid["label"],
+            df_valid["stock_index"],
+        )
 
         save_path = get_or_create_path(save_path)
 
@@ -280,17 +299,21 @@ class HIST(Model):
         evals_result["train"] = []
         evals_result["valid"] = []
 
-        # load pretrained base_model
-        if self.base_model == "LSTM":
-            pretrained_model = LSTMModel()
-        elif self.base_model == "GRU":
-            pretrained_model = GRUModel()
-        else:
-            raise ValueError("unknown base model name `%s`" % self.base_model)
+        # # load pretrained base_model
+        # if self.base_model == "LSTM":
+        #     pretrained_model = LSTMModel()
+        # elif self.base_model == "GRU":
+        #     pretrained_model = GRUModel()
+        # else:
+        #     raise ValueError("unknown base model name `%s`" % self.base_model)
 
+        # load pretrained base_model
         if self.model_path is not None:
+            pretrained_model = LSTMModel()
             self.logger.info("Loading pretrained model...")
-            pretrained_model.load_state_dict(torch.load(self.model_path))
+            with open(self.model_path, "rb") as f:
+                params = pickle.load(f)
+            pretrained_model.load_state_dict(params.lstm_model.state_dict())
 
         model_dict = self.HIST_model.state_dict()
         pretrained_dict = {
@@ -312,6 +335,15 @@ class HIST(Model):
             self.logger.info("evaluating...")
             train_loss, train_score = self.test_epoch(x_train, y_train, stock_index_train)
             val_loss, val_score = self.test_epoch(x_valid, y_valid, stock_index_valid)
+            R.log_metrics(
+                step=step,
+                **{
+                    "train_loss": train_loss,
+                    "train_score": train_score,
+                    "val_loss": val_loss,
+                    "val_score": val_score,
+                }
+            )
             self.logger.info("train %.6f, valid %.6f" % (train_score, val_score))
             evals_result["train"].append(train_score)
             evals_result["valid"].append(val_score)
@@ -356,7 +388,11 @@ class HIST(Model):
         for idx, count in zip(daily_index, daily_count):
             batch = slice(idx, idx + count)
             x_batch = torch.from_numpy(x_values[batch]).float().to(self.device)
-            concept_matrix = torch.from_numpy(stock2concept_matrix[stock_index_test[batch]]).float().to(self.device)
+            concept_matrix = (
+                torch.from_numpy(stock2concept_matrix[stock_index_test[batch]])
+                .float()
+                .to(self.device)
+            )
 
             with torch.no_grad():
                 pred = self.HIST_model(x_batch, concept_matrix).detach().cpu().numpy()
@@ -444,7 +480,9 @@ class HISTModel(nn.Module):
 
         stock_to_concept = concept_matrix
 
-        stock_to_concept_sum = torch.sum(stock_to_concept, 0).reshape(1, -1).repeat(stock_to_concept.shape[0], 1)
+        stock_to_concept_sum = (
+            torch.sum(stock_to_concept, 0).reshape(1, -1).repeat(stock_to_concept.shape[0], 1)
+        )
         stock_to_concept_sum = stock_to_concept_sum.mul(concept_matrix)
 
         stock_to_concept_sum = stock_to_concept_sum + (
@@ -478,7 +516,9 @@ class HISTModel(nn.Module):
         i_stock_to_concept[row, column] = 10
         i_stock_to_concept[i_stock_to_concept != 10] = 0
         i_stock_to_concept[row, column] = value
-        i_stock_to_concept = i_stock_to_concept + torch.diag_embed((i_stock_to_concept.sum(0) != 0).float() * diag)
+        i_stock_to_concept = i_stock_to_concept + torch.diag_embed(
+            (i_stock_to_concept.sum(0) != 0).float() * diag
+        )
         hidden = torch.t(i_shared_info).mm(i_stock_to_concept).t()
         hidden = hidden[hidden.sum(1) != 0]
 
