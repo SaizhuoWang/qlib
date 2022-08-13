@@ -83,6 +83,7 @@ class TRAModel(Model):
         freeze_predictors=False,
         transport_method="none",
         memory_mode="sample",
+        **kwargs,
     ):
 
         self.logger = get_module_logger("TRA")

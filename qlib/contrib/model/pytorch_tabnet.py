@@ -69,6 +69,7 @@ class TabnetModel(Model):
         self.n_epochs = n_epochs
         self.logger = get_module_logger("TabNet")
         self.pretrain_n_epochs = pretrain_n_epochs
+        GPU = int(GPU)
         self.device = "cuda:%s" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
         self.loss = loss
         self.metric = metric
