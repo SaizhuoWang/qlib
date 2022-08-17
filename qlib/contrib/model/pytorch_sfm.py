@@ -386,7 +386,8 @@ class SFM(Model):
         evals_result=dict(),
         save_path=None,
     ):
-
+        from qlib.workflow import R
+        recorder = R.get_recorder()
         df_train, df_valid = dataset.prepare(
             ["train", "valid"],
             col_set=["feature", "label"],
@@ -425,6 +426,8 @@ class SFM(Model):
                 stop_steps = 0
                 best_epoch = step
                 best_param = copy.deepcopy(self.sfm_model.state_dict())
+                torch.save(best_param, 'best_param.pth')
+                recorder.save_objects('best_param.pth')
             else:
                 stop_steps += 1
                 if stop_steps >= self.early_stop:
@@ -434,6 +437,7 @@ class SFM(Model):
         self.logger.info("best score: %.6lf @ %d" % (best_score, best_epoch))
         self.sfm_model.load_state_dict(best_param)
         torch.save(best_param, save_path)
+        recorder.save_objects(save_path)
         if self.device != "cpu":
             torch.cuda.empty_cache()
 

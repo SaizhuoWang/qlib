@@ -155,6 +155,8 @@ class TabnetModel(Model):
         evals_result=dict(),
         save_path=None,
     ):
+        from qlib.workflow import R
+        recorder = R.get_recorder()
         if self.pretrain:
             # there is a  pretrained model, load the model
             self.logger.info("Pretrain...")
@@ -202,6 +204,8 @@ class TabnetModel(Model):
                 stop_steps = 0
                 best_epoch = epoch_idx
                 best_param = copy.deepcopy(self.tabnet_model.state_dict())
+                torch.save(best_param, 'best_param.pth')
+                recorder.save_objects('best_param.pth')
             else:
                 stop_steps += 1
                 if stop_steps >= self.early_stop:
@@ -211,6 +215,7 @@ class TabnetModel(Model):
         self.logger.info("best score: %.6lf @ %d" % (best_score, best_epoch))
         self.tabnet_model.load_state_dict(best_param)
         torch.save(best_param, save_path)
+        recorder.save_objects(save_path)
 
         if self.use_gpu:
             torch.cuda.empty_cache()

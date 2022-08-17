@@ -18,6 +18,7 @@ from qlib.data.dataset.handler import DataHandlerLP
 from qlib.log import get_module_logger
 from qlib.model.base import Model
 from qlib.utils import get_or_create_path
+from qlib.workflow import R
 
 
 class ADARNN(Model):
@@ -246,6 +247,7 @@ class ADARNN(Model):
         evals_result=dict(),
         save_path=None,
     ):
+        recorder = R.get_recorder()
 
         df_train, df_valid = dataset.prepare(
             ["train", "valid"],
@@ -291,6 +293,8 @@ class ADARNN(Model):
                 stop_steps = 0
                 best_epoch = step
                 best_param = copy.deepcopy(self.model.state_dict())
+                torch.save(best_param, './best_param.pth')
+                recorder.save_objects('./best_param.pth')
             else:
                 stop_steps += 1
                 if stop_steps >= self.early_stop:
@@ -300,6 +304,7 @@ class ADARNN(Model):
         self.logger.info("best score: %.6lf @ %d" % (best_score, best_epoch))
         self.model.load_state_dict(best_param)
         torch.save(best_param, save_path)
+        recorder.save_objects(save_path)
 
         if self.use_gpu:
             torch.cuda.empty_cache()
