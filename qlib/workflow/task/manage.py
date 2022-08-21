@@ -15,6 +15,7 @@ A task in TaskManager consists of 3 parts
 import concurrent
 import pickle
 import time
+import traceback
 from contextlib import contextmanager
 from typing import Callable, List
 
@@ -26,8 +27,8 @@ from pymongo.errors import InvalidDocument
 from qlib import auto_init, get_module_logger
 from tqdm.cli import tqdm
 
-from .utils import get_mongodb
 from ...config import C
+from .utils import get_mongodb
 
 
 class TaskManager:
@@ -307,6 +308,7 @@ class TaskManager:
         except (Exception, KeyboardInterrupt):  # KeyboardInterrupt is not a subclass of Exception
             if task is not None:
                 self.logger.info("Returning task before raising error")
+                self.logger.info(f"The exception is:\n{traceback.format_exc()}")
                 self.return_task(task, status=status)  # return task as the original status
                 self.logger.info("Task returned")
             raise

@@ -70,7 +70,6 @@ class ALSTM(Model):
         self.early_stop = early_stop
         self.optimizer = optimizer.lower()
         self.loss = loss
-        GPU = int(GPU)
         self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
@@ -218,8 +217,6 @@ class ALSTM(Model):
         evals_result=dict(),
         save_path=None,
     ):
-        from qlib.workflow import R
-        recorder = R.get_recorder()
         df_train, df_valid, df_test = dataset.prepare(
             ["train", "valid", "test"],
             col_set=["feature", "label"],
@@ -259,8 +256,6 @@ class ALSTM(Model):
                 stop_steps = 0
                 best_epoch = step
                 best_param = copy.deepcopy(self.ALSTM_model.state_dict())
-                torch.save(best_param, 'best_param.pth')
-                recorder.save_objects('best_param.pth')
             else:
                 stop_steps += 1
                 if stop_steps >= self.early_stop:
@@ -270,7 +265,6 @@ class ALSTM(Model):
         self.logger.info("best score: %.6lf @ %d" % (best_score, best_epoch))
         self.ALSTM_model.load_state_dict(best_param)
         torch.save(best_param, save_path)
-        recorder.save_objects(save_path)
 
         if self.use_gpu:
             torch.cuda.empty_cache()

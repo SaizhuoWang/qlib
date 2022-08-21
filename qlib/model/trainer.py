@@ -32,7 +32,7 @@ from qlib.workflow import R
 from qlib.workflow.recorder import Recorder
 from qlib.workflow.task.manage import TaskManager, run_task
 from qlib.data.dataset.weight import Reweighter
-from logging import Logger
+from logging import Logger, getLogger
 
 def _log_task_info(task_config: dict):
     R.log_params(**flatten_dict(task_config))
@@ -414,6 +414,7 @@ class TrainerRM(Trainer):
         Returns:
             List[Recorder]: a list of Recorders
         """
+        logger = getLogger(name='TrainerRM')
         if isinstance(tasks, dict):
             tasks = [tasks]
         if len(tasks) == 0:
@@ -430,6 +431,7 @@ class TrainerRM(Trainer):
         tm = TaskManager(task_pool=task_pool)
         _id_list = tm.create_task(tasks)  # all tasks will be saved to MongoDB
         query = {"_id": {"$in": _id_list}}
+        logger.info(f"{len(_id_list)} tasks created. Task = {query}")
         if not self.skip_run_task:
             run_task(
                 train_func,
