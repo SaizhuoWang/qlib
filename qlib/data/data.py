@@ -542,7 +542,7 @@ class DatasetProvider(abc.ABC):
         return [ExpressionD.get_expression_instance(f) for f in fields]
 
     @staticmethod
-    def dataset_processor(instruments_d, column_names, start_time, end_time, freq, inst_processors=[]):
+    def dataset_processor(instruments_d, column_names, start_time, end_time, freq, inst_processors=[], logger=None):
         """
         Load and process the data, return the data set.
         - default using multi-kernel method.
@@ -567,15 +567,19 @@ class DatasetProvider(abc.ABC):
                     inst, start_time, end_time, freq, normalize_column_names, spans, C, inst_processors
                 )
             )
-
+        if logger is not None:
+            logger.info(f'start to calculate {len(task_l)} tasks with {workers} workers')
         data = dict(
             zip(
                 inst_l,
                 ParallelExt(n_jobs=workers, backend=C.joblib_backend, maxtasksperchild=C.maxtasksperchild)(task_l),
             )
         )
+        if logger is not None:
+            logger.info(f'finish calculating {len(task_l)} tasks with {workers} workers')
 
         new_data = dict()
+        import pdb;pdb.set_trace()
         for inst in sorted(data.keys()):
             if len(data[inst]) > 0:
                 # NOTE: Python version >= 3.6; in versions after python3.6, dict will always guarantee the insertion order
@@ -894,6 +898,7 @@ class LocalDatasetProvider(DatasetProvider):
         """
         super().__init__()
         self.align_time = align_time
+        self.logger = get_module_logger(self.__class__.__name__)
 
     def dataset(
         self,
@@ -917,7 +922,7 @@ class LocalDatasetProvider(DatasetProvider):
             start_time = cal[0]
             end_time = cal[-1]
         data = self.dataset_processor(
-            instruments_d, column_names, start_time, end_time, freq, inst_processors=inst_processors
+            instruments_d, column_names, start_time, end_time, freq, inst_processors=inst_processors, logger=self.logger
         )
 
         return data

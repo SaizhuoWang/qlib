@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from ...utils.serial import Serializable
 from typing import Callable, Union, List, Tuple, Dict, Text, Optional
 from ...utils import init_instance_by_config, np_ffill, time_to_slc_point
@@ -38,6 +39,7 @@ class Dataset(Serializable):
         """
         super().config(**kwargs)
 
+    @abstractmethod
     def setup_data(self, **kwargs):
         """
         Setup the data.
@@ -52,6 +54,7 @@ class Dataset(Serializable):
 
         - User prepare data for model based on previous status.
         """
+        raise NotImplementedError()
 
     def prepare(self, **kwargs) -> object:
         """
@@ -112,9 +115,11 @@ class DatasetH(Dataset):
                         'outsample': ("2017-01-01", "2020-08-01",),
                     }
         """
+        self.logger = get_module_logger('DatasetH')
         self.handler: DataHandler = init_instance_by_config(handler, accept_types=DataHandler)
         self.segments = segments.copy()
         self.fetch_kwargs = copy(fetch_kwargs)
+        self.logger.info(f'Successfully initialized handler {self.handler}. Now setup data.')
         super().__init__(**kwargs)
 
     def config(self, handler_kwargs: dict = None, **kwargs):
@@ -157,6 +162,7 @@ class DatasetH(Dataset):
         """
         super().setup_data(**kwargs)
         if handler_kwargs is not None:
+            self.logger.info(f'Let the handler setup the data .......')
             self.handler.setup_data(**handler_kwargs)
 
     def __repr__(self):

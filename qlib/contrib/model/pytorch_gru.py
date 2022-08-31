@@ -267,7 +267,6 @@ class GRU(Model):
         self.logger.info("best score: %.6lf @ %d" % (best_score, best_epoch))
         self.gru_model.load_state_dict(best_param)
         torch.save(best_param, save_path)
-        R.save_objects
         
         if self.use_gpu:
             torch.cuda.empty_cache()

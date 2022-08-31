@@ -82,7 +82,6 @@ class ADARNN(Model):
         self.optimizer = optimizer.lower()
         self.loss = loss
         self.n_splits = n_splits
-        GPU = int(GPU)
         self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 

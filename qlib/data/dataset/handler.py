@@ -77,7 +77,7 @@ class DataHandler(Serializable):
 
         # Setup data loader
         assert data_loader is not None  # to make start_time end_time could have None default value
-
+        self.logger = get_module_logger(self.__class__.__name__)
         # what data source to load data
         self.data_loader = init_instance_by_config(
             data_loader,
@@ -137,6 +137,7 @@ class DataHandler(Serializable):
         # Setup data.
         # _data may be with multiple column index level. The outer level indicates the feature set name
         with TimeInspector.logt("Loading data"):
+            self.logger.info('Loading data ...')
             # make sure the fetch method is based on a index-sorted pd.DataFrame
             self._data = lazy_sort_index(self.data_loader.load(self.instruments, self.start_time, self.end_time))
         # TODO: cache
@@ -570,6 +571,7 @@ class DataHandlerLP(DataHandler):
         super().setup_data(**kwargs)
 
         with TimeInspector.logt("fit & process data"):
+            self.logger.info('Fitting and processing data ......')
             if init_type == DataHandlerLP.IT_FIT_IND:
                 self.fit()
                 self.process_data()

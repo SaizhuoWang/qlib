@@ -32,10 +32,13 @@ def init(default_conf="client", **kwargs):
 
     """
     from .config import C  # pylint: disable=C0415
+    from .config import _default_config
     from .data.cache import H  # pylint: disable=C0415
 
     # FIXME: this logger ignored the level in config
     logger = get_module_logger("Initialization", level=logging.INFO)
+    
+    num_parallel = kwargs.pop('num_parallel', 1)
 
     skip_if_reg = kwargs.pop("skip_if_reg", False)
     if skip_if_reg and C.registered:
@@ -74,6 +77,13 @@ def init(default_conf="client", **kwargs):
     logger.info("qlib successfully initialized based on %s settings." % default_conf)
     data_path = {_freq: C.dpm.get_data_uri(_freq) for _freq in C.dpm.provider_uri.keys()}
     logger.info(f"data_path={data_path}")
+    
+    # Some ugly hack for changing the number of visible CPUs per parallel task
+    old_kernel = _default_config['kernels']
+    new_kernel = old_kernel // num_parallel
+    C.__dict__['_config']['kernels'] = new_kernel
+    logger.info(f"Changing visible CPUs: {old_kernel} => {new_kernel}")
+
 
 
 def _mount_nfs_uri(provider_uri, mount_path, auto_mount: bool = False):

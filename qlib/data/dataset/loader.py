@@ -79,6 +79,7 @@ class DLWParser(DataLoader):
                 <fields_info> := ["expr", ...] | (["expr", ...], ["col_name", ...])
                 # NOTE: list or tuple will be treated as the things when parsing
         """
+        self.logger = get_module_logger(self.__class__.__name__)
         self.is_group = isinstance(config, dict)
 
         if self.is_group:
@@ -208,10 +209,12 @@ class QlibDataLoader(DLWParser):
             warnings.warn("`filter_pipe` is not None, but it will not be used with `instruments` as list")
 
         freq = self.freq[gp_name] if isinstance(self.freq, dict) else self.freq
+        self.logger.info('Loading data for group "%s" with freq "%s" from disk', gp_name, freq)
         df = D.features(
             instruments, exprs, start_time, end_time, freq=freq, inst_processors=self.inst_processor.get(gp_name, [])
         )
         df.columns = names
+        self.logger.info('Loaded data for group "%s" with freq "%s" from disk', gp_name, freq)
         if self.swap_level:
             df = df.swaplevel().sort_index()  # NOTE: if swaplevel, return <datetime, instrument>
         return df

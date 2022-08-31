@@ -159,6 +159,7 @@ class SignalRecord(RecordTemp):
     """
     This is the Signal Record class that generates the signal prediction. This class inherits the ``RecordTemp`` class.
     """
+    artifact_path = "sig_analysis"
 
     def __init__(self, model=None, dataset=None, recorder=None):
         super().__init__(recorder=recorder)

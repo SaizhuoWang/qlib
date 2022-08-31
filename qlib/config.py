@@ -90,7 +90,17 @@ class Config:
 # pickle.dump protocol version: https://docs.python.org/3/library/pickle.html#data-stream-format
 PROTOCOL_VERSION = 4
 
-NUM_USABLE_CPU = max(multiprocessing.cpu_count() - 2, 1)
+def compute_num_cpu():
+    num_visible_cores = max(multiprocessing.cpu_count() - 2, 1)
+    if 'SLURM_CPUS_PER_TASK' in os.environ:
+        # cpu_mask = os.environ['SLURM_CPU_BIND_LIST']
+        # slurm_assigned_cpu = bin(int(cpu_mask, 16)).count('1') - 2
+        cpus_per_task = int(os.environ['SLURM_CPUS_PER_TASK'])
+        return min(cpus_per_task, num_visible_cores)
+    else:
+        return num_visible_cores
+
+NUM_USABLE_CPU = compute_num_cpu()
 
 DISK_DATASET_CACHE = "DiskDatasetCache"
 SIMPLE_DATASET_CACHE = "SimpleDatasetCache"
@@ -399,7 +409,7 @@ class QlibConfig(Config):
             the default config template chosen by user: "server", "client"
         """
         from .utils import set_log_with_config, get_module_logger, can_use_cache  # pylint: disable=C0415
-
+        
         self.reset()
 
         _logging_config = kwargs.get("logging_config", self.logging_config)
