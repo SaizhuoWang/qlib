@@ -579,7 +579,6 @@ class DatasetProvider(abc.ABC):
             logger.info(f'finish calculating {len(task_l)} tasks with {workers} workers')
 
         new_data = dict()
-        import pdb;pdb.set_trace()
         for inst in sorted(data.keys()):
             if len(data[inst]) > 0:
                 # NOTE: Python version >= 3.6; in versions after python3.6, dict will always guarantee the insertion order

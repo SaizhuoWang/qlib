@@ -115,14 +115,28 @@ class DumpDataBase:
     def _get_date(
         self, file_or_df: [Path, pd.DataFrame], *, is_begin_end: bool = False, as_set: bool = False
     ) -> Iterable[pd.Timestamp]:
-        if not isinstance(file_or_df, pd.DataFrame):
-            df = self._get_source_data(file_or_df)
-        else:
-            df = file_or_df
-        if df.empty or self.date_field_name not in df.columns.tolist():
-            _calendars = pd.Series(dtype=np.float32)
-        else:
-            _calendars = df[self.date_field_name]
+        try:
+            if not isinstance(file_or_df, pd.DataFrame):
+                df = self._get_source_data(file_or_df)
+            else:
+                df = file_or_df
+            if df.empty or self.date_field_name not in df.columns.tolist():
+                _calendars = pd.Series(dtype=np.float32)
+            else:
+                _calendars = df[self.date_field_name]
+        except Exception as e:
+            print('Erronous file: {}'.format(file_or_df))
+            raise e
+
+        if any(pd.isnull(_calendars)):
+            # import pdb;pdb.set_trace()
+            null_mask = pd.isnull(_calendars)
+            null_idx = [i for i in range(len(_calendars)) if null_mask[i]]
+            print('=====================')
+            print(f'Detected null date in {file_or_df}')
+            print(f'NULL index = {null_idx}')
+            for idx in null_idx:
+                print(f'NULL date context = {_calendars[idx-5:idx+5]}')
 
         if is_begin_end and as_set:
             return (_calendars.min(), _calendars.max()), set(_calendars)
@@ -353,7 +367,7 @@ class DumpDataFix(DumpDataAll):
         )  # type: dict
         self._dump_instruments()
         self._dump_features()
-
+        
 
 class DumpDataUpdate(DumpDataBase):
     def __init__(

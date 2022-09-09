@@ -1,21 +1,23 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-# coding=utf-8
+import datetime
+import json
+import os
+import pickle
 import warnings
-from typing import Callable, Union, Tuple, List, Iterator, Optional
+# coding=utf-8
+from typing import Callable, Dict, Iterator, List, Optional, OrderedDict, Tuple, Union
 
 import pandas as pd
 
-from ...log import get_module_logger, TimeInspector
-from ...utils import init_instance_by_config
+from ...log import TimeInspector, get_module_logger
+from ...utils import init_instance_by_config, lazy_sort_index
 from ...utils.serial import Serializable
-from .utils import fetch_df_by_index, fetch_df_by_col
-from ...utils import lazy_sort_index
-from .loader import DataLoader
-
-from . import processor as processor_module
 from . import loader as data_loader_module
+from . import processor as processor_module
+from .loader import DataLoader
+from .utils import fetch_df_by_col, fetch_df_by_index
 
 
 # TODO: A more general handler interface which does not relies on internal pd.DataFrame is needed.
@@ -415,7 +417,40 @@ class DataHandlerLP(DataHandler):
         drop_raw: bool
             Whether to drop the raw data
         """
-
+        def format_config_dict(d: Union[Dict, List[Dict]]):
+            """Recursively change the datetime instances in the dictionary to string"""
+            if isinstance(d, list):
+                for element in d:
+                    format_config_dict(element)
+            else:
+                for k, v in d.items():
+                    if isinstance(v, dict) or isinstance(v, list):
+                        format_config_dict(v)
+                    elif isinstance(v, datetime.date):
+                        d[k] = v.strftime('%Y-%m-%d')
+                
+        def recursive_sort_dict(d: Dict):
+            """Recursively sort the dictionary"""
+            if isinstance(d, dict):
+                return {k: recursive_sort_dict(v) for k, v in sorted(d.items())}
+            elif isinstance(d, list):
+                return [recursive_sort_dict(v) for v in d]
+            else:
+                return d
+        import pdb; pdb.set_trace()
+        self.config_dict = {
+            "instruments": instruments,
+            "start_time": start_time,
+            "end_time": end_time,
+            "process_type": process_type,
+            "infer_processors": infer_processors,
+            "learn_processors": learn_processors,
+            "shared_processors": shared_processors,
+            "handler_name": self.__class__.__name__,
+            **kwargs,
+        }
+        format_config_dict(self.config_dict)
+        self.config_dict = recursive_sort_dict(self.config_dict)
         # Setup preprocessor
         self.infer_processors = []  # for lint
         self.learn_processors = []  # for lint
@@ -550,8 +585,14 @@ class DataHandlerLP(DataHandler):
     IT_FIT_SEQ = "fit_seq"  # the input of `fit` will be the output of the previous processor
     IT_FIT_IND = "fit_ind"  # the input of `fit` will be the original df
     IT_LS = "load_state"  # The state of the object has been load by pickle
+    
+    @property
+    def digest(self) -> str:
+        config_str = repr(self.config_dict)
+        import hashlib
+        return hashlib.md5(config_str.encode("utf-8")).hexdigest()[0:8]
 
-    def setup_data(self, init_type: str = IT_FIT_SEQ, **kwargs):
+    def setup_data(self, init_type: str = IT_FIT_SEQ, enable_cache: bool = True, **kwargs):
         """
         Set up the data in case of running initialization for multiple time
 
@@ -567,6 +608,26 @@ class DataHandlerLP(DataHandler):
                 the processed data will be saved on disk, and handler will load the cached data from the disk directly
                 when we call `init` next time
         """
+        
+        from ...config import C
+        provider_dir = C['provider_uri']['__DEFAULT_FREQ']
+        cache_dir = os.path.join(provider_dir, "handler_cache", self.digest)
+        if enable_cache:
+            self.logger.info(f"Trying to load cached data from {cache_dir}")
+            # Try to load from cache dir
+            if os.path.isdir(cache_dir):
+                self.logger.info(f'{cache_dir} exists. Trying to load from it')
+                try:
+                    self._data = pickle.load(open(os.path.join(cache_dir, '_data.pkl'), 'rb'))
+                    self._infer = pickle.load(open(os.path.join(cache_dir, '_infer.pkl'), 'rb'))
+                    self._learn = pickle.load(open(os.path.join(cache_dir, '_learn.pkl'), 'rb'))
+                    self.logger.info(f"Successfully loaded cached data from {cache_dir}")
+                    return
+                except:
+                    self.logger.info(f"{cache_dir} is not a valid cache directory, returning to setup from scratch")
+            else:
+                self.logger.info(f"{cache_dir} does not exist. Returning to setup from scratch")
+
         # init raw data
         super().setup_data(**kwargs)
 
@@ -583,6 +644,20 @@ class DataHandlerLP(DataHandler):
                 raise NotImplementedError(f"This type of input is not supported")
 
         # TODO: Be able to cache handler data. Save the memory for data processing
+        if enable_cache:
+            import filelock
+            os.makedirs(cache_dir, exist_ok=True)
+            lock = filelock.FileLock(os.path.join(cache_dir, 'lock'))
+            with lock:
+                if not os.path.exists(os.path.join(cache_dir, '_data.pkl')):
+                    pickle.dump(self._data, open(os.path.join(cache_dir, '_data.pkl'), 'wb'))
+                if not os.path.exists(os.path.join(cache_dir, '_infer.pkl')):
+                    pickle.dump(self._infer, open(os.path.join(cache_dir, '_infer.pkl'), 'wb'))
+                if not os.path.exists(os.path.join(cache_dir, '_learn.pkl')):
+                    pickle.dump(self._learn, open(os.path.join(cache_dir, '_learn.pkl'), 'wb'))
+                if not os.path.exists(os.path.join(cache_dir, 'config.json')):
+                    json.dump(self.config_dict, open(os.path.join(cache_dir, 'config.json'), 'w'), indent=4)
+                self.logger.info(f"Successfully saved cached data to {cache_dir}")
 
     def _get_df_by_key(self, data_key: str = DK_I) -> pd.DataFrame:
         if data_key == self.DK_R and self.drop_raw:

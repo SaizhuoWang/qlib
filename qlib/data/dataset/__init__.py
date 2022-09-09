@@ -39,7 +39,6 @@ class Dataset(Serializable):
         """
         super().config(**kwargs)
 
-    @abstractmethod
     def setup_data(self, **kwargs):
         """
         Setup the data.
@@ -54,7 +53,6 @@ class Dataset(Serializable):
 
         - User prepare data for model based on previous status.
         """
-        raise NotImplementedError()
 
     def prepare(self, **kwargs) -> object:
         """
