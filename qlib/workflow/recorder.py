@@ -1,23 +1,25 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-import os
-import sys
-import mlflow
 import logging
-import shutil
+import os
 import pickle
-import tempfile
+import shutil
 import subprocess
-from pathlib import Path
+import sys
+import tempfile
 from datetime import datetime
+from pathlib import Path
 
-from qlib.utils.serial import Serializable
+import mlflow
+from mlflow.store.artifact.azure_blob_artifact_repo import \
+    AzureBlobArtifactRepository
+
 from qlib.utils.exceptions import LoadObjectError
 from qlib.utils.paral import AsyncCaller
+from qlib.utils.serial import Serializable
 
 from ..log import TimeInspector, get_module_logger
-from mlflow.store.artifact.azure_blob_artifact_repo import AzureBlobArtifactRepository
 
 logger = get_module_logger("workflow", logging.INFO)
 
@@ -45,7 +47,9 @@ class Recorder:
         self.status = Recorder.STATUS_S
 
     def __repr__(self):
-        return "{name}(info={info})".format(name=self.__class__.__name__, info=self.info)
+        return "{name}(info={info})".format(
+            name=self.__class__.__name__, info=self.info
+        )
 
     def __str__(self):
         return str(self.info)
@@ -221,17 +225,23 @@ class MLflowRecorder(Recorder):
         self.client = mlflow.tracking.MlflowClient(tracking_uri=self._uri)
         # construct from mlflow run
         if mlflow_run is not None:
-            assert isinstance(mlflow_run, mlflow.entities.run.Run), "Please input with a MLflow Run object."
+            assert isinstance(
+                mlflow_run, mlflow.entities.run.Run
+            ), "Please input with a MLflow Run object."
             self.name = mlflow_run.data.tags["mlflow.runName"]
             self.id = mlflow_run.info.run_id
             self.status = mlflow_run.info.status
             self.start_time = (
-                datetime.fromtimestamp(float(mlflow_run.info.start_time) / 1000.0).strftime("%Y-%m-%d %H:%M:%S")
+                datetime.fromtimestamp(
+                    float(mlflow_run.info.start_time) / 1000.0
+                ).strftime("%Y-%m-%d %H:%M:%S")
                 if mlflow_run.info.start_time is not None
                 else None
             )
             self.end_time = (
-                datetime.fromtimestamp(float(mlflow_run.info.end_time) / 1000.0).strftime("%Y-%m-%d %H:%M:%S")
+                datetime.fromtimestamp(
+                    float(mlflow_run.info.end_time) / 1000.0
+                ).strftime("%Y-%m-%d %H:%M:%S")
                 if mlflow_run.info.end_time is not None
                 else None
             )
@@ -275,7 +285,9 @@ class MLflowRecorder(Recorder):
             if os.path.isdir(local_dir_path):
                 return local_dir_path
             else:
-                raise RuntimeError("This recorder is not saved in the local file system.")
+                raise RuntimeError(
+                    "This recorder is not saved in the local file system."
+                )
 
         else:
             raise Exception(
@@ -292,7 +304,9 @@ class MLflowRecorder(Recorder):
         self._artifact_uri = run.info.artifact_uri
         self.start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.status = Recorder.STATUS_R
-        logger.info(f"Recorder {self.id} starts running under Experiment {self.experiment_id} ...")
+        logger.info(
+            f"Recorder {self.id} starts running under Experiment {self.experiment_id} ..."
+        )
 
         # NOTE: making logging async.
         # - This may cause delay when uploading results
@@ -303,7 +317,9 @@ class MLflowRecorder(Recorder):
         # Maybe we can make this feature more general.
         self._log_uncommitted_code()
 
-        self.log_params(**{"cmd-sys.argv": " ".join(sys.argv)})  # log the command to produce current experiment
+        self.log_params(
+            **{"cmd-sys.argv": " ".join(sys.argv)}
+        )  # log the command to produce current experiment
         return run
 
     def _log_uncommitted_code(self):
@@ -320,9 +336,13 @@ class MLflowRecorder(Recorder):
         ]:
             try:
                 out = subprocess.check_output(cmd, shell=True)
-                self.client.log_text(self.id, out.decode(), fname)  # this behaves same as above
+                self.client.log_text(
+                    self.id, out.decode(), fname
+                )  # this behaves same as above
             except subprocess.CalledProcessError:
-                logger.info(f"Fail to log the uncommitted code of $CWD when run `{cmd}`")
+                logger.info(
+                    f"Fail to log the uncommitted code of $CWD when run `{cmd}`"
+                )
 
     def end_run(self, status: str = Recorder.STATUS_S):
         assert status in [
@@ -341,7 +361,9 @@ class MLflowRecorder(Recorder):
         self.async_log = None
 
     def save_objects(self, local_path=None, artifact_path=None, **kwargs):
-        assert self.uri is not None, "Please start the experiment and recorder first before using recorder directly."
+        assert (
+            self.uri is not None
+        ), "Please start the experiment and recorder first before using recorder directly."
         if local_path is not None:
             path = Path(local_path)
             if path.is_dir():
@@ -371,7 +393,9 @@ class MLflowRecorder(Recorder):
         Returns:
             object: the saved object in mlflow.
         """
-        assert self.uri is not None, "Please start the experiment and recorder first before using recorder directly."
+        assert (
+            self.uri is not None
+        ), "Please start the experiment and recorder first before using recorder directly."
 
         path = None
         try:
@@ -416,7 +440,9 @@ class MLflowRecorder(Recorder):
             )
 
     def list_artifacts(self, artifact_path=None):
-        assert self.uri is not None, "Please start the experiment and recorder first before using recorder directly."
+        assert (
+            self.uri is not None
+        ), "Please start the experiment and recorder first before using recorder directly."
         artifacts = self.client.list_artifacts(self.id, artifact_path)
         return [art.path for art in artifacts]
 

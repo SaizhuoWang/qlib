@@ -12,6 +12,7 @@ In ``DelayTrainer``, the first step is only to save some necessary info to model
 """
 
 import socket
+from logging import Logger, getLogger
 from typing import Callable, List, Optional
 
 from tqdm.auto import tqdm
@@ -21,18 +22,13 @@ from qlib.data.dataset import Dataset
 from qlib.data.dataset.weight import Reweighter
 from qlib.log import get_module_logger
 from qlib.model.base import Model
-from qlib.utils import (
-    auto_filter_kwargs,
-    fill_placeholder,
-    flatten_dict,
-    init_instance_by_config,
-)
+from qlib.utils import (auto_filter_kwargs, fill_placeholder, flatten_dict,
+                        init_instance_by_config)
 from qlib.utils.paral import call_in_subproc
 from qlib.workflow import R
 from qlib.workflow.recorder import Recorder
 from qlib.workflow.task.manage import TaskManager, run_task
-from qlib.data.dataset.weight import Reweighter
-from logging import Logger, getLogger
+
 
 def _log_task_info(task_config: dict):
     R.log_params(**flatten_dict(task_config))
@@ -44,7 +40,9 @@ def _exe_task(task_config: dict):
     rec = R.get_recorder()
     # model & dataset initiation
     model: Model = init_instance_by_config(task_config["model"], accept_types=Model)
-    dataset: Dataset = init_instance_by_config(task_config["dataset"], accept_types=Dataset)
+    dataset: Dataset = init_instance_by_config(
+        task_config["dataset"], accept_types=Dataset
+    )
     reweighter: Reweighter = task_config.get("reweighter", None)
     # model training
     auto_filter_kwargs(model.fit)(dataset, reweighter=reweighter)
@@ -102,13 +100,17 @@ def end_task_train(rec: Recorder, experiment_name: str) -> Recorder:
     Returns:
         Recorder: the model recorder
     """
-    with R.start(experiment_name=experiment_name, recorder_id=rec.info["id"], resume=True):
+    with R.start(
+        experiment_name=experiment_name, recorder_id=rec.info["id"], resume=True
+    ):
         task_config = R.load_object("task")
         _exe_task(task_config)
     return rec
 
 
-def task_train(task_config: dict, experiment_name: str, recorder_name: str = None) -> Recorder:
+def task_train(
+    task_config: dict, experiment_name: str, recorder_name: str = None
+) -> Recorder:
     """
     Task based training, will be divided into two steps.
 
@@ -244,7 +246,11 @@ class TrainerR(Trainer):
         self._call_in_subproc = call_in_subproc
 
     def train(
-        self, tasks: list, train_func: Callable = None, experiment_name: str = None, **kwargs
+        self,
+        tasks: list,
+        train_func: Callable = None,
+        experiment_name: str = None,
+        **kwargs,
     ) -> List[Recorder]:
         """
         Given a list of `task`s and return a list of trained Recorder. The order can be guaranteed.
@@ -269,9 +275,13 @@ class TrainerR(Trainer):
         recs = []
         for task in tqdm(tasks, desc="train tasks"):
             if self._call_in_subproc:
-                get_module_logger("TrainerR").info("running models in sub process (for forcing release memroy).")
+                get_module_logger("TrainerR").info(
+                    "running models in sub process (for forcing release memroy)."
+                )
                 train_func = call_in_subproc(train_func, C)
-            rec = train_func(task, experiment_name, recorder_name=self.default_rec_name, **kwargs)
+            rec = train_func(
+                task, experiment_name, recorder_name=self.default_rec_name, **kwargs
+            )
             rec.set_tags(**{self.STATUS_KEY: self.STATUS_BEGIN})
             recs.append(rec)
         return recs
@@ -299,7 +309,11 @@ class DelayTrainerR(TrainerR):
     """
 
     def __init__(
-        self, experiment_name: str = None, train_func=begin_task_train, end_train_func=end_task_train, **kwargs
+        self,
+        experiment_name: str = None,
+        train_func=begin_task_train,
+        end_train_func=end_task_train,
+        **kwargs,
     ):
         """
         Init TrainerRM.
@@ -414,7 +428,7 @@ class TrainerRM(Trainer):
         Returns:
             List[Recorder]: a list of Recorders
         """
-        logger = getLogger(name='TrainerRM')
+        logger = getLogger(name="TrainerRM")
         if isinstance(tasks, dict):
             tasks = [tasks]
         if len(tasks) == 0:

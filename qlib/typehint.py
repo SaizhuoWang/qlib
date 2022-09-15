@@ -8,6 +8,7 @@ import sys
 __all__ = ["Literal", "TypedDict", "final"]
 
 if sys.version_info >= (3, 8):
-    from typing import Literal, TypedDict, final  # type: ignore  # pylint: disable=no-name-in-module
+    from typing import (  # type: ignore  # pylint: disable=no-name-in-module
+        Literal, TypedDict, final)
 else:
     from typing_extensions import Literal, TypedDict, final

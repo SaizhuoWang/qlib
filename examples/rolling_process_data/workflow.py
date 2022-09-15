@@ -1,15 +1,16 @@
 #  Copyright (c) Microsoft Corporation.
 #  Licensed under the MIT License.
 
-import qlib
-import fire
 import pickle
-
 from datetime import datetime
+
+import fire
+
+import qlib
 from qlib.constant import REG_CN
 from qlib.data.dataset.handler import DataHandlerLP
-from qlib.utils import init_instance_by_config
 from qlib.tests.data import GetData
+from qlib.utils import init_instance_by_config
 
 
 class RollingDataWorkflow:
@@ -71,11 +72,17 @@ class RollingDataWorkflow:
                         "fit_start_time": datetime(*train_start_time),
                         "fit_end_time": datetime(*train_end_time),
                         "infer_processors": [
-                            {"class": "RobustZScoreNorm", "kwargs": {"fields_group": "feature"}},
+                            {
+                                "class": "RobustZScoreNorm",
+                                "kwargs": {"fields_group": "feature"},
+                            },
                         ],
                         "learn_processors": [
                             {"class": "DropnaLabel"},
-                            {"class": "CSZScoreNorm", "kwargs": {"fields_group": "label"}},
+                            {
+                                "class": "CSZScoreNorm",
+                                "kwargs": {"fields_group": "label"},
+                            },
                         ],
                         "data_loader_kwargs": {
                             "handler_config": pre_handler,
@@ -98,25 +105,49 @@ class RollingDataWorkflow:
             if rolling_offset:
                 dataset.config(
                     handler_kwargs={
-                        "start_time": datetime(train_start_time[0] + rolling_offset, *train_start_time[1:]),
-                        "end_time": datetime(test_end_time[0] + rolling_offset, *test_end_time[1:]),
+                        "start_time": datetime(
+                            train_start_time[0] + rolling_offset, *train_start_time[1:]
+                        ),
+                        "end_time": datetime(
+                            test_end_time[0] + rolling_offset, *test_end_time[1:]
+                        ),
                         "processor_kwargs": {
-                            "fit_start_time": datetime(train_start_time[0] + rolling_offset, *train_start_time[1:]),
-                            "fit_end_time": datetime(train_end_time[0] + rolling_offset, *train_end_time[1:]),
+                            "fit_start_time": datetime(
+                                train_start_time[0] + rolling_offset,
+                                *train_start_time[1:],
+                            ),
+                            "fit_end_time": datetime(
+                                train_end_time[0] + rolling_offset, *train_end_time[1:]
+                            ),
                         },
                     },
                     segments={
                         "train": (
-                            datetime(train_start_time[0] + rolling_offset, *train_start_time[1:]),
-                            datetime(train_end_time[0] + rolling_offset, *train_end_time[1:]),
+                            datetime(
+                                train_start_time[0] + rolling_offset,
+                                *train_start_time[1:],
+                            ),
+                            datetime(
+                                train_end_time[0] + rolling_offset, *train_end_time[1:]
+                            ),
                         ),
                         "valid": (
-                            datetime(valid_start_time[0] + rolling_offset, *valid_start_time[1:]),
-                            datetime(valid_end_time[0] + rolling_offset, *valid_end_time[1:]),
+                            datetime(
+                                valid_start_time[0] + rolling_offset,
+                                *valid_start_time[1:],
+                            ),
+                            datetime(
+                                valid_end_time[0] + rolling_offset, *valid_end_time[1:]
+                            ),
                         ),
                         "test": (
-                            datetime(test_start_time[0] + rolling_offset, *test_start_time[1:]),
-                            datetime(test_end_time[0] + rolling_offset, *test_end_time[1:]),
+                            datetime(
+                                test_start_time[0] + rolling_offset,
+                                *test_start_time[1:],
+                            ),
+                            datetime(
+                                test_end_time[0] + rolling_offset, *test_end_time[1:]
+                            ),
                         ),
                     },
                 )

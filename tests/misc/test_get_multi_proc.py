@@ -2,15 +2,20 @@
 #  Licensed under the MIT License.
 
 import unittest
+from multiprocessing import Pool
 
 import qlib
 from qlib.data import D
 from qlib.tests import TestAutoData
-from multiprocessing import Pool
 
 
 def get_features(fields):
-    qlib.init(provider_uri=TestAutoData.provider_uri, expression_cache=None, dataset_cache=None, joblib_backend="loky")
+    qlib.init(
+        provider_uri=TestAutoData.provider_uri,
+        expression_cache=None,
+        dataset_cache=None,
+        joblib_backend="loky",
+    )
     return D.features(D.instruments("csi300"), fields)
 
 

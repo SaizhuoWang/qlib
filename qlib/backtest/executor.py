@@ -16,7 +16,8 @@ from ..strategy.base import BaseStrategy
 from ..utils import init_instance_by_config
 from .decision import BaseTradeDecision, Order
 from .exchange import Exchange
-from .utils import CommonInfrastructure, LevelInfrastructure, TradeCalendarManager, get_start_end_idx
+from .utils import (CommonInfrastructure, LevelInfrastructure,
+                    TradeCalendarManager, get_start_end_idx)
 
 
 class BaseExecutor:
@@ -118,13 +119,17 @@ class BaseExecutor:
         self._settle_type = settle_type
         self.reset(start_time=start_time, end_time=end_time, common_infra=common_infra)
         if common_infra is None:
-            get_module_logger("BaseExecutor").warning(f"`common_infra` is not set for {self}")
+            get_module_logger("BaseExecutor").warning(
+                f"`common_infra` is not set for {self}"
+            )
 
         # record deal order amount in one day
         self.dealt_order_amount: Dict[str, float] = defaultdict(float)
         self.deal_day = None
 
-    def reset_common_infra(self, common_infra: CommonInfrastructure, copy_trade_account: bool = False) -> None:
+    def reset_common_infra(
+        self, common_infra: CommonInfrastructure, copy_trade_account: bool = False
+    ) -> None:
         """
         reset infrastructure for trading
             - reset trade_account
@@ -144,12 +149,17 @@ class BaseExecutor:
                 if copy_trade_account
                 else common_infra.get("trade_account")
             )
-            self.trade_account.reset(freq=self.time_per_step, port_metr_enabled=self.generate_portfolio_metrics)
+            self.trade_account.reset(
+                freq=self.time_per_step,
+                port_metr_enabled=self.generate_portfolio_metrics,
+            )
 
     @property
     def trade_exchange(self) -> Exchange:
         """get trade exchange in a prioritized order"""
-        return getattr(self, "_trade_exchange", None) or self.common_infra.get("trade_exchange")
+        return getattr(self, "_trade_exchange", None) or self.common_infra.get(
+            "trade_exchange"
+        )
 
     @property
     def trade_calendar(self) -> TradeCalendarManager:
@@ -168,7 +178,9 @@ class BaseExecutor:
         if "start_time" in kwargs or "end_time" in kwargs:
             start_time = kwargs.get("start_time")
             end_time = kwargs.get("end_time")
-            self.level_infra.reset_cal(freq=self.time_per_step, start_time=start_time, end_time=end_time)
+            self.level_infra.reset_cal(
+                freq=self.time_per_step, start_time=start_time, end_time=end_time
+            )
         if common_infra is not None:
             self.reset_common_infra(common_infra)
 
@@ -178,7 +190,9 @@ class BaseExecutor:
     def finished(self) -> bool:
         return self.trade_calendar.finished()
 
-    def execute(self, trade_decision: BaseTradeDecision, level: int = 0) -> List[object]:
+    def execute(
+        self, trade_decision: BaseTradeDecision, level: int = 0
+    ) -> List[object]:
         """execute the trade decision and return the executed result
 
         NOTE: this function is never used directly in the framework. Should we delete it?
@@ -196,7 +210,9 @@ class BaseExecutor:
             the executed result for trade decision
         """
         return_value: dict = {}
-        for _decision in self.collect_data(trade_decision, return_value=return_value, level=level):
+        for _decision in self.collect_data(
+            trade_decision, return_value=return_value, level=level
+        ):
             pass
         return cast(list, return_value.get("execute_result"))
 
@@ -205,7 +221,9 @@ class BaseExecutor:
         self,
         trade_decision: BaseTradeDecision,
         level: int = 0,
-    ) -> Union[Generator[Any, Any, Tuple[List[object], dict]], Tuple[List[object], dict]]:
+    ) -> Union[
+        Generator[Any, Any, Tuple[List[object], dict]], Tuple[List[object], dict]
+    ]:
         """
         Please refer to the doc of collect_data
         The only difference between `_collect_data` and `collect_data` is that some common steps are moved into
@@ -259,7 +277,9 @@ class BaseExecutor:
         if self.track_data:
             yield trade_decision
 
-        atomic = not issubclass(self.__class__, NestedExecutor)  # issubclass(A, A) is True
+        atomic = not issubclass(
+            self.__class__, NestedExecutor
+        )  # issubclass(A, A) is True
 
         if atomic and trade_decision.get_range_limit(default_value=None) is not None:
             raise ValueError("atomic executor doesn't support specify `range_limit`")
@@ -368,7 +388,9 @@ class NestedExecutor(BaseExecutor):
             **kwargs,
         )
 
-    def reset_common_infra(self, common_infra: CommonInfrastructure, copy_trade_account: bool = False) -> None:
+    def reset_common_infra(
+        self, common_infra: CommonInfrastructure, copy_trade_account: bool = False
+    ) -> None:
         """
         reset infrastructure for trading
             - reset inner_strategy and inner_executor common infra
@@ -376,7 +398,9 @@ class NestedExecutor(BaseExecutor):
         # NOTE: please refer to the docs of BaseExecutor.reset_common_infra for the meaning of `copy_trade_account`
 
         # The first level follow the `copy_trade_account` from the upper level
-        super(NestedExecutor, self).reset_common_infra(common_infra, copy_trade_account=copy_trade_account)
+        super(NestedExecutor, self).reset_common_infra(
+            common_infra, copy_trade_account=copy_trade_account
+        )
 
         # The lower level have to copy the trade_account
         self.inner_executor.reset_common_infra(common_infra, copy_trade_account=True)
@@ -387,11 +411,17 @@ class NestedExecutor(BaseExecutor):
         self.inner_executor.reset(start_time=trade_start_time, end_time=trade_end_time)
         sub_level_infra = self.inner_executor.get_level_infra()
         self.level_infra.set_sub_level_infra(sub_level_infra)
-        self.inner_strategy.reset(level_infra=sub_level_infra, outer_trade_decision=trade_decision)
+        self.inner_strategy.reset(
+            level_infra=sub_level_infra, outer_trade_decision=trade_decision
+        )
 
-    def _update_trade_decision(self, trade_decision: BaseTradeDecision) -> BaseTradeDecision:
+    def _update_trade_decision(
+        self, trade_decision: BaseTradeDecision
+    ) -> BaseTradeDecision:
         # outer strategy have chance to update decision each iterator
-        updated_trade_decision = trade_decision.update(self.inner_executor.trade_calendar)
+        updated_trade_decision = trade_decision.update(
+            self.inner_executor.trade_calendar
+        )
         if updated_trade_decision is not None:  # TODO: always is None for now?
             trade_decision = updated_trade_decision
             # NEW UPDATE
@@ -426,7 +456,10 @@ class NestedExecutor(BaseExecutor):
 
             # NOTE: make sure get_start_end_idx is after `self._update_trade_decision`
             start_idx, end_idx = get_start_end_idx(sub_cal, trade_decision)
-            if not self._align_range_limit or start_idx <= sub_cal.get_trade_step() <= end_idx:
+            if (
+                not self._align_range_limit
+                or start_idx <= sub_cal.get_trade_step() <= end_idx
+            ):
                 # if force align the range limit, skip the steps outside the decision range limit
 
                 res = self.inner_strategy.generate_trade_decision(_inner_execute_result)
@@ -452,7 +485,9 @@ class NestedExecutor(BaseExecutor):
 
                 _inner_trade_decision: BaseTradeDecision = res
 
-                trade_decision.mod_inner_decision(_inner_trade_decision)  # propagate part of decision information
+                trade_decision.mod_inner_decision(
+                    _inner_trade_decision
+                )  # propagate part of decision information
 
                 # NOTE sub_cal.get_step_time() must be called before collect_data in case of step shifting
                 decision_list.append((_inner_trade_decision, *sub_cal.get_step_time()))
@@ -467,13 +502,18 @@ class NestedExecutor(BaseExecutor):
                 execute_result.extend(_inner_execute_result)
 
                 inner_order_indicators.append(
-                    self.inner_executor.trade_account.get_trade_indicator().get_order_indicator(raw=True),
+                    self.inner_executor.trade_account.get_trade_indicator().get_order_indicator(
+                        raw=True
+                    ),
                 )
             else:
                 # do nothing and just step forward
                 sub_cal.step()
 
-        return execute_result, {"inner_order_indicators": inner_order_indicators, "decision_list": decision_list}
+        return execute_result, {
+            "inner_order_indicators": inner_order_indicators,
+            "decision_list": decision_list,
+        }
 
     def post_inner_exe_step(self, inner_exe_res: List[object]) -> None:
         """
@@ -589,7 +629,9 @@ class SimulatorExecutor(BaseExecutor):
             self.deal_day = now_deal_day
         self.dealt_order_amount[order.stock_id] += order.deal_amount
 
-    def _collect_data(self, trade_decision: BaseTradeDecision, level: int = 0) -> Tuple[List[object], dict]:
+    def _collect_data(
+        self, trade_decision: BaseTradeDecision, level: int = 0
+    ) -> Tuple[List[object], dict]:
         trade_start_time, _ = self.trade_calendar.get_step_time()
         execute_result: list = []
 

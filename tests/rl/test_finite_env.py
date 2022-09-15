@@ -8,15 +8,12 @@ import numpy as np
 from tianshou.data import Batch, Collector
 from tianshou.policy import BasePolicy
 from torch.utils.data import DataLoader, Dataset, DistributedSampler
-from qlib.rl.utils.finite_env import (
-    LogWriter,
-    FiniteDummyVectorEnv,
-    FiniteShmemVectorEnv,
-    FiniteSubprocVectorEnv,
-    check_nan_observation,
-    generate_nan_observation,
-)
 
+from qlib.rl.utils.finite_env import (FiniteDummyVectorEnv,
+                                      FiniteShmemVectorEnv,
+                                      FiniteSubprocVectorEnv, LogWriter,
+                                      check_nan_observation,
+                                      generate_nan_observation)
 
 _test_space = gym.spaces.Dict(
     {
@@ -25,7 +22,10 @@ _test_space = gym.spaces.Dict(
                 "position": gym.spaces.Box(low=-100, high=100, shape=(3,)),
                 "velocity": gym.spaces.Box(low=-1, high=1, shape=(3,)),
                 "front_cam": gym.spaces.Tuple(
-                    (gym.spaces.Box(low=0, high=1, shape=(10, 10, 3)), gym.spaces.Box(low=0, high=1, shape=(10, 10, 3)))
+                    (
+                        gym.spaces.Box(low=0, high=1, shape=(10, 10, 3)),
+                        gym.spaces.Box(low=0, high=1, shape=(10, 10, 3)),
+                    )
                 ),
                 "rear_cam": gym.spaces.Box(low=0, high=1, shape=(10, 10, 3)),
             }
@@ -52,7 +52,11 @@ class FiniteEnv(gym.Env):
         self.dataset = dataset
         self.num_replicas = num_replicas
         self.rank = rank
-        self.loader = DataLoader(dataset, sampler=DistributedSampler(dataset, num_replicas, rank), batch_size=None)
+        self.loader = DataLoader(
+            dataset,
+            sampler=DistributedSampler(dataset, num_replicas, rank),
+            batch_size=None,
+        )
         self.iterator = None
         self.observation_space = gym.spaces.Discrete(255)
         self.action_space = gym.spaces.Discrete(2)
@@ -84,7 +88,11 @@ class FiniteEnvWithComplexObs(FiniteEnv):
         self.dataset = dataset
         self.num_replicas = num_replicas
         self.rank = rank
-        self.loader = DataLoader(dataset, sampler=DistributedSampler(dataset, num_replicas, rank), batch_size=None)
+        self.loader = DataLoader(
+            dataset,
+            sampler=DistributedSampler(dataset, num_replicas, rank),
+            batch_size=None,
+        )
         self.iterator = None
         self.observation_space = gym.spaces.Discrete(255)
         self.action_space = gym.spaces.Discrete(2)
@@ -167,7 +175,9 @@ class DoNothingTracker(LogWriter):
 def test_finite_dummy_vector_env():
     length = 100
     dataset = DummyDataset(length)
-    envs = FiniteDummyVectorEnv(MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)])
+    envs = FiniteDummyVectorEnv(
+        MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)]
+    )
     envs._collector_guarded = True
     policy = AnyPolicy()
     test_collector = Collector(policy, envs, exploration_noise=True)
@@ -183,7 +193,9 @@ def test_finite_dummy_vector_env():
 def test_finite_shmem_vector_env():
     length = 100
     dataset = DummyDataset(length)
-    envs = FiniteShmemVectorEnv(MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)])
+    envs = FiniteShmemVectorEnv(
+        MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)]
+    )
     envs._collector_guarded = True
     policy = AnyPolicy()
     test_collector = Collector(policy, envs, exploration_noise=True)
@@ -199,7 +211,9 @@ def test_finite_shmem_vector_env():
 def test_finite_subproc_vector_env():
     length = 100
     dataset = DummyDataset(length)
-    envs = FiniteSubprocVectorEnv(MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)])
+    envs = FiniteSubprocVectorEnv(
+        MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)]
+    )
     envs._collector_guarded = True
     policy = AnyPolicy()
     test_collector = Collector(policy, envs, exploration_noise=True)
@@ -221,7 +235,8 @@ def test_finite_dummy_vector_env_complex():
     length = 100
     dataset = DummyDataset(length)
     envs = FiniteDummyVectorEnv(
-        DoNothingTracker(), [_finite_env_factory(dataset, 5, i, complex=True) for i in range(5)]
+        DoNothingTracker(),
+        [_finite_env_factory(dataset, 5, i, complex=True) for i in range(5)],
     )
     envs._collector_guarded = True
     policy = AnyPolicy()
@@ -237,7 +252,8 @@ def test_finite_shmem_vector_env_complex():
     length = 100
     dataset = DummyDataset(length)
     envs = FiniteShmemVectorEnv(
-        DoNothingTracker(), [_finite_env_factory(dataset, 5, i, complex=True) for i in range(5)]
+        DoNothingTracker(),
+        [_finite_env_factory(dataset, 5, i, complex=True) for i in range(5)],
     )
     envs._collector_guarded = True
     policy = AnyPolicy()

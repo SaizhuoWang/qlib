@@ -1,19 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-import sys
 import shutil
+import sys
 import unittest
-import pytest
 from pathlib import Path
+
+import pytest
 
 import qlib
 from qlib.config import C
-from qlib.utils import init_instance_by_config, flatten_dict
-from qlib.workflow import R
-from qlib.workflow.record_temp import SignalRecord, SigAnaRecord, PortAnaRecord
 from qlib.tests import TestAutoData
-from qlib.tests.config import CSI300_GBDT_TASK, CSI300_BENCH
+from qlib.tests.config import CSI300_BENCH, CSI300_GBDT_TASK
+from qlib.utils import flatten_dict, init_instance_by_config
+from qlib.workflow import R
+from qlib.workflow.record_temp import PortAnaRecord, SigAnaRecord, SignalRecord
 
 
 def train(uri_path: str = None):
@@ -109,7 +110,11 @@ def fake_experiment():
 
         current_uri_to_check = R.get_uri()
     default_uri_to_check = R.get_uri()
-    return default_uri == default_uri_to_check, current_uri == current_uri_to_check, current_uri
+    return (
+        default_uri == default_uri_to_check,
+        current_uri == current_uri_to_check,
+        current_uri,
+    )
 
 
 def backtest_analysis(pred, rid, uri_path: str = None):
@@ -179,7 +184,9 @@ class TestAllFlow(TestAutoData):
     REPORT_NORMAL = None
     POSITIONS = None
     RID = None
-    URI_PATH = "file:" + str(Path(__file__).parent.joinpath("test_all_flow_mlruns").resolve())
+    URI_PATH = "file:" + str(
+        Path(__file__).parent.joinpath("test_all_flow_mlruns").resolve()
+    )
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -199,9 +206,13 @@ class TestAllFlow(TestAutoData):
 
     @pytest.mark.slow
     def test_2_backtest(self):
-        analyze_df = backtest_analysis(TestAllFlow.PRED_SCORE, TestAllFlow.RID, self.URI_PATH)
+        analyze_df = backtest_analysis(
+            TestAllFlow.PRED_SCORE, TestAllFlow.RID, self.URI_PATH
+        )
         self.assertGreaterEqual(
-            analyze_df.loc(axis=0)["excess_return_with_cost", "annualized_return"].values[0],
+            analyze_df.loc(axis=0)[
+                "excess_return_with_cost", "annualized_return"
+            ].values[0],
             0.10,
             "backtest failed",
         )

@@ -75,9 +75,13 @@ def _find_pickle(filename_without_suffix: Path) -> Path:
         if path.exists():
             paths.append(path)
     if not paths:
-        raise FileNotFoundError(f"No file starting with '{filename_without_suffix}' found")
+        raise FileNotFoundError(
+            f"No file starting with '{filename_without_suffix}' found"
+        )
     if len(paths) > 1:
-        raise ValueError(f"Multiple paths are found with prefix '{filename_without_suffix}': {paths}")
+        raise ValueError(
+            f"Multiple paths are found with prefix '{filename_without_suffix}': {paths}"
+        )
     return paths[0]
 
 
@@ -139,7 +143,14 @@ class SimpleIntradayBacktestData(IntradayBacktestData):
         self.order_dir = order_dir
 
     def __repr__(self) -> str:
-        with pd.option_context("memory_usage", False, "display.max_info_columns", 1, "display.large_repr", "info"):
+        with pd.option_context(
+            "memory_usage",
+            False,
+            "display.max_info_columns",
+            1,
+            "display.large_repr",
+            "info",
+        ):
             return f"{self.__class__.__name__}({self.data})"
 
     def __len__(self) -> int:
@@ -150,7 +161,9 @@ class SimpleIntradayBacktestData(IntradayBacktestData):
         See :attribute:`DealPriceType` for details."""
         if self.deal_price_type in ("bid_or_ask", "bid_or_ask_fill"):
             if self.order_dir is None:
-                raise ValueError("Order direction cannot be none when deal_price_type is not close.")
+                raise ValueError(
+                    "Order direction cannot be none when deal_price_type is not close."
+                )
             if self.order_dir == OrderDir.SELL:
                 col = "$bid0"
             else:  # BUY
@@ -213,15 +226,23 @@ class IntradayProcessedData:
             proc = proc.loc[pd.IndexSlice[stock_id, :, date]]
             assert len(proc) == time_length and len(proc.columns) == feature_dim * 2
             proc_today = proc[cnames]
-            proc_yesterday = proc[[f"{c}_1" for c in cnames]].rename(columns=lambda c: c[:-2])
+            proc_yesterday = proc[[f"{c}_1" for c in cnames]].rename(
+                columns=lambda c: c[:-2]
+            )
         except (IndexError, KeyError):
             # legacy data
             proc = proc.loc[pd.IndexSlice[stock_id, date]]
             assert time_length * feature_dim * 2 == len(proc)
-            proc_today = proc.to_numpy()[: time_length * feature_dim].reshape((time_length, feature_dim))
-            proc_yesterday = proc.to_numpy()[time_length * feature_dim :].reshape((time_length, feature_dim))
+            proc_today = proc.to_numpy()[: time_length * feature_dim].reshape(
+                (time_length, feature_dim)
+            )
+            proc_yesterday = proc.to_numpy()[time_length * feature_dim :].reshape(
+                (time_length, feature_dim)
+            )
             proc_today = pd.DataFrame(proc_today, index=time_index, columns=cnames)
-            proc_yesterday = pd.DataFrame(proc_yesterday, index=time_index, columns=cnames)
+            proc_yesterday = pd.DataFrame(
+                proc_yesterday, index=time_index, columns=cnames
+            )
 
         self.today: pd.DataFrame = proc_today
         self.yesterday: pd.DataFrame = proc_yesterday
@@ -229,7 +250,14 @@ class IntradayProcessedData:
         assert len(self.today) == len(self.yesterday) == time_length
 
     def __repr__(self) -> str:
-        with pd.option_context("memory_usage", False, "display.max_info_columns", 1, "display.large_repr", "info"):
+        with pd.option_context(
+            "memory_usage",
+            False,
+            "display.max_info_columns",
+            1,
+            "display.large_repr",
+            "info",
+        ):
             return f"{self.__class__.__name__}({self.today}, {self.yesterday})"
 
 
@@ -297,8 +325,14 @@ def load_orders(
                 row["instrument"],
                 row["amount"],
                 OrderDir(int(row["order_type"])),
-                row["datetime"].replace(hour=start_time.hour, minute=start_time.minute, second=start_time.second),
-                row["datetime"].replace(hour=end_time.hour, minute=end_time.minute, second=end_time.second),
+                row["datetime"].replace(
+                    hour=start_time.hour,
+                    minute=start_time.minute,
+                    second=start_time.second,
+                ),
+                row["datetime"].replace(
+                    hour=end_time.hour, minute=end_time.minute, second=end_time.second
+                ),
             ),
         )
 

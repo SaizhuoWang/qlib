@@ -12,17 +12,16 @@ Two modes are supported
 """
 from __future__ import annotations
 
-import os
-import re
 import copy
 import logging
-import platform
 import multiprocessing
+import os
+import platform
+import re
 from pathlib import Path
-from typing import Callable, Optional, Union
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Optional, Union
 
-from qlib.constant import REG_CN, REG_US, REG_TW
+from qlib.constant import REG_CN, REG_TW, REG_US
 
 if TYPE_CHECKING:
     from qlib.utils.time import Freq
@@ -30,7 +29,9 @@ if TYPE_CHECKING:
 
 class Config:
     def __init__(self, default_conf):
-        self.__dict__["_default_config"] = copy.deepcopy(default_conf)  # avoiding conflicts with __getattr__
+        self.__dict__["_default_config"] = copy.deepcopy(
+            default_conf
+        )  # avoiding conflicts with __getattr__
         self.reset()
 
     def __getitem__(self, key):
@@ -90,15 +91,17 @@ class Config:
 # pickle.dump protocol version: https://docs.python.org/3/library/pickle.html#data-stream-format
 PROTOCOL_VERSION = 4
 
+
 def compute_num_cpu():
     num_visible_cores = max(multiprocessing.cpu_count() - 2, 1)
-    if 'SLURM_CPUS_PER_TASK' in os.environ:
+    if "SLURM_CPUS_PER_TASK" in os.environ:
         # cpu_mask = os.environ['SLURM_CPU_BIND_LIST']
         # slurm_assigned_cpu = bin(int(cpu_mask, 16)).count('1') - 2
-        cpus_per_task = int(os.environ['SLURM_CPUS_PER_TASK'])
+        cpus_per_task = int(os.environ["SLURM_CPUS_PER_TASK"])
         return min(cpus_per_task, num_visible_cores)
     else:
         return num_visible_cores
+
 
 NUM_USABLE_CPU = compute_num_cpu()
 
@@ -297,7 +300,11 @@ class QlibConfig(Config):
         - some helper functions to process uri.
         """
 
-        def __init__(self, provider_uri: Union[str, Path, dict], mount_path: Union[str, Path, dict]):
+        def __init__(
+            self,
+            provider_uri: Union[str, Path, dict],
+            mount_path: Union[str, Path, dict],
+        ):
 
             """
             The relation of `provider_uri` and `mount_path`
@@ -317,14 +324,19 @@ class QlibConfig(Config):
             else:
                 raise TypeError(f"provider_uri does not support {type(provider_uri)}")
             for freq, _uri in provider_uri.items():
-                if QlibConfig.DataPathManager.get_uri_type(_uri) == QlibConfig.LOCAL_URI:
+                if (
+                    QlibConfig.DataPathManager.get_uri_type(_uri)
+                    == QlibConfig.LOCAL_URI
+                ):
                     provider_uri[freq] = str(Path(_uri).expanduser().resolve())
             return provider_uri
 
         @staticmethod
         def get_uri_type(uri: Union[str, Path]):
             uri = uri if isinstance(uri, str) else str(uri.expanduser().resolve())
-            is_win = re.match("^[a-zA-Z]:.*", uri) is not None  # such as 'C:\\data', 'D:'
+            is_win = (
+                re.match("^[a-zA-Z]:.*", uri) is not None
+            )  # such as 'C:\\data', 'D:'
             # such as 'host:/data/'   (User may define short hostname by themselves or use localhost)
             is_nfs_or_win = re.match("^[^/]+:.+", uri) is not None
 
@@ -385,7 +397,9 @@ class QlibConfig(Config):
         for _freq in _provider_uri.keys():
             # mount_path
             _mount_path[_freq] = (
-                _mount_path[_freq] if _mount_path[_freq] is None else str(Path(_mount_path[_freq]).expanduser())
+                _mount_path[_freq]
+                if _mount_path[_freq] is None
+                else str(Path(_mount_path[_freq]).expanduser())
             )
         self["provider_uri"] = _provider_uri
         self["mount_path"] = _mount_path
@@ -408,8 +422,9 @@ class QlibConfig(Config):
         default_conf : str
             the default config template chosen by user: "server", "client"
         """
-        from .utils import set_log_with_config, get_module_logger, can_use_cache  # pylint: disable=C0415
-        
+        from .utils import (can_use_cache,  # pylint: disable=C0415
+                            get_module_logger, set_log_with_config)
+
         self.reset()
 
         _logging_config = kwargs.get("logging_config", self.logging_config)
@@ -423,7 +438,9 @@ class QlibConfig(Config):
         logger.info(f"default_conf: {default_conf}.")
 
         self.set_mode(default_conf)
-        self.set_region(kwargs.get("region", self["region"] if "region" in self else REG_CN))
+        self.set_region(
+            kwargs.get("region", self["region"] if "region" in self else REG_CN)
+        )
 
         for k, v in kwargs.items():
             if k not in self:
@@ -442,7 +459,11 @@ class QlibConfig(Config):
                     self["expression_cache"] = None
                 # check dataset cache
                 if self.is_depend_redis(self["dataset_cache"]):
-                    log_str += f" and {self['dataset_cache']}" if log_str else self["dataset_cache"]
+                    log_str += (
+                        f" and {self['dataset_cache']}"
+                        if log_str
+                        else self["dataset_cache"]
+                    )
                     self["dataset_cache"] = None
                 if log_str:
                     logger.warning(
@@ -451,11 +472,12 @@ class QlibConfig(Config):
                     )
 
     def register(self):
-        from .utils import init_instance_by_config  # pylint: disable=C0415
-        from .data.ops import register_all_ops  # pylint: disable=C0415
         from .data.data import register_all_wrappers  # pylint: disable=C0415
-        from .workflow import R, QlibRecorder  # pylint: disable=C0415
-        from .workflow.utils import experiment_exit_handler  # pylint: disable=C0415
+        from .data.ops import register_all_ops  # pylint: disable=C0415
+        from .utils import init_instance_by_config  # pylint: disable=C0415
+        from .workflow import QlibRecorder, R  # pylint: disable=C0415
+        from .workflow.utils import \
+            experiment_exit_handler  # pylint: disable=C0415
 
         register_all_ops(self)
         register_all_wrappers(self)

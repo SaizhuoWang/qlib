@@ -1,16 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+from typing import Text, Union
+
 import numpy as np
 import pandas as pd
-from typing import Text, Union
-from qlib.data.dataset.weight import Reweighter
 from scipy.optimize import nnls
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.linear_model import Lasso, LinearRegression, Ridge
 
-from ...model.base import Model
+from qlib.data.dataset.weight import Reweighter
+
 from ...data.dataset import DatasetH
 from ...data.dataset.handler import DataHandlerLP
+from ...model.base import Model
 
 
 class LinearModel(Model):
@@ -40,10 +42,18 @@ class LinearModel(Model):
         fit_intercept : bool
             whether fit intercept
         """
-        assert estimator in [self.OLS, self.NNLS, self.RIDGE, self.LASSO], f"unsupported estimator `{estimator}`"
+        assert estimator in [
+            self.OLS,
+            self.NNLS,
+            self.RIDGE,
+            self.LASSO,
+        ], f"unsupported estimator `{estimator}`"
         self.estimator = estimator
 
-        assert alpha == 0 or estimator in [self.RIDGE, self.LASSO], f"alpha is only supported in `ridge`&`lasso`"
+        assert alpha == 0 or estimator in [
+            self.RIDGE,
+            self.LASSO,
+        ], f"alpha is only supported in `ridge`&`lasso`"
         self.alpha = alpha
 
         self.fit_intercept = fit_intercept
@@ -51,9 +61,13 @@ class LinearModel(Model):
         self.coef_ = None
 
     def fit(self, dataset: DatasetH, reweighter: Reweighter = None):
-        df_train = dataset.prepare("train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
+        df_train = dataset.prepare(
+            "train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
+        )
         if df_train.empty:
-            raise ValueError("Empty data from dataset, please check your dataset config.")
+            raise ValueError(
+                "Empty data from dataset, please check your dataset config."
+            )
         if reweighter is not None:
             w: pd.Series = reweighter.reweight(df_train)
             w = w.values
@@ -97,5 +111,9 @@ class LinearModel(Model):
     def predict(self, dataset: DatasetH, segment: Union[Text, slice] = "test"):
         if self.coef_ is None:
             raise ValueError("model is not fitted yet!")
-        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
-        return pd.Series(x_test.values @ self.coef_ + self.intercept_, index=x_test.index)
+        x_test = dataset.prepare(
+            segment, col_set="feature", data_key=DataHandlerLP.DK_I
+        )
+        return pd.Series(
+            x_test.values @ self.coef_ + self.intercept_, index=x_test.index
+        )

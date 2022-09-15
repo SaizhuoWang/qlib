@@ -2,16 +2,15 @@
 # Licensed under the MIT License.
 
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
+
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-from scipy.stats import spearmanr, pearsonr
+from scipy.stats import pearsonr, spearmanr
 
 from ..data import D
-
-from collections import OrderedDict
 
 
 def _get_position_value_from_df(evaluate_date, position, close_data_df):
@@ -97,7 +96,9 @@ def get_position_list_value(positions):
     # return dict for time:position_value
     value_dict = OrderedDict()
     for day, position in positions.items():
-        value = _get_position_value_from_df(evaluate_date=day, position=position, close_data_df=close_data_df)
+        value = _get_position_value_from_df(
+            evaluate_date=day, position=position, close_data_df=close_data_df
+        )
         value_dict[day] = value
     return value_dict
 
@@ -187,7 +188,9 @@ def get_max_drawdown_from_series(r):
     """
     # mdd = ((r.cumsum() - r.cumsum().cummax()) / (1 + r.cumsum().cummax())).min()
 
-    mdd = (((1 + r).cumprod() - (1 + r).cumprod().cummax()) / ((1 + r).cumprod().cummax())).min()
+    mdd = (
+        ((1 + r).cumprod() - (1 + r).cumprod().cummax()) / ((1 + r).cumprod().cummax())
+    ).min()
 
     return mdd
 

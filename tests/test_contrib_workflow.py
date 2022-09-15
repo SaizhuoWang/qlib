@@ -1,17 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from qlib.workflow.record_temp import SignalRecord
 import shutil
 import unittest
-import pytest
 from pathlib import Path
 
+import pytest
+
 from qlib.contrib.workflow import MultiSegRecord, SignalMseRecord
-from qlib.utils import init_instance_by_config, flatten_dict
-from qlib.workflow import R
 from qlib.tests import TestAutoData
 from qlib.tests.config import CSI300_GBDT_TASK
+from qlib.utils import flatten_dict, init_instance_by_config
+from qlib.workflow import R
+from qlib.workflow.record_temp import SignalRecord
 
 
 def train_multiseg(uri_path: str = None):
@@ -42,7 +43,9 @@ def train_mse(uri_path: str = None):
 
 
 class TestAllFlow(TestAutoData):
-    URI_PATH = "file:" + str(Path(__file__).parent.joinpath("test_contrib_mlruns").resolve())
+    URI_PATH = "file:" + str(
+        Path(__file__).parent.joinpath("test_contrib_mlruns").resolve()
+    )
 
     @classmethod
     def tearDownClass(cls) -> None:

@@ -62,7 +62,9 @@ class PPOActor(nn.Module):
     def __init__(self, extractor: nn.Module, action_dim: int) -> None:
         super().__init__()
         self.extractor = extractor
-        self.layer_out = nn.Sequential(nn.Linear(cast(int, extractor.output_dim), action_dim), nn.Softmax(dim=-1))
+        self.layer_out = nn.Sequential(
+            nn.Linear(cast(int, extractor.output_dim), action_dim), nn.Softmax(dim=-1)
+        )
 
     def forward(
         self,
@@ -160,7 +162,9 @@ def auto_device(module: nn.Module) -> torch.device:
 
 
 def load_weight(policy: nn.Module, path: Path) -> None:
-    assert isinstance(policy, nn.Module), "Policy has to be an nn.Module to load weight."
+    assert isinstance(
+        policy, nn.Module
+    ), "Policy has to be an nn.Module to load weight."
     loaded_weight = torch.load(path, map_location="cpu")
     try:
         policy.load_state_dict(loaded_weight)

@@ -1,25 +1,24 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
+
+import copy
+from typing import Text, Union
 
 import numpy as np
 import pandas as pd
-from typing import Text, Union
-import copy
-from ...utils import get_or_create_path
-from ...log import get_module_logger
-
 import torch
 import torch.nn as nn
 import torch.nn.init as init
 import torch.optim as optim
 
-from .pytorch_utils import count_parameters
-from ...model.base import Model
 from ...data.dataset import DatasetH
 from ...data.dataset.handler import DataHandlerLP
+from ...log import get_module_logger
+from ...model.base import Model
+from ...utils import get_or_create_path
+from .pytorch_utils import count_parameters
 
 
 class SFM_Model(nn.Module):
@@ -44,31 +43,49 @@ class SFM_Model(nn.Module):
         self.W_i = nn.Parameter(
             init.xavier_uniform_(torch.empty((self.input_dim, self.hidden_dim)))
         )
-        self.U_i = nn.Parameter(init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim)))
+        self.U_i = nn.Parameter(
+            init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim))
+        )
         self.b_i = nn.Parameter(torch.zeros(self.hidden_dim))
 
         self.W_ste = nn.Parameter(
             init.xavier_uniform_(torch.empty(self.input_dim, self.hidden_dim))
         )
-        self.U_ste = nn.Parameter(init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim)))
+        self.U_ste = nn.Parameter(
+            init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim))
+        )
         self.b_ste = nn.Parameter(torch.ones(self.hidden_dim))
 
-        self.W_fre = nn.Parameter(init.xavier_uniform_(torch.empty(self.input_dim, self.freq_dim)))
-        self.U_fre = nn.Parameter(init.orthogonal_(torch.empty(self.hidden_dim, self.freq_dim)))
+        self.W_fre = nn.Parameter(
+            init.xavier_uniform_(torch.empty(self.input_dim, self.freq_dim))
+        )
+        self.U_fre = nn.Parameter(
+            init.orthogonal_(torch.empty(self.hidden_dim, self.freq_dim))
+        )
         self.b_fre = nn.Parameter(torch.ones(self.freq_dim))
 
-        self.W_c = nn.Parameter(init.xavier_uniform_(torch.empty(self.input_dim, self.hidden_dim)))
-        self.U_c = nn.Parameter(init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim)))
+        self.W_c = nn.Parameter(
+            init.xavier_uniform_(torch.empty(self.input_dim, self.hidden_dim))
+        )
+        self.U_c = nn.Parameter(
+            init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim))
+        )
         self.b_c = nn.Parameter(torch.zeros(self.hidden_dim))
 
-        self.W_o = nn.Parameter(init.xavier_uniform_(torch.empty(self.input_dim, self.hidden_dim)))
-        self.U_o = nn.Parameter(init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim)))
+        self.W_o = nn.Parameter(
+            init.xavier_uniform_(torch.empty(self.input_dim, self.hidden_dim))
+        )
+        self.U_o = nn.Parameter(
+            init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim))
+        )
         self.b_o = nn.Parameter(torch.zeros(self.hidden_dim))
 
         self.U_a = nn.Parameter(init.orthogonal_(torch.empty(self.freq_dim, 1)))
         self.b_a = nn.Parameter(torch.zeros(self.hidden_dim))
 
-        self.W_p = nn.Parameter(init.xavier_uniform_(torch.empty(self.hidden_dim, self.output_dim)))
+        self.W_p = nn.Parameter(
+            init.xavier_uniform_(torch.empty(self.hidden_dim, self.output_dim))
+        )
         self.b_p = nn.Parameter(torch.zeros(self.output_dim))
 
         self.activation = nn.Tanh()
@@ -104,8 +121,12 @@ class SFM_Model(nn.Module):
             x_o = torch.matmul(x * B_W[0], self.W_o) + self.b_o
 
             i = self.inner_activation(x_i + torch.matmul(h_tm1 * B_U[0], self.U_i))
-            ste = self.inner_activation(x_ste + torch.matmul(h_tm1 * B_U[0], self.U_ste))
-            fre = self.inner_activation(x_fre + torch.matmul(h_tm1 * B_U[0], self.U_fre))
+            ste = self.inner_activation(
+                x_ste + torch.matmul(h_tm1 * B_U[0], self.U_ste)
+            )
+            fre = self.inner_activation(
+                x_fre + torch.matmul(h_tm1 * B_U[0], self.U_fre)
+            )
 
             ste = torch.reshape(ste, (-1, self.hidden_dim, 1))
             fre = torch.reshape(fre, (-1, 1, self.freq_dim))
@@ -296,17 +317,25 @@ class SFM(Model):
             device=self.device,
         )
         self.logger.info("model:\n{:}".format(self.sfm_model))
-        self.logger.info("model size: {:.4f} MB".format(count_parameters(self.sfm_model)))
+        self.logger.info(
+            "model size: {:.4f} MB".format(count_parameters(self.sfm_model))
+        )
 
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(self.sfm_model.parameters(), lr=self.lr)
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.sfm_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
+            raise NotImplementedError(
+                "optimizer {} is not supported!".format(optimizer)
+            )
 
         self.fitted = False
         self.sfm_model.to(self.device)
+
+    @property
+    def model(self) -> nn.Module:
+        return self.sfm_model
 
     @property
     def use_gpu(self):
@@ -331,10 +360,14 @@ class SFM(Model):
                 break
 
             feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
+                torch.from_numpy(x_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
             )
             label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
+                torch.from_numpy(y_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
             )
 
             pred = self.sfm_model(feature)
@@ -387,6 +420,7 @@ class SFM(Model):
         save_path=None,
     ):
         from qlib.workflow import R
+
         recorder = R.get_recorder()
         df_train, df_valid = dataset.prepare(
             ["train", "valid"],
@@ -394,7 +428,9 @@ class SFM(Model):
             data_key=DataHandlerLP.DK_L,
         )
         if df_train.empty or df_valid.empty:
-            raise ValueError("Empty data from dataset, please check your dataset config.")
+            raise ValueError(
+                "Empty data from dataset, please check your dataset config."
+            )
         x_train, y_train = df_train["feature"], df_train["label"]
         x_valid, y_valid = df_valid["feature"], df_valid["label"]
 
@@ -426,8 +462,8 @@ class SFM(Model):
                 stop_steps = 0
                 best_epoch = step
                 best_param = copy.deepcopy(self.sfm_model.state_dict())
-                torch.save(best_param, 'best_param.pth')
-                recorder.save_objects('best_param.pth')
+                torch.save(best_param, "best_param.pth")
+                recorder.save_objects("best_param.pth")
             else:
                 stop_steps += 1
                 if stop_steps >= self.early_stop:
@@ -466,7 +502,9 @@ class SFM(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
+        x_test = dataset.prepare(
+            segment, col_set="feature", data_key=DataHandlerLP.DK_I
+        )
         index = x_test.index
         self.sfm_model.eval()
         x_values = x_test.values

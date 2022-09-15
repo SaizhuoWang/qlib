@@ -6,13 +6,20 @@ from typing import cast
 import pandas as pd
 
 from qlib.backtest import Exchange, Order
+
 from .pickle_styled import IntradayBacktestData
 
 
 class QlibIntradayBacktestData(IntradayBacktestData):
     """Backtest data for Qlib simulator"""
 
-    def __init__(self, order: Order, exchange: Exchange, start_time: pd.Timestamp, end_time: pd.Timestamp) -> None:
+    def __init__(
+        self,
+        order: Order,
+        exchange: Exchange,
+        start_time: pd.Timestamp,
+        end_time: pd.Timestamp,
+    ) -> None:
         super(QlibIntradayBacktestData, self).__init__()
         self._order = order
         self._exchange = exchange

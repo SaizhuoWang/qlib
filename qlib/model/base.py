@@ -2,9 +2,10 @@
 # Licensed under the MIT License.
 import abc
 from typing import Text, Union
-from ..utils.serial import Serializable
+
 from ..data.dataset import Dataset
 from ..data.dataset.weight import Reweighter
+from ..utils.serial import Serializable
 
 
 class BaseModel(Serializable, metaclass=abc.ABCMeta):
@@ -21,6 +22,10 @@ class BaseModel(Serializable, metaclass=abc.ABCMeta):
 
 class Model(BaseModel):
     """Learnable Models"""
+
+    @property
+    def model(self):
+        raise NotImplementedError("Please implement this method in your model class")
 
     def fit(self, dataset: Dataset, reweighter: Reweighter):
         """

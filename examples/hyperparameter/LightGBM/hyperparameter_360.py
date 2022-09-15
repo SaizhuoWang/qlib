@@ -1,11 +1,15 @@
-import qlib
 import optuna
-from qlib.constant import REG_CN
-from qlib.utils import init_instance_by_config
-from qlib.tests.data import GetData
-from qlib.tests.config import get_dataset_config, CSI300_MARKET, DATASET_ALPHA360_CLASS
 
-DATASET_CONFIG = get_dataset_config(market=CSI300_MARKET, dataset_class=DATASET_ALPHA360_CLASS)
+import qlib
+from qlib.constant import REG_CN
+from qlib.tests.config import (CSI300_MARKET, DATASET_ALPHA360_CLASS,
+                               get_dataset_config)
+from qlib.tests.data import GetData
+from qlib.utils import init_instance_by_config
+
+DATASET_CONFIG = get_dataset_config(
+    market=CSI300_MARKET, dataset_class=DATASET_ALPHA360_CLASS
+)
 
 
 def objective(trial):

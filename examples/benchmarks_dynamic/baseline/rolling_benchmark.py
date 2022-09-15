@@ -1,20 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from qlib.model.ens.ensemble import RollingEnsemble
-from qlib.utils import init_instance_by_config
+from pathlib import Path
+
 import fire
 import yaml
-from qlib import auto_init
-from pathlib import Path
 from tqdm.auto import tqdm
+
+from qlib import auto_init
+from qlib.model.ens.ensemble import RollingEnsemble
 from qlib.model.trainer import TrainerR
-from qlib.workflow import R
 from qlib.tests.data import GetData
+from qlib.utils import init_instance_by_config
+from qlib.workflow import R
 
 DIRNAME = Path(__file__).absolute().resolve().parent
-from qlib.workflow.task.gen import task_generator, RollingGen
-from qlib.workflow.task.collect import RecorderCollector
 from qlib.workflow.record_temp import PortAnaRecord, SigAnaRecord
+from qlib.workflow.task.collect import RecorderCollector
+from qlib.workflow.task.gen import RollingGen, task_generator
 
 
 class RollingBenchmark:
@@ -34,12 +36,26 @@ class RollingBenchmark:
     def basic_task(self):
         """For fast training rolling"""
         if self.model_type == "gbdt":
-            conf_path = DIRNAME.parent.parent / "benchmarks" / "LightGBM" / "workflow_config_lightgbm_Alpha158.yaml"
+            conf_path = (
+                DIRNAME.parent.parent
+                / "benchmarks"
+                / "LightGBM"
+                / "workflow_config_lightgbm_Alpha158.yaml"
+            )
             # dump the processed data on to disk for later loading to speed up the processing
-            h_path = DIRNAME / "lightgbm_alpha158_handler_horizon{}.pkl".format(self.horizon)
+            h_path = DIRNAME / "lightgbm_alpha158_handler_horizon{}.pkl".format(
+                self.horizon
+            )
         elif self.model_type == "linear":
-            conf_path = DIRNAME.parent.parent / "benchmarks" / "Linear" / "workflow_config_linear_Alpha158.yaml"
-            h_path = DIRNAME / "linear_alpha158_handler_horizon{}.pkl".format(self.horizon)
+            conf_path = (
+                DIRNAME.parent.parent
+                / "benchmarks"
+                / "Linear"
+                / "workflow_config_linear_Alpha158.yaml"
+            )
+            h_path = DIRNAME / "linear_alpha158_handler_horizon{}.pkl".format(
+                self.horizon
+            )
         else:
             raise AssertionError("Model type is not supported!")
         with conf_path.open("r") as f:
@@ -97,7 +113,9 @@ class RollingBenchmark:
             for rt_cls in SigAnaRecord, PortAnaRecord:
                 rt = rt_cls(recorder=rec, skip_existing=True)
                 rt.generate()
-        print(f"Your evaluation results can be found in the experiment named `{self.COMB_EXP}`.")
+        print(
+            f"Your evaluation results can be found in the experiment named `{self.COMB_EXP}`."
+        )
 
     def run_all(self):
         # the results will be  save in mlruns.

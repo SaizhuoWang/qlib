@@ -4,12 +4,14 @@ from pathlib import Path
 
 __version__ = "0.8.6.99"
 __version__bak = __version__  # This version is backup for QlibConfig.reset_qlib_version
-import os
-from typing import Union
-import yaml
 import logging
+import os
 import platform
 import subprocess
+from typing import Union
+
+import yaml
+
 from .log import get_module_logger
 
 
@@ -37,8 +39,8 @@ def init(default_conf="client", **kwargs):
 
     # FIXME: this logger ignored the level in config
     logger = get_module_logger("Initialization", level=logging.INFO)
-    
-    num_parallel = kwargs.pop('num_parallel', 1)
+
+    num_parallel = kwargs.pop("num_parallel", 1)
 
     skip_if_reg = kwargs.pop("skip_if_reg", False)
     if skip_if_reg and C.registered:
@@ -64,7 +66,9 @@ def init(default_conf="client", **kwargs):
                         f"Invalid provider uri: {provider_uri}, please check if a valid provider uri has been set. This path does not exist."
                     )
                 else:
-                    logger.warning(f"auto_path is False, please make sure {mount_path} is mounted")
+                    logger.warning(
+                        f"auto_path is False, please make sure {mount_path} is mounted"
+                    )
         elif uri_type == C.NFS_URI:
             _mount_nfs_uri(provider_uri, C.dpm.get_data_uri(_freq), C["auto_mount"])
         else:
@@ -75,15 +79,16 @@ def init(default_conf="client", **kwargs):
     if "flask_server" in C:
         logger.info(f"flask_server={C['flask_server']}, flask_port={C['flask_port']}")
     logger.info("qlib successfully initialized based on %s settings." % default_conf)
-    data_path = {_freq: C.dpm.get_data_uri(_freq) for _freq in C.dpm.provider_uri.keys()}
+    data_path = {
+        _freq: C.dpm.get_data_uri(_freq) for _freq in C.dpm.provider_uri.keys()
+    }
     logger.info(f"data_path={data_path}")
-    
-    # Some ugly hack for changing the number of visible CPUs per parallel task
-    old_kernel = _default_config['kernels']
-    new_kernel = old_kernel // num_parallel
-    C.__dict__['_config']['kernels'] = new_kernel
-    logger.info(f"Changing visible CPUs: {old_kernel} => {new_kernel}")
 
+    # Some ugly hack for changing the number of visible CPUs per parallel task
+    old_kernel = _default_config["kernels"]
+    new_kernel = old_kernel // num_parallel
+    C.__dict__["_config"]["kernels"] = new_kernel
+    logger.info(f"Changing visible CPUs: {old_kernel} => {new_kernel}")
 
 
 def _mount_nfs_uri(provider_uri, mount_path, auto_mount: bool = False):
@@ -109,7 +114,9 @@ def _mount_nfs_uri(provider_uri, mount_path, auto_mount: bool = False):
             exec_result = os.popen(f"mount -o anon {provider_uri} {mount_path}")
             result = exec_result.read()
             if "85" in result:
-                LOG.warning(f"{provider_uri} on Windows:{mount_path} is already mounted")
+                LOG.warning(
+                    f"{provider_uri} on Windows:{mount_path} is already mounted"
+                )
             elif "53" in result:
                 raise OSError("not find network path")
             elif "error" in result or "错误" in result:
@@ -122,7 +129,9 @@ def _mount_nfs_uri(provider_uri, mount_path, auto_mount: bool = False):
         else:
             # system: linux/Unix/Mac
             # check mount
-            _remote_uri = provider_uri[:-1] if provider_uri.endswith("/") else provider_uri
+            _remote_uri = (
+                provider_uri[:-1] if provider_uri.endswith("/") else provider_uri
+            )
             # `mount a /b/c` is different from `mount a /b/c/`. So we convert it into string to make sure handling it accurately
             mount_path = str(mount_path)
             _mount_path = mount_path[:-1] if mount_path.endswith("/") else mount_path
@@ -139,7 +148,11 @@ def _mount_nfs_uri(provider_uri, mount_path, auto_mount: bool = False):
                 if len(_command_log) > 0:
                     for _c in _command_log:
                         _temp_mount = _c.decode("utf-8").split(" ")[2]
-                        _temp_mount = _temp_mount[:-1] if _temp_mount.endswith("/") else _temp_mount
+                        _temp_mount = (
+                            _temp_mount[:-1]
+                            if _temp_mount.endswith("/")
+                            else _temp_mount
+                        )
                         if _temp_mount == _mount_path:
                             _is_mount = True
                             break
@@ -161,7 +174,9 @@ def _mount_nfs_uri(provider_uri, mount_path, auto_mount: bool = False):
                 command_res = os.popen("dpkg -l | grep nfs-common")
                 command_res = command_res.readlines()
                 if not command_res:
-                    raise OSError("nfs-common is not found, please install it by execute: sudo apt install nfs-common")
+                    raise OSError(
+                        "nfs-common is not found, please install it by execute: sudo apt install nfs-common"
+                    )
                 # manually mount
                 command_status = os.system(mount_command)
                 if command_status == 256:
@@ -170,7 +185,9 @@ def _mount_nfs_uri(provider_uri, mount_path, auto_mount: bool = False):
                     )
                 elif command_status == 32512:
                     # LOG.error("Command error")
-                    raise OSError(f"mount {provider_uri} on {mount_path} error! Command error")
+                    raise OSError(
+                        f"mount {provider_uri} on {mount_path} error! Command error"
+                    )
                 elif command_status == 0:
                     LOG.info("Mount finished")
             else:
@@ -193,7 +210,9 @@ def init_from_yaml_conf(conf_path, **kwargs):
     init(default_conf, **config)
 
 
-def get_project_path(config_name="config.yaml", cur_path: Union[Path, str, None] = None) -> Path:
+def get_project_path(
+    config_name="config.yaml", cur_path: Union[Path, str, None] = None
+) -> Path:
     """
     If users are building a project follow the following pattern.
     - Qlib is a sub folder in project path
@@ -300,7 +319,9 @@ def auto_init(**kwargs):
             qlib_conf_update = conf.get("qlib_cfg_update", {})
             for k, v in kwargs.items():
                 if k in qlib_conf_update:
-                    logger.warning(f"`qlib_conf_update` from conf_pp is override by `kwargs` on key '{k}'")
+                    logger.warning(
+                        f"`qlib_conf_update` from conf_pp is override by `kwargs` on key '{k}'"
+                    )
             qlib_conf_update.update(kwargs)
 
             init_from_yaml_conf(qlib_conf_path, **qlib_conf_update)

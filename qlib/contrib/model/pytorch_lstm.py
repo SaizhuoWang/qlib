@@ -2,23 +2,22 @@
 # Licensed under the MIT License.
 
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
+
+import copy
+from typing import Text, Union
 
 import numpy as np
 import pandas as pd
-from typing import Text, Union
-import copy
-from ...utils import get_or_create_path
-from ...log import get_module_logger
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from ...model.base import Model
 from ...data.dataset import DatasetH
 from ...data.dataset.handler import DataHandlerLP
+from ...log import get_module_logger
+from ...model.base import Model
+from ...utils import get_or_create_path
 from ...workflow import R
 
 
@@ -124,7 +123,9 @@ class LSTM(Model):
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.lstm_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
+            raise NotImplementedError(
+                "optimizer {} is not supported!".format(optimizer)
+            )
 
         self.fitted = False
         self.lstm_model.to(self.device)
@@ -132,6 +133,10 @@ class LSTM(Model):
     @property
     def use_gpu(self):
         return self.device != torch.device("cpu")
+
+    @property
+    def model(self) -> nn.Module:
+        return self.lstm_model
 
     def mse(self, pred, label):
         loss = (pred - label) ** 2
@@ -156,7 +161,7 @@ class LSTM(Model):
             vx = x - torch.mean(x)
             vy = y - torch.mean(y)
             return torch.sum(vx * vy) / (
-                torch.sqrt(torch.sum(vx ** 2)) * torch.sqrt(torch.sum(vy ** 2))
+                torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2))
             )
 
         if self.metric == ("", "loss"):
@@ -217,10 +222,14 @@ class LSTM(Model):
                 break
 
             feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
+                torch.from_numpy(x_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
             )
             label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
+                torch.from_numpy(y_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
             )
 
             pred = self.lstm_model(feature)
@@ -244,7 +253,9 @@ class LSTM(Model):
             data_key=DataHandlerLP.DK_L,
         )
         if df_train.empty or df_valid.empty:
-            raise ValueError("Empty data from dataset, please check your dataset config.")
+            raise ValueError(
+                "Empty data from dataset, please check your dataset config."
+            )
 
         x_train, y_train = df_train["feature"], df_train["label"]
         x_valid, y_valid = df_valid["feature"], df_valid["label"]
@@ -296,7 +307,6 @@ class LSTM(Model):
         self.logger.info("best score: %.6lf @ %d" % (best_score, best_epoch))
         self.lstm_model.load_state_dict(best_param)
         torch.save(best_param, save_path)
-        R.save_objects(save_path)
 
         if self.use_gpu:
             torch.cuda.empty_cache()
@@ -305,7 +315,9 @@ class LSTM(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
+        x_test = dataset.prepare(
+            segment, col_set="feature", data_key=DataHandlerLP.DK_I
+        )
         index = x_test.index
         self.lstm_model.eval()
         x_values = x_test.values

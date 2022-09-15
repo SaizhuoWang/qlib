@@ -1,8 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 import unittest
+
 import numpy as np
 import pandas as pd
+
 from qlib.contrib.data.utils.sepdf import SepDataFrame
 
 

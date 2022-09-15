@@ -1,25 +1,24 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
+
+import copy
+from typing import Text, Union
 
 import numpy as np
 import pandas as pd
-from typing import Text, Union
-import copy
-from ...utils import get_or_create_path
-from ...log import get_module_logger
-
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
+import torch.optim as optim
 from torch.autograd import Function
 
-from .pytorch_utils import count_parameters
-from ...model.base import Model
 from ...data.dataset import DatasetH
 from ...data.dataset.handler import DataHandlerLP
+from ...log import get_module_logger
+from ...model.base import Model
+from ...utils import get_or_create_path
+from .pytorch_utils import count_parameters
 
 
 class TabnetModel(Model):
@@ -70,7 +69,9 @@ class TabnetModel(Model):
         self.logger = get_module_logger("TabNet")
         self.pretrain_n_epochs = pretrain_n_epochs
         GPU = int(GPU)
-        self.device = "cuda:%s" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
+        self.device = (
+            "cuda:%s" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
+        )
         self.loss = loss
         self.metric = metric
         self.early_stop = early_stop
@@ -87,24 +88,42 @@ class TabnetModel(Model):
         np.random.seed(self.seed)
         torch.manual_seed(self.seed)
 
-        self.tabnet_model = TabNet(inp_dim=self.d_feat, out_dim=self.out_dim, vbs=vbs, relax=relax).to(self.device)
-        self.tabnet_decoder = TabNet_Decoder(self.out_dim, self.d_feat, n_shared, n_ind, vbs, n_steps).to(self.device)
-        self.logger.info("model:\n{:}\n{:}".format(self.tabnet_model, self.tabnet_decoder))
-        self.logger.info("model size: {:.4f} MB".format(count_parameters([self.tabnet_model, self.tabnet_decoder])))
+        self.tabnet_model = TabNet(
+            inp_dim=self.d_feat, out_dim=self.out_dim, vbs=vbs, relax=relax
+        ).to(self.device)
+        self.tabnet_decoder = TabNet_Decoder(
+            self.out_dim, self.d_feat, n_shared, n_ind, vbs, n_steps
+        ).to(self.device)
+        self.logger.info(
+            "model:\n{:}\n{:}".format(self.tabnet_model, self.tabnet_decoder)
+        )
+        self.logger.info(
+            "model size: {:.4f} MB".format(
+                count_parameters([self.tabnet_model, self.tabnet_decoder])
+            )
+        )
 
         if optimizer.lower() == "adam":
             self.pretrain_optimizer = optim.Adam(
-                list(self.tabnet_model.parameters()) + list(self.tabnet_decoder.parameters()), lr=self.lr
+                list(self.tabnet_model.parameters())
+                + list(self.tabnet_decoder.parameters()),
+                lr=self.lr,
             )
-            self.train_optimizer = optim.Adam(self.tabnet_model.parameters(), lr=self.lr)
+            self.train_optimizer = optim.Adam(
+                self.tabnet_model.parameters(), lr=self.lr
+            )
 
         elif optimizer.lower() == "gd":
             self.pretrain_optimizer = optim.SGD(
-                list(self.tabnet_model.parameters()) + list(self.tabnet_decoder.parameters()), lr=self.lr
+                list(self.tabnet_model.parameters())
+                + list(self.tabnet_decoder.parameters()),
+                lr=self.lr,
             )
             self.train_optimizer = optim.SGD(self.tabnet_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
+            raise NotImplementedError(
+                "optimizer {} is not supported!".format(optimizer)
+            )
 
     @property
     def use_gpu(self):
@@ -156,23 +175,30 @@ class TabnetModel(Model):
         save_path=None,
     ):
         from qlib.workflow import R
+
         recorder = R.get_recorder()
         if self.pretrain:
             # there is a  pretrained model, load the model
             self.logger.info("Pretrain...")
             self.pretrain_fn(dataset, self.pretrain_file)
             self.logger.info("Load Pretrain model")
-            self.tabnet_model.load_state_dict(torch.load(self.pretrain_file, map_location=self.device))
+            self.tabnet_model.load_state_dict(
+                torch.load(self.pretrain_file, map_location=self.device)
+            )
 
         # adding one more linear layer to fit the final output dimension
-        self.tabnet_model = FinetuneModel(self.out_dim, self.final_out_dim, self.tabnet_model).to(self.device)
+        self.tabnet_model = FinetuneModel(
+            self.out_dim, self.final_out_dim, self.tabnet_model
+        ).to(self.device)
         df_train, df_valid = dataset.prepare(
             ["train", "valid"],
             col_set=["feature", "label"],
             data_key=DataHandlerLP.DK_L,
         )
         if df_train.empty or df_valid.empty:
-            raise ValueError("Empty data from dataset, please check your dataset config.")
+            raise ValueError(
+                "Empty data from dataset, please check your dataset config."
+            )
         df_train.fillna(df_train.mean(), inplace=True)
         x_train, y_train = df_train["feature"], df_train["label"]
         x_valid, y_valid = df_valid["feature"], df_valid["label"]
@@ -204,8 +230,8 @@ class TabnetModel(Model):
                 stop_steps = 0
                 best_epoch = epoch_idx
                 best_param = copy.deepcopy(self.tabnet_model.state_dict())
-                torch.save(best_param, 'best_param.pth')
-                recorder.save_objects('best_param.pth')
+                torch.save(best_param, "best_param.pth")
+                recorder.save_objects("best_param.pth")
             else:
                 stop_steps += 1
                 if stop_steps >= self.early_stop:
@@ -224,7 +250,9 @@ class TabnetModel(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
+        x_test = dataset.prepare(
+            segment, col_set="feature", data_key=DataHandlerLP.DK_I
+        )
         index = x_test.index
         self.tabnet_model.eval()
         x_values = torch.from_numpy(x_test.values)
@@ -293,8 +321,12 @@ class TabnetModel(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = x_train_values[indices[i : i + self.batch_size]].float().to(self.device)
-            label = y_train_values[indices[i : i + self.batch_size]].float().to(self.device)
+            feature = (
+                x_train_values[indices[i : i + self.batch_size]].float().to(self.device)
+            )
+            label = (
+                y_train_values[indices[i : i + self.batch_size]].float().to(self.device)
+            )
             priors = torch.ones(self.batch_size, self.d_feat).to(self.device)
             pred = self.tabnet_model(feature, priors)
             loss = self.loss_fn(pred, label)
@@ -318,7 +350,9 @@ class TabnetModel(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            S_mask = torch.bernoulli(torch.empty(self.batch_size, self.d_feat).fill_(self.ps))
+            S_mask = torch.bernoulli(
+                torch.empty(self.batch_size, self.d_feat).fill_(self.ps)
+            )
             x_train_values = train_set[indices[i : i + self.batch_size]] * (1 - S_mask)
             y_train_values = train_set[indices[i : i + self.batch_size]] * (S_mask)
 
@@ -349,7 +383,9 @@ class TabnetModel(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            S_mask = torch.bernoulli(torch.empty(self.batch_size, self.d_feat).fill_(self.ps))
+            S_mask = torch.bernoulli(
+                torch.empty(self.batch_size, self.d_feat).fill_(self.ps)
+            )
             x_train_values = train_set[indices[i : i + self.batch_size]] * (1 - S_mask)
             y_train_values = train_set[indices[i : i + self.batch_size]] * (S_mask)
 
@@ -428,7 +464,9 @@ class TabNet_Decoder(nn.Module):
             self.shared = nn.ModuleList()
             self.shared.append(nn.Linear(inp_dim, 2 * out_dim))
             for x in range(n_shared - 1):
-                self.shared.append(nn.Linear(out_dim, 2 * out_dim))  # preset the linear function we will use
+                self.shared.append(
+                    nn.Linear(out_dim, 2 * out_dim)
+                )  # preset the linear function we will use
         else:
             self.shared = None
         self.n_steps = n_steps
@@ -444,7 +482,18 @@ class TabNet_Decoder(nn.Module):
 
 
 class TabNet(nn.Module):
-    def __init__(self, inp_dim=6, out_dim=6, n_d=64, n_a=64, n_shared=2, n_ind=2, n_steps=5, relax=1.2, vbs=1024):
+    def __init__(
+        self,
+        inp_dim=6,
+        out_dim=6,
+        n_d=64,
+        n_a=64,
+        n_shared=2,
+        n_ind=2,
+        n_steps=5,
+        relax=1.2,
+        vbs=1024,
+    ):
         """
         TabNet AKA the original encoder
 
@@ -464,14 +513,20 @@ class TabNet(nn.Module):
             self.shared = nn.ModuleList()
             self.shared.append(nn.Linear(inp_dim, 2 * (n_d + n_a)))
             for x in range(n_shared - 1):
-                self.shared.append(nn.Linear(n_d + n_a, 2 * (n_d + n_a)))  # preset the linear function we will use
+                self.shared.append(
+                    nn.Linear(n_d + n_a, 2 * (n_d + n_a))
+                )  # preset the linear function we will use
         else:
             self.shared = None
 
-        self.first_step = FeatureTransformer(inp_dim, n_d + n_a, self.shared, n_ind, vbs)
+        self.first_step = FeatureTransformer(
+            inp_dim, n_d + n_a, self.shared, n_ind, vbs
+        )
         self.steps = nn.ModuleList()
         for x in range(n_steps - 1):
-            self.steps.append(DecisionStep(inp_dim, n_d, n_a, self.shared, n_ind, relax, vbs))
+            self.steps.append(
+                DecisionStep(inp_dim, n_d, n_a, self.shared, n_ind, relax, vbs)
+            )
         self.fc = nn.Linear(n_d, out_dim)
         self.bn = nn.BatchNorm1d(inp_dim, momentum=0.01)
         self.n_d = n_d
@@ -484,7 +539,9 @@ class TabNet(nn.Module):
         out = torch.zeros(x.size(0), self.n_d).to(x.device)
         for step in self.steps:
             x_te, loss = step(x, x_a, priors)
-            out += F.relu(x_te[:, : self.n_d])  # split the feature from feat_transformer
+            out += F.relu(
+                x_te[:, : self.n_d]
+            )  # split the feature from feat_transformer
             x_a = x_te[:, self.n_d :]
             sparse_loss.append(loss)
         return self.fc(out), sum(sparse_loss)

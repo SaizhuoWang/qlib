@@ -1,10 +1,12 @@
 import unittest
-from .data import GetData
-from .. import init
-from ..constant import REG_CN
-from qlib.data.filter import NameDFilter
+
 from qlib.data import D
 from qlib.data.data import Cal, DatasetD
+from qlib.data.filter import NameDFilter
+
+from .. import init
+from ..constant import REG_CN
+from .data import GetData
 
 
 class TestAutoData(unittest.TestCase):

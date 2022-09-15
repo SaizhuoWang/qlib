@@ -14,12 +14,18 @@ def _get_score_ic(pred_label: pd.DataFrame):
     """
     concat_data = pred_label.copy()
     concat_data.dropna(axis=0, how="any", inplace=True)
-    _ic = concat_data.groupby(level="datetime").apply(lambda x: x["label"].corr(x["score"]))
-    _rank_ic = concat_data.groupby(level="datetime").apply(lambda x: x["label"].corr(x["score"], method="spearman"))
+    _ic = concat_data.groupby(level="datetime").apply(
+        lambda x: x["label"].corr(x["score"])
+    )
+    _rank_ic = concat_data.groupby(level="datetime").apply(
+        lambda x: x["label"].corr(x["score"], method="spearman")
+    )
     return pd.DataFrame({"ic": _ic, "rank_ic": _rank_ic})
 
 
-def score_ic_graph(pred_label: pd.DataFrame, show_notebook: bool = True) -> [list, tuple]:
+def score_ic_graph(
+    pred_label: pd.DataFrame, show_notebook: bool = True
+) -> [list, tuple]:
     """score IC
 
         Example:

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+
 from qlib.constant import EPS
 from qlib.data.dataset.processor import Processor
 from qlib.data.dataset.utils import fetch_df_by_index
@@ -11,7 +12,9 @@ class HighFreqNorm(Processor):
         self.fit_end_time = fit_end_time
 
     def fit(self, df_features):
-        fetch_df = fetch_df_by_index(df_features, slice(self.fit_start_time, self.fit_end_time), level="datetime")
+        fetch_df = fetch_df_by_index(
+            df_features, slice(self.fit_start_time, self.fit_end_time), level="datetime"
+        )
         del df_features
         df_values = fetch_df.values
         names = {
@@ -28,14 +31,18 @@ class HighFreqNorm(Processor):
                 part_values = np.log1p(part_values)
             self.feature_med[name] = np.nanmedian(part_values)
             part_values = part_values - self.feature_med[name]
-            self.feature_std[name] = np.nanmedian(np.absolute(part_values)) * 1.4826 + EPS
+            self.feature_std[name] = (
+                np.nanmedian(np.absolute(part_values)) * 1.4826 + EPS
+            )
             part_values = part_values / self.feature_std[name]
             self.feature_vmax[name] = np.nanmax(part_values)
             self.feature_vmin[name] = np.nanmin(part_values)
 
     def __call__(self, df_features):
         df_features["date"] = pd.to_datetime(
-            df_features.index.get_level_values(level="datetime").to_series().dt.date.values
+            df_features.index.get_level_values(level="datetime")
+            .to_series()
+            .dt.date.values
         )
         df_features.set_index("date", append=True, drop=True, inplace=True)
         df_values = df_features.values
@@ -55,11 +62,17 @@ class HighFreqNorm(Processor):
             slice3 = df_values[:, name_val] < -3.5
 
             df_values[:, name_val][slice0] = (
-                3.0 + (df_values[:, name_val][slice0] - 3.0) / (self.feature_vmax[name] - 3) * 0.5
+                3.0
+                + (df_values[:, name_val][slice0] - 3.0)
+                / (self.feature_vmax[name] - 3)
+                * 0.5
             )
             df_values[:, name_val][slice1] = 3.5
             df_values[:, name_val][slice2] = (
-                -3.0 - (df_values[:, name_val][slice2] + 3.0) / (self.feature_vmin[name] + 3) * 0.5
+                -3.0
+                - (df_values[:, name_val][slice2] + 3.0)
+                / (self.feature_vmin[name] + 3)
+                * 0.5
             )
             df_values[:, name_val][slice3] = -3.5
         idx = df_features.index.droplevel("datetime").drop_duplicates()

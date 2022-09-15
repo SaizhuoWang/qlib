@@ -7,7 +7,8 @@ import os
 import pickle
 import warnings
 # coding=utf-8
-from typing import Callable, Dict, Iterator, List, Optional, OrderedDict, Tuple, Union
+from typing import (Callable, Dict, Iterator, List, Optional, OrderedDict,
+                    Tuple, Union)
 
 import pandas as pd
 
@@ -78,12 +79,16 @@ class DataHandler(Serializable):
         """
 
         # Setup data loader
-        assert data_loader is not None  # to make start_time end_time could have None default value
+        assert (
+            data_loader is not None
+        )  # to make start_time end_time could have None default value
         self.logger = get_module_logger(self.__class__.__name__)
         # what data source to load data
         self.data_loader = init_instance_by_config(
             data_loader,
-            None if (isinstance(data_loader, dict) and "module_path" in data_loader) else data_loader_module,
+            None
+            if (isinstance(data_loader, dict) and "module_path" in data_loader)
+            else data_loader_module,
             accept_types=DataLoader,
         )
 
@@ -139,9 +144,11 @@ class DataHandler(Serializable):
         # Setup data.
         # _data may be with multiple column index level. The outer level indicates the feature set name
         with TimeInspector.logt("Loading data"):
-            self.logger.info('Loading data ...')
+            self.logger.info("Loading data ...")
             # make sure the fetch method is based on a index-sorted pd.DataFrame
-            self._data = lazy_sort_index(self.data_loader.load(self.instruments, self.start_time, self.end_time))
+            self._data = lazy_sort_index(
+                self.data_loader.load(self.instruments, self.start_time, self.end_time)
+            )
         # TODO: cache
 
     CS_ALL = "__all"  # return all columns with single-level index column
@@ -235,32 +242,51 @@ class DataHandler(Serializable):
             try:
                 selector = slice(*selector)
             except ValueError:
-                get_module_logger("DataHandlerLP").info(f"Fail to converting to query to slice. It will used directly")
+                get_module_logger("DataHandlerLP").info(
+                    f"Fail to converting to query to slice. It will used directly"
+                )
 
         if isinstance(data_storage, pd.DataFrame):
             data_df = data_storage
             if proc_func is not None:
                 # FIXME: fetching by time first will be more friendly to `proc_func`
                 # Copy in case of `proc_func` changing the data inplace....
-                data_df = proc_func(fetch_df_by_index(data_df, selector, level, fetch_orig=self.fetch_orig).copy())
+                data_df = proc_func(
+                    fetch_df_by_index(
+                        data_df, selector, level, fetch_orig=self.fetch_orig
+                    ).copy()
+                )
                 data_df = fetch_df_by_col(data_df, col_set)
             else:
                 # Fetch column  first will be more friendly to SepDataFrame
                 data_df = fetch_df_by_col(data_df, col_set)
-                data_df = fetch_df_by_index(data_df, selector, level, fetch_orig=self.fetch_orig)
+                data_df = fetch_df_by_index(
+                    data_df, selector, level, fetch_orig=self.fetch_orig
+                )
         elif isinstance(data_storage, BaseHandlerStorage):
             if not data_storage.is_proc_func_supported():
                 if proc_func is not None:
-                    raise ValueError(f"proc_func is not supported by the storage {type(data_storage)}")
+                    raise ValueError(
+                        f"proc_func is not supported by the storage {type(data_storage)}"
+                    )
                 data_df = data_storage.fetch(
-                    selector=selector, level=level, col_set=col_set, fetch_orig=self.fetch_orig
+                    selector=selector,
+                    level=level,
+                    col_set=col_set,
+                    fetch_orig=self.fetch_orig,
                 )
             else:
                 data_df = data_storage.fetch(
-                    selector=selector, level=level, col_set=col_set, fetch_orig=self.fetch_orig, proc_func=proc_func
+                    selector=selector,
+                    level=level,
+                    col_set=col_set,
+                    fetch_orig=self.fetch_orig,
+                    proc_func=proc_func,
                 )
         else:
-            raise TypeError(f"data_storage should be pd.DataFrame|HashingStockStorage, not {type(data_storage)}")
+            raise TypeError(
+                f"data_storage should be pd.DataFrame|HashingStockStorage, not {type(data_storage)}"
+            )
 
         if squeeze:
             # squeeze columns
@@ -288,7 +314,9 @@ class DataHandler(Serializable):
         df = fetch_df_by_col(df, col_set)
         return df.columns.to_list()
 
-    def get_range_selector(self, cur_date: Union[pd.Timestamp, str], periods: int) -> slice:
+    def get_range_selector(
+        self, cur_date: Union[pd.Timestamp, str], periods: int
+    ) -> slice:
         """
         get range selector by number of periods
 
@@ -417,6 +445,7 @@ class DataHandlerLP(DataHandler):
         drop_raw: bool
             Whether to drop the raw data
         """
+
         def format_config_dict(d: Union[Dict, List[Dict]]):
             """Recursively change the datetime instances in the dictionary to string"""
             if isinstance(d, list):
@@ -427,8 +456,8 @@ class DataHandlerLP(DataHandler):
                     if isinstance(v, dict) or isinstance(v, list):
                         format_config_dict(v)
                     elif isinstance(v, datetime.date):
-                        d[k] = v.strftime('%Y-%m-%d')
-                
+                        d[k] = v.strftime("%Y-%m-%d")
+
         def recursive_sort_dict(d: Dict):
             """Recursively sort the dictionary"""
             if isinstance(d, dict):
@@ -437,7 +466,7 @@ class DataHandlerLP(DataHandler):
                 return [recursive_sort_dict(v) for v in d]
             else:
                 return d
-        import pdb; pdb.set_trace()
+
         self.config_dict = {
             "instruments": instruments,
             "start_time": start_time,
@@ -460,7 +489,9 @@ class DataHandlerLP(DataHandler):
                 getattr(self, pname).append(
                     init_instance_by_config(
                         proc,
-                        None if (isinstance(proc, dict) and "module_path" in proc) else processor_module,
+                        None
+                        if (isinstance(proc, dict) and "module_path" in proc)
+                        else processor_module,
                         accept_types=processor_module.Processor,
                     )
                 )
@@ -490,11 +521,16 @@ class DataHandlerLP(DataHandler):
 
     @staticmethod
     def _run_proc_l(
-        df: pd.DataFrame, proc_l: List[processor_module.Processor], with_fit: bool, check_for_infer: bool
+        df: pd.DataFrame,
+        proc_l: List[processor_module.Processor],
+        with_fit: bool,
+        check_for_infer: bool,
     ) -> pd.DataFrame:
         for proc in proc_l:
             if check_for_infer and not proc.is_for_infer():
-                raise TypeError("Only processors usable for inference can be used in `infer_processors` ")
+                raise TypeError(
+                    "Only processors usable for inference can be used in `infer_processors` "
+                )
             with TimeInspector.logt(f"{proc.__class__.__name__}"):
                 if with_fit:
                     proc.fit(df)
@@ -533,18 +569,26 @@ class DataHandlerLP(DataHandler):
         # shared data processors
         # 1) assign
         _shared_df = self._data
-        if not self._is_proc_readonly(self.shared_processors):  # avoid modifying the original data
+        if not self._is_proc_readonly(
+            self.shared_processors
+        ):  # avoid modifying the original data
             _shared_df = _shared_df.copy()
         # 2) process
-        _shared_df = self._run_proc_l(_shared_df, self.shared_processors, with_fit=with_fit, check_for_infer=True)
+        _shared_df = self._run_proc_l(
+            _shared_df, self.shared_processors, with_fit=with_fit, check_for_infer=True
+        )
 
         # data for inference
         # 1) assign
         _infer_df = _shared_df
-        if not self._is_proc_readonly(self.infer_processors):  # avoid modifying the original data
+        if not self._is_proc_readonly(
+            self.infer_processors
+        ):  # avoid modifying the original data
             _infer_df = _infer_df.copy()
         # 2) process
-        _infer_df = self._run_proc_l(_infer_df, self.infer_processors, with_fit=with_fit, check_for_infer=True)
+        _infer_df = self._run_proc_l(
+            _infer_df, self.infer_processors, with_fit=with_fit, check_for_infer=True
+        )
 
         self._infer = _infer_df
 
@@ -557,10 +601,14 @@ class DataHandlerLP(DataHandler):
             _learn_df = _infer_df
         else:
             raise NotImplementedError(f"This type of input is not supported")
-        if not self._is_proc_readonly(self.learn_processors):  # avoid modifying the original  data
+        if not self._is_proc_readonly(
+            self.learn_processors
+        ):  # avoid modifying the original  data
             _learn_df = _learn_df.copy()
         # 2) process
-        _learn_df = self._run_proc_l(_learn_df, self.learn_processors, with_fit=with_fit, check_for_infer=False)
+        _learn_df = self._run_proc_l(
+            _learn_df, self.learn_processors, with_fit=with_fit, check_for_infer=False
+        )
 
         self._learn = _learn_df
 
@@ -582,17 +630,22 @@ class DataHandlerLP(DataHandler):
                 processor.config(**processor_kwargs)
 
     # init type
-    IT_FIT_SEQ = "fit_seq"  # the input of `fit` will be the output of the previous processor
+    IT_FIT_SEQ = (
+        "fit_seq"  # the input of `fit` will be the output of the previous processor
+    )
     IT_FIT_IND = "fit_ind"  # the input of `fit` will be the original df
     IT_LS = "load_state"  # The state of the object has been load by pickle
-    
+
     @property
     def digest(self) -> str:
         config_str = repr(self.config_dict)
         import hashlib
+
         return hashlib.md5(config_str.encode("utf-8")).hexdigest()[0:8]
 
-    def setup_data(self, init_type: str = IT_FIT_SEQ, enable_cache: bool = True, **kwargs):
+    def setup_data(
+        self, init_type: str = IT_FIT_SEQ, enable_cache: bool = True, **kwargs
+    ):
         """
         Set up the data in case of running initialization for multiple time
 
@@ -608,31 +661,44 @@ class DataHandlerLP(DataHandler):
                 the processed data will be saved on disk, and handler will load the cached data from the disk directly
                 when we call `init` next time
         """
-        
+
         from ...config import C
-        provider_dir = C['provider_uri']['__DEFAULT_FREQ']
+
+        provider_dir = C["provider_uri"]["__DEFAULT_FREQ"]
         cache_dir = os.path.join(provider_dir, "handler_cache", self.digest)
         if enable_cache:
             self.logger.info(f"Trying to load cached data from {cache_dir}")
             # Try to load from cache dir
             if os.path.isdir(cache_dir):
-                self.logger.info(f'{cache_dir} exists. Trying to load from it')
+                self.logger.info(f"{cache_dir} exists. Trying to load from it")
                 try:
-                    self._data = pickle.load(open(os.path.join(cache_dir, '_data.pkl'), 'rb'))
-                    self._infer = pickle.load(open(os.path.join(cache_dir, '_infer.pkl'), 'rb'))
-                    self._learn = pickle.load(open(os.path.join(cache_dir, '_learn.pkl'), 'rb'))
-                    self.logger.info(f"Successfully loaded cached data from {cache_dir}")
+                    self._data = pickle.load(
+                        open(os.path.join(cache_dir, "_data.pkl"), "rb")
+                    )
+                    self._infer = pickle.load(
+                        open(os.path.join(cache_dir, "_infer.pkl"), "rb")
+                    )
+                    self._learn = pickle.load(
+                        open(os.path.join(cache_dir, "_learn.pkl"), "rb")
+                    )
+                    self.logger.info(
+                        f"Successfully loaded cached data from {cache_dir}"
+                    )
                     return
                 except:
-                    self.logger.info(f"{cache_dir} is not a valid cache directory, returning to setup from scratch")
+                    self.logger.info(
+                        f"{cache_dir} is not a valid cache directory, returning to setup from scratch"
+                    )
             else:
-                self.logger.info(f"{cache_dir} does not exist. Returning to setup from scratch")
+                self.logger.info(
+                    f"{cache_dir} does not exist. Returning to setup from scratch"
+                )
 
         # init raw data
         super().setup_data(**kwargs)
 
         with TimeInspector.logt("fit & process data"):
-            self.logger.info('Fitting and processing data ......')
+            self.logger.info("Fitting and processing data ......")
             if init_type == DataHandlerLP.IT_FIT_IND:
                 self.fit()
                 self.process_data()
@@ -646,17 +712,27 @@ class DataHandlerLP(DataHandler):
         # TODO: Be able to cache handler data. Save the memory for data processing
         if enable_cache:
             import filelock
+
             os.makedirs(cache_dir, exist_ok=True)
-            lock = filelock.FileLock(os.path.join(cache_dir, 'lock'))
-            with lock:
-                if not os.path.exists(os.path.join(cache_dir, '_data.pkl')):
-                    pickle.dump(self._data, open(os.path.join(cache_dir, '_data.pkl'), 'wb'))
-                if not os.path.exists(os.path.join(cache_dir, '_infer.pkl')):
-                    pickle.dump(self._infer, open(os.path.join(cache_dir, '_infer.pkl'), 'wb'))
-                if not os.path.exists(os.path.join(cache_dir, '_learn.pkl')):
-                    pickle.dump(self._learn, open(os.path.join(cache_dir, '_learn.pkl'), 'wb'))
-                if not os.path.exists(os.path.join(cache_dir, 'config.json')):
-                    json.dump(self.config_dict, open(os.path.join(cache_dir, 'config.json'), 'w'), indent=4)
+            with filelock.FileLock(os.path.join(cache_dir, "lock")):
+                if not os.path.exists(os.path.join(cache_dir, "_data.pkl")):
+                    pickle.dump(
+                        self._data, open(os.path.join(cache_dir, "_data.pkl"), "wb")
+                    )
+                if not os.path.exists(os.path.join(cache_dir, "_infer.pkl")):
+                    pickle.dump(
+                        self._infer, open(os.path.join(cache_dir, "_infer.pkl"), "wb")
+                    )
+                if not os.path.exists(os.path.join(cache_dir, "_learn.pkl")):
+                    pickle.dump(
+                        self._learn, open(os.path.join(cache_dir, "_learn.pkl"), "wb")
+                    )
+                if not os.path.exists(os.path.join(cache_dir, "config.json")):
+                    json.dump(
+                        self.config_dict,
+                        open(os.path.join(cache_dir, "config.json"), "w"),
+                        indent=4,
+                    )
                 self.logger.info(f"Successfully saved cached data to {cache_dir}")
 
     def _get_df_by_key(self, data_key: str = DK_I) -> pd.DataFrame:

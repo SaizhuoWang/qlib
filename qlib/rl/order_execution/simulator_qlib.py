@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, cast, Generator, List, Optional, Tuple
+from typing import Any, Callable, Generator, List, Optional, Tuple, cast
 
 import numpy as np
 import pandas as pd
 
-from qlib.backtest.decision import BaseTradeDecision, Order, OrderHelper, TradeDecisionWO, TradeRange, TradeRangeByTime
+from qlib.backtest.decision import (BaseTradeDecision, Order, OrderHelper,
+                                    TradeDecisionWO, TradeRange,
+                                    TradeRangeByTime)
 from qlib.backtest.executor import BaseExecutor, NestedExecutor
 from qlib.backtest.utils import CommonInfrastructure
 from qlib.constant import EPS
@@ -16,13 +18,9 @@ from qlib.rl.data.exchange_wrapper import QlibIntradayBacktestData
 from qlib.rl.from_neutrader.config import ExchangeConfig
 from qlib.rl.from_neutrader.feature import init_qlib
 from qlib.rl.order_execution.simulator_simple import SAOEMetrics, SAOEState
-from qlib.rl.order_execution.utils import (
-    dataframe_append,
-    get_common_infra,
-    get_portfolio_and_indicator,
-    get_ticks_slice,
-    price_advantage,
-)
+from qlib.rl.order_execution.utils import (dataframe_append, get_common_infra,
+                                           get_portfolio_and_indicator,
+                                           get_ticks_slice, price_advantage)
 from qlib.rl.simulator import Simulator
 from qlib.strategy.base import BaseStrategy
 
@@ -34,7 +32,9 @@ class DecomposedStrategy(BaseStrategy):
         self.execute_order: Optional[Order] = None
         self.execute_result: List[Tuple[Order, float, float, float]] = []
 
-    def generate_trade_decision(self, execute_result: list = None) -> Generator[Any, Any, BaseTradeDecision]:
+    def generate_trade_decision(
+        self, execute_result: list = None
+    ) -> Generator[Any, Any, BaseTradeDecision]:
         # Once the following line is executed, this DecomposedStrategy (self) will be yielded to the outside
         # of the entire executor, and the execution will be suspended. When the execution is resumed by `send()`,
         # the sent item will be captured by `exec_vol`. The outside policy could communicate with the inner
@@ -48,13 +48,17 @@ class DecomposedStrategy(BaseStrategy):
 
         return TradeDecisionWO([order], self)
 
-    def alter_outer_trade_decision(self, outer_trade_decision: BaseTradeDecision) -> BaseTradeDecision:
+    def alter_outer_trade_decision(
+        self, outer_trade_decision: BaseTradeDecision
+    ) -> BaseTradeDecision:
         return outer_trade_decision
 
     def post_exe_step(self, execute_result: list) -> None:
         self.execute_result = execute_result
 
-    def reset(self, outer_trade_decision: TradeDecisionWO = None, **kwargs: Any) -> None:
+    def reset(
+        self, outer_trade_decision: TradeDecisionWO = None, **kwargs: Any
+    ) -> None:
         super().reset(outer_trade_decision=outer_trade_decision, **kwargs)
         if outer_trade_decision is not None:
             order_list = outer_trade_decision.order_list
@@ -76,7 +80,9 @@ class SingleOrderStrategy(BaseStrategy):
         self._trade_range = trade_range
         self._instrument = instrument
 
-    def alter_outer_trade_decision(self, outer_trade_decision: BaseTradeDecision) -> BaseTradeDecision:
+    def alter_outer_trade_decision(
+        self, outer_trade_decision: BaseTradeDecision
+    ) -> BaseTradeDecision:
         return outer_trade_decision
 
     def generate_trade_decision(self, execute_result: list = None) -> TradeDecisionWO:
@@ -107,7 +113,13 @@ class StateMaintainer:
         # get states in get_state from maintainer
     """
 
-    def __init__(self, order: Order, time_per_step: str, tick_index: pd.DatetimeIndex, twap_price: float) -> None:
+    def __init__(
+        self,
+        order: Order,
+        time_per_step: str,
+        tick_index: pd.DatetimeIndex,
+        twap_price: float,
+    ) -> None:
         super().__init__()
 
         self.position = order.amount
@@ -116,7 +128,9 @@ class StateMaintainer:
         self._tick_index = tick_index
         self._twap_price = twap_price
 
-        metric_keys = list(SAOEMetrics.__annotations__.keys())  # pylint: disable=no-member
+        metric_keys = list(
+            SAOEMetrics.__annotations__.keys()
+        )  # pylint: disable=no-member
         self.history_exec = pd.DataFrame(columns=metric_keys).set_index("datetime")
         self.history_steps = pd.DataFrame(columns=metric_keys).set_index("datetime")
         self.metrics: Optional[SAOEMetrics] = None
@@ -149,8 +163,14 @@ class StateMaintainer:
                 ),
             )
 
-            trade_value = all_indicators[FINEST_GRANULARITY].iloc[-num_step:]["value"].values
-            deal_amount = all_indicators[FINEST_GRANULARITY].iloc[-num_step:]["deal_amount"].values
+            trade_value = (
+                all_indicators[FINEST_GRANULARITY].iloc[-num_step:]["value"].values
+            )
+            deal_amount = (
+                all_indicators[FINEST_GRANULARITY]
+                .iloc[-num_step:]["deal_amount"]
+                .values
+            )
             market_price = trade_value / deal_amount
 
             datetime_list = all_indicators[FINEST_GRANULARITY].index[-num_step:]
@@ -239,7 +259,9 @@ class StateMaintainer:
         if np.abs(np.sum(exec_vol)) < EPS:
             exec_avg_price = 0.0
         else:
-            exec_avg_price = cast(float, np.average(market_price, weights=exec_vol))  # could be nan
+            exec_avg_price = cast(
+                float, np.average(market_price, weights=exec_vol)
+            )  # could be nan
             if hasattr(exec_avg_price, "item"):  # could be numpy scalar
                 exec_avg_price = exec_avg_price.item()  # type: ignore
 
@@ -290,11 +312,15 @@ class SingleAssetOrderExecutionQlib(Simulator[Order, SAOEState, float]):
 
         super().__init__(initial=order)
 
-        assert order.start_time.date() == order.end_time.date(), "Start date and end date must be the same."
+        assert (
+            order.start_time.date() == order.end_time.date()
+        ), "Start date and end date must be the same."
 
         self._order = order
         self._order_date = pd.Timestamp(order.start_time.date())
-        self._trade_range = TradeRangeByTime(order.start_time.time(), order.end_time.time())
+        self._trade_range = TradeRangeByTime(
+            order.start_time.time(), order.end_time.time()
+        )
         self._qlib_config = qlib_config
         self._inner_executor_fn = inner_executor_fn
         self._exchange_config = exchange_config
@@ -326,7 +352,9 @@ class SingleAssetOrderExecutionQlib(Simulator[Order, SAOEState, float]):
         # TODO: We can leverage interfaces like (https://tinyurl.com/y8f8fhv4) to create trading environment.
         # TODO: By aligning the interface to create environments with Qlib, it will be easier to share the config and
         # TODO: code between backtesting and training.
-        self._inner_executor = self._inner_executor_fn(self._time_per_step, common_infra)
+        self._inner_executor = self._inner_executor_fn(
+            self._time_per_step, common_infra
+        )
         self._executor = NestedExecutor(
             time_per_step=COARSEST_GRANULARITY,
             inner_executor=self._inner_executor,
@@ -336,7 +364,9 @@ class SingleAssetOrderExecutionQlib(Simulator[Order, SAOEState, float]):
         )
 
         exchange = self._inner_executor.trade_exchange
-        self._ticks_index = pd.DatetimeIndex([e[1] for e in list(exchange.quote_df.index)])
+        self._ticks_index = pd.DatetimeIndex(
+            [e[1] for e in list(exchange.quote_df.index)]
+        )
         self._ticks_for_order = get_ticks_slice(
             self._ticks_index,
             self._order.start_time,
@@ -353,11 +383,18 @@ class SingleAssetOrderExecutionQlib(Simulator[Order, SAOEState, float]):
 
         self.twap_price = self._backtest_data.get_deal_price().mean()
 
-        top_strategy = SingleOrderStrategy(common_infra, order, self._trade_range, instrument)
-        self._executor.reset(start_time=pd.Timestamp(self._order_date), end_time=pd.Timestamp(self._order_date))
+        top_strategy = SingleOrderStrategy(
+            common_infra, order, self._trade_range, instrument
+        )
+        self._executor.reset(
+            start_time=pd.Timestamp(self._order_date),
+            end_time=pd.Timestamp(self._order_date),
+        )
         top_strategy.reset(level_infra=self._executor.get_level_infra())
 
-        self._collect_data_loop = self._executor.collect_data(top_strategy.generate_trade_decision(), level=0)
+        self._collect_data_loop = self._executor.collect_data(
+            top_strategy.generate_trade_decision(), level=0
+        )
         assert isinstance(self._collect_data_loop, Generator)
 
         self._iter_strategy(action=None)
@@ -374,9 +411,17 @@ class SingleAssetOrderExecutionQlib(Simulator[Order, SAOEState, float]):
         """Iterate the _collect_data_loop until we get the next yield DecomposedStrategy."""
         assert self._collect_data_loop is not None
 
-        strategy = next(self._collect_data_loop) if action is None else self._collect_data_loop.send(action)
+        strategy = (
+            next(self._collect_data_loop)
+            if action is None
+            else self._collect_data_loop.send(action)
+        )
         while not isinstance(strategy, DecomposedStrategy):
-            strategy = next(self._collect_data_loop) if action is None else self._collect_data_loop.send(action)
+            strategy = (
+                next(self._collect_data_loop)
+                if action is None
+                else self._collect_data_loop.send(action)
+            )
         assert isinstance(strategy, DecomposedStrategy)
         return strategy
 

@@ -4,22 +4,21 @@
 # pylint: skip-file
 # flake8: noqa
 
-import os
-import yaml
-import json
 import copy
-import pickle
-import logging
 import importlib
+import json
+import logging
+import os
+import pickle
 import subprocess
-import pandas as pd
-import numpy as np
-
 from abc import abstractmethod
 
-from ...log import get_module_logger, TimeInspector
-from hyperopt import fmin, tpe
-from hyperopt import STATUS_OK, STATUS_FAIL
+import numpy as np
+import pandas as pd
+import yaml
+from hyperopt import STATUS_FAIL, STATUS_OK, fmin, tpe
+
+from ...log import TimeInspector, get_module_logger
 
 
 class Tuner:
@@ -53,7 +52,9 @@ class Tuner:
         )
         self.logger.info("Local best params: {} ".format(self.best_params))
         TimeInspector.log_cost_time(
-            "Finished searching best parameters in Tuner {}.".format(self.tuner_config["experiment"]["id"])
+            "Finished searching best parameters in Tuner {}.".format(
+                self.tuner_config["experiment"]["id"]
+            )
         )
 
         self.save_local_best_params()
@@ -98,10 +99,14 @@ class QLibTuner(Tuner):
         self.logger.info("Searching params: {} ".format(params))
 
         # 2. Use subprocess to do the estimator program, this process will wait until subprocess finish
-        sub_fails = subprocess.call("estimator -c {}".format(estimator_path), shell=True)
+        sub_fails = subprocess.call(
+            "estimator -c {}".format(estimator_path), shell=True
+        )
         if sub_fails:
             # If this subprocess failed, ignore this evaluation step
-            self.logger.info("Estimator experiment failed when using this searching parameters")
+            self.logger.info(
+                "Estimator experiment failed when using this searching parameters"
+            )
             return {"loss": np.nan, "status": STATUS_FAIL}
 
         # 3. Fetch the result of subprocess, and check whether the result is Nan
@@ -138,13 +143,17 @@ class QLibTuner(Tuner):
                 return np.abs(exp_info["performance"]["model_pearsonr"] - 1)
 
         # 3. Get backtest results
-        exp_result_dir = os.path.join(self.ex_dir, QLibTuner.EXP_RESULT_DIR.format(estimator_ex_id))
+        exp_result_dir = os.path.join(
+            self.ex_dir, QLibTuner.EXP_RESULT_DIR.format(estimator_ex_id)
+        )
         exp_result_path = os.path.join(exp_result_dir, QLibTuner.EXP_RESULT_NAME)
         with open(exp_result_path, "rb") as fp:
             analysis_df = pickle.load(fp)
 
         # 4. Get the backtest factor which user want to optimize, if user want to maximize the factor, then reverse the result
-        res = analysis_df.loc[self.optim_config.report_type].loc[self.optim_config.report_factor]
+        res = analysis_df.loc[self.optim_config.report_type].loc[
+            self.optim_config.report_factor
+        ]
         # res = res.values[0] if self.optim_config.optim_type == 'min' else -res.values[0]
         if self.optim_config == "min":
             return res.values[0]
@@ -214,9 +223,13 @@ class QLibTuner(Tuner):
     def save_local_best_params(self):
 
         TimeInspector.set_time_mark()
-        local_best_params_path = os.path.join(self.ex_dir, QLibTuner.LOCAL_BEST_PARAMS_NAME)
+        local_best_params_path = os.path.join(
+            self.ex_dir, QLibTuner.LOCAL_BEST_PARAMS_NAME
+        )
         with open(local_best_params_path, "w") as fp:
             json.dump(self.best_params, fp)
         TimeInspector.log_cost_time(
-            "Finished saving local best tuner parameters to: {} .".format(local_best_params_path)
+            "Finished saving local best tuner parameters to: {} .".format(
+                local_best_params_path
+            )
         )

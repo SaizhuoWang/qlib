@@ -1,19 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-import pandas as pd
-
-import plotly.graph_objs as go
-
-import statsmodels.api as sm
 import matplotlib.pyplot as plt
-
+import pandas as pd
+import plotly.graph_objs as go
+import statsmodels.api as sm
 from scipy import stats
 
-from ..graph import ScatterGraph, SubplotsGraph, BarGraph, HeatmapGraph
+from ..graph import BarGraph, HeatmapGraph, ScatterGraph, SubplotsGraph
 
 
-def _group_return(pred_label: pd.DataFrame = None, reverse: bool = False, N: int = 5, **kwargs) -> tuple:
+def _group_return(
+    pred_label: pd.DataFrame = None, reverse: bool = False, N: int = 5, **kwargs
+) -> tuple:
     """
 
     :param pred_label:
@@ -34,7 +33,9 @@ def _group_return(pred_label: pd.DataFrame = None, reverse: bool = False, N: int
         {
             "Group%d"
             % (i + 1): pred_label_drop.groupby(level="datetime")["label"].apply(
-                lambda x: x[len(x) // N * i : len(x) // N * (i + 1)].mean()  # pylint: disable=W0640
+                lambda x: x[
+                    len(x) // N * i : len(x) // N * (i + 1)
+                ].mean()  # pylint: disable=W0640
             )
             for i in range(N)
         }
@@ -45,7 +46,9 @@ def _group_return(pred_label: pd.DataFrame = None, reverse: bool = False, N: int
     t_df["long-short"] = t_df["Group1"] - t_df["Group%d" % N]
 
     # Long-Average
-    t_df["long-average"] = t_df["Group1"] - pred_label.groupby(level="datetime")["label"].mean()
+    t_df["long-average"] = (
+        t_df["Group1"] - pred_label.groupby(level="datetime")["label"].mean()
+    )
 
     t_df = t_df.dropna(how="all")  # for days which does not contain label
     # FIXME: support HIGH-FREQ
@@ -53,7 +56,9 @@ def _group_return(pred_label: pd.DataFrame = None, reverse: bool = False, N: int
     # Cumulative Return By Group
     group_scatter_figure = ScatterGraph(
         t_df.cumsum(),
-        layout=dict(title="Cumulative Return", xaxis=dict(type="category", tickangle=45)),
+        layout=dict(
+            title="Cumulative Return", xaxis=dict(type="category", tickangle=45)
+        ),
     ).figure
 
     t_df = t_df.loc[:, ["long-short", "long-average"]]
@@ -122,9 +127,13 @@ def _pred_ic(pred_label: pd.DataFrame = None, rank: bool = False, **kwargs) -> t
             lambda x: x["label"].rank(pct=True).corr(x["score"].rank(pct=True))
         )
     else:
-        ic = pred_label.groupby(level="datetime").apply(lambda x: x["label"].corr(x["score"]))
+        ic = pred_label.groupby(level="datetime").apply(
+            lambda x: x["label"].corr(x["score"])
+        )
 
-    _index = ic.index.get_level_values(0).astype("str").str.replace("-", "").str.slice(0, 6)
+    _index = (
+        ic.index.get_level_values(0).astype("str").str.replace("-", "").str.slice(0, 6)
+    )
     _monthly_ic = ic.groupby(_index).mean()
     _monthly_ic.index = pd.MultiIndex.from_arrays(
         [_monthly_ic.index.str.slice(0, 4), _monthly_ic.index.str.slice(4, 6)],
@@ -201,13 +210,17 @@ def _pred_ic(pred_label: pd.DataFrame = None, rank: bool = False, **kwargs) -> t
 def _pred_autocorr(pred_label: pd.DataFrame, lag=1, **kwargs) -> tuple:
     pred = pred_label.copy()
     pred["score_last"] = pred.groupby(level="instrument")["score"].shift(lag)
-    ac = pred.groupby(level="datetime").apply(lambda x: x["score"].rank(pct=True).corr(x["score_last"].rank(pct=True)))
+    ac = pred.groupby(level="datetime").apply(
+        lambda x: x["score"].rank(pct=True).corr(x["score_last"].rank(pct=True))
+    )
     # FIXME: support HIGH-FREQ
     _df = ac.to_frame("value")
     _df.index = _df.index.strftime("%Y-%m-%d")
     ac_figure = ScatterGraph(
         _df,
-        layout=dict(title="Auto Correlation", xaxis=dict(type="category", tickangle=45)),
+        layout=dict(
+            title="Auto Correlation", xaxis=dict(type="category", tickangle=45)
+        ),
     ).figure
     return (ac_figure,)
 
@@ -217,7 +230,9 @@ def _pred_turnover(pred_label: pd.DataFrame, N=5, lag=1, **kwargs) -> tuple:
     pred["score_last"] = pred.groupby(level="instrument")["score"].shift(lag)
     top = pred.groupby(level="datetime").apply(
         lambda x: 1
-        - x.nlargest(len(x) // N, columns="score").index.isin(x.nlargest(len(x) // N, columns="score_last").index).sum()
+        - x.nlargest(len(x) // N, columns="score")
+        .index.isin(x.nlargest(len(x) // N, columns="score_last").index)
+        .sum()
         / (len(x) // N)
     )
     bottom = pred.groupby(level="datetime").apply(
@@ -237,7 +252,9 @@ def _pred_turnover(pred_label: pd.DataFrame, N=5, lag=1, **kwargs) -> tuple:
     r_df.index = r_df.index.strftime("%Y-%m-%d")
     turnover_figure = ScatterGraph(
         r_df,
-        layout=dict(title="Top-Bottom Turnover", xaxis=dict(type="category", tickangle=45)),
+        layout=dict(
+            title="Top-Bottom Turnover", xaxis=dict(type="category", tickangle=45)
+        ),
     ).figure
     return (turnover_figure,)
 

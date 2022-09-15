@@ -1,10 +1,10 @@
-import pandas as pd
+from typing import Callable, List, Union
+
 import numpy as np
+import pandas as pd
 
 from .handler import DataHandler
-from typing import Union, List, Callable
-
-from .utils import get_level_index, fetch_df_by_index, fetch_df_by_col
+from .utils import fetch_df_by_col, fetch_df_by_index, get_level_index
 
 
 class BaseHandlerStorage:
@@ -115,8 +115,12 @@ class HashingStockStorage(BaseHandlerStorage):
             elif isinstance(selector, (list, str)):
                 stock_selector = selector
 
-        if not isinstance(stock_selector, (list, str)) and stock_selector != slice(None):
-            raise TypeError(f"stock selector must be type str|list, or slice(None), rather than {stock_selector}")
+        if not isinstance(stock_selector, (list, str)) and stock_selector != slice(
+            None
+        ):
+            raise TypeError(
+                f"stock selector must be type str|list, or slice(None), rather than {stock_selector}"
+            )
 
         if stock_selector == slice(None):
             return self.hash_df
@@ -137,15 +141,25 @@ class HashingStockStorage(BaseHandlerStorage):
         col_set: Union[str, List[str]] = DataHandler.CS_ALL,
         fetch_orig: bool = True,
     ) -> pd.DataFrame:
-        fetch_stock_df_list = list(self._fetch_hash_df_by_stock(selector=selector, level=level).values())
+        fetch_stock_df_list = list(
+            self._fetch_hash_df_by_stock(selector=selector, level=level).values()
+        )
         for _index, stock_df in enumerate(fetch_stock_df_list):
             fetch_col_df = fetch_df_by_col(df=stock_df, col_set=col_set)
-            fetch_index_df = fetch_df_by_index(df=fetch_col_df, selector=selector, level=level, fetch_orig=fetch_orig)
+            fetch_index_df = fetch_df_by_index(
+                df=fetch_col_df, selector=selector, level=level, fetch_orig=fetch_orig
+            )
             fetch_stock_df_list[_index] = fetch_index_df
         if len(fetch_stock_df_list) == 0:
-            index_names = ("instrument", "datetime") if self.stock_level == 0 else ("datetime", "instrument")
+            index_names = (
+                ("instrument", "datetime")
+                if self.stock_level == 0
+                else ("datetime", "instrument")
+            )
             return pd.DataFrame(
-                index=pd.MultiIndex.from_arrays([[], []], names=index_names), columns=self.columns, dtype=np.float32
+                index=pd.MultiIndex.from_arrays([[], []], names=index_names),
+                columns=self.columns,
+                dtype=np.float32,
             )
         elif len(fetch_stock_df_list) == 1:
             return fetch_stock_df_list[0]

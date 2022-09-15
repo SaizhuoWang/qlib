@@ -3,11 +3,11 @@
 
 
 import logging
-from typing import Optional, Text, Dict, Any
 import re
+from contextlib import contextmanager
 from logging import config as logging_config
 from time import time
-from contextlib import contextmanager
+from typing import Any, Dict, Optional, Text
 
 from .config import C
 
@@ -205,7 +205,9 @@ def set_global_logger_level(level: int, return_orig_handler_level: bool = False)
 
     """
     _handler_level_map = {}
-    qlib_logger = logging.root.manager.loggerDict.get("qlib", None)  # pylint: disable=E1101
+    qlib_logger = logging.root.manager.loggerDict.get(
+        "qlib", None
+    )  # pylint: disable=E1101
     if qlib_logger is not None:
         for _handler in qlib_logger.handlers:
             _handler_level_map[_handler] = _handler.level

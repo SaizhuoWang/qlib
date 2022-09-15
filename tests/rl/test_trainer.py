@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 
 import pytest
-
 import torch
 import torch.nn as nn
 from gym import spaces
@@ -12,12 +11,14 @@ from tianshou.policy import PPOPolicy
 
 from qlib.config import C
 from qlib.log import set_log_with_config
-from qlib.rl.interpreter import StateInterpreter, ActionInterpreter
-from qlib.rl.simulator import Simulator
+from qlib.rl.interpreter import ActionInterpreter, StateInterpreter
 from qlib.rl.reward import Reward
-from qlib.rl.trainer import Trainer, TrainingVessel, EarlyStopping, Checkpoint
+from qlib.rl.simulator import Simulator
+from qlib.rl.trainer import Checkpoint, EarlyStopping, Trainer, TrainingVessel
 
-pytestmark = pytest.mark.skipif(sys.version_info < (3, 8), reason="Pickle styled data only supports Python >= 3.8")
+pytestmark = pytest.mark.skipif(
+    sys.version_info < (3, 8), reason="Pickle styled data only supports Python >= 3.8"
+)
 
 
 class ZeroSimulator(Simulator):
@@ -173,7 +174,11 @@ def test_trainer_earlystop():
 def test_trainer_checkpoint():
     set_log_with_config(C.logging_config)
     output_dir = Path(__file__).parent / ".output"
-    trainer = Trainer(max_iters=2, finite_env_type="dummy", callbacks=[Checkpoint(output_dir, every_n_iters=1)])
+    trainer = Trainer(
+        max_iters=2,
+        finite_env_type="dummy",
+        callbacks=[Checkpoint(output_dir, every_n_iters=1)],
+    )
     policy = _ppo_policy()
 
     vessel = TrainingVessel(

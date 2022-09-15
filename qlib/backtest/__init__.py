@@ -203,7 +203,9 @@ def get_strategy_executor(
         exchange_kwargs["end_time"] = end_time
     trade_exchange = get_exchange(**exchange_kwargs)
 
-    common_infra = CommonInfrastructure(trade_account=trade_account, trade_exchange=trade_exchange)
+    common_infra = CommonInfrastructure(
+        trade_account=trade_account, trade_exchange=trade_exchange
+    )
     trade_strategy = init_instance_by_config(strategy, accept_types=BaseStrategy)
     trade_strategy.reset_common_infra(common_infra)
     trade_executor = init_instance_by_config(executor, accept_types=BaseExecutor)
@@ -271,7 +273,9 @@ def backtest(
         exchange_kwargs,
         pos_type=pos_type,
     )
-    portfolio_metrics, indicator = backtest_loop(start_time, end_time, trade_strategy, trade_executor)
+    portfolio_metrics, indicator = backtest_loop(
+        start_time, end_time, trade_strategy, trade_executor
+    )
     return portfolio_metrics, indicator
 
 
@@ -305,7 +309,9 @@ def collect_data(
         exchange_kwargs,
         pos_type=pos_type,
     )
-    yield from collect_data_loop(start_time, end_time, trade_strategy, trade_executor, return_value=return_value)
+    yield from collect_data_loop(
+        start_time, end_time, trade_strategy, trade_executor, return_value=return_value
+    )
 
 
 def format_decisions(
@@ -339,9 +345,16 @@ def format_decisions(
     last_dec_idx = 0
     for i, dec in enumerate(decisions[1:], 1):
         if dec.strategy.trade_calendar.get_freq() == cur_freq:
-            res[1].append((decisions[last_dec_idx], format_decisions(decisions[last_dec_idx + 1 : i])))
+            res[1].append(
+                (
+                    decisions[last_dec_idx],
+                    format_decisions(decisions[last_dec_idx + 1 : i]),
+                )
+            )
             last_dec_idx = i
-    res[1].append((decisions[last_dec_idx], format_decisions(decisions[last_dec_idx + 1 :])))
+    res[1].append(
+        (decisions[last_dec_idx], format_decisions(decisions[last_dec_idx + 1 :]))
+    )
     return res
 
 

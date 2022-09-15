@@ -3,7 +3,15 @@
 import matplotlib.pyplot as plt
 
 
-def sub_fig_generator(sub_fs=(3, 3), col_n=10, row_n=1, wspace=None, hspace=None, sharex=False, sharey=False):
+def sub_fig_generator(
+    sub_fs=(3, 3),
+    col_n=10,
+    row_n=1,
+    wspace=None,
+    hspace=None,
+    sharex=False,
+    sharey=False,
+):
     """sub_fig_generator.
     it will return a generator, each row contains <col_n> sub graph
 
@@ -32,7 +40,11 @@ def sub_fig_generator(sub_fs=(3, 3), col_n=10, row_n=1, wspace=None, hspace=None
 
     while True:
         fig, axes = plt.subplots(
-            row_n, col_n, figsize=(sub_fs[0] * col_n, sub_fs[1] * row_n), sharex=sharex, sharey=sharey
+            row_n,
+            col_n,
+            figsize=(sub_fs[0] * col_n, sub_fs[1] * row_n),
+            sharex=sharex,
+            sharey=sharey,
         )
         plt.subplots_adjust(wspace=wspace, hspace=hspace)
         axes = axes.reshape(row_n, col_n)

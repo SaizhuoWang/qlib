@@ -1,16 +1,15 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+import concurrent
 from functools import partial
+from queue import Queue
 from threading import Thread
 from typing import Callable, Text, Union
 
+import pandas as pd
 from joblib import Parallel, delayed
 from joblib._parallel_backends import MultiprocessingBackend
-import pandas as pd
-
-from queue import Queue
-import concurrent
 
 from qlib.config import C, QlibConfig
 
@@ -24,7 +23,13 @@ class ParallelExt(Parallel):
 
 
 def datetime_groupby_apply(
-    df, apply_func: Union[Callable, Text], axis=0, level="datetime", resample_rule="M", n_jobs=-1, skip_group=False
+    df,
+    apply_func: Union[Callable, Text],
+    axis=0,
+    level="datetime",
+    resample_rule="M",
+    n_jobs=-1,
+    skip_group=False,
 ):
     """datetime_groupby_apply
     This function will apply the `apply_func` on the datetime level index.
@@ -55,7 +60,8 @@ def datetime_groupby_apply(
 
     if n_jobs != 1:
         dfs = ParallelExt(n_jobs=n_jobs)(
-            delayed(_naive_group_apply)(sub_df) for idx, sub_df in df.resample(resample_rule, axis=axis, level=level)
+            delayed(_naive_group_apply)(sub_df)
+            for idx, sub_df in df.resample(resample_rule, axis=axis, level=level)
         )
         return pd.concat(dfs, axis=axis).sort_index()
     else:

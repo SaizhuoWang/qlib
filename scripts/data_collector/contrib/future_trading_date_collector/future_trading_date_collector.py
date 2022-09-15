@@ -2,16 +2,15 @@
 # Licensed under the MIT License.
 
 import sys
-from typing import List
 from pathlib import Path
+from typing import List
 
+# get data from baostock
+import baostock as bs
 import fire
 import numpy as np
 import pandas as pd
 from loguru import logger
-
-# get data from baostock
-import baostock as bs
 
 CUR_DIR = Path(__file__).resolve().parent
 sys.path.append(str(CUR_DIR.parent.parent.parent))
@@ -40,7 +39,9 @@ def generate_qlib_calendar(date_list: List[str], freq: str) -> List[str]:
         return date_list
     elif freq == "1min":
         date_list = generate_minutes_calendar_from_daily(date_list, freq=freq).tolist()
-        return list(map(lambda x: pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S"), date_list))
+        return list(
+            map(lambda x: pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S"), date_list)
+        )
     else:
         raise ValueError(f"Unsupported freq: {freq}")
 
@@ -70,7 +71,9 @@ def future_calendar_collector(qlib_dir: [str, Path], freq: str = "day"):
         start_year = pd.Timestamp.now().year
     else:
         start_year = pd.Timestamp(daily_calendar.iloc[-1, 0]).year
-    rs = bs.query_trade_dates(start_date=pd.Timestamp(f"{start_year}-01-01"), end_date=f"{end_year}-12-31")
+    rs = bs.query_trade_dates(
+        start_date=pd.Timestamp(f"{start_year}-01-01"), end_date=f"{end_year}-12-31"
+    )
     data_list = []
     while (rs.error_code == "0") & rs.next():
         _row_data = rs.get_row_data()

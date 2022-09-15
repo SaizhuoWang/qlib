@@ -8,7 +8,9 @@ import pandas as pd
 
 import qlib
 from qlib.config import REG_CN
-from qlib.contrib.ops.high_freq import BFillNan, Cut, Date, DayCumsum, DayLast, FFillNan, IsInf, IsNull, Select
+from qlib.contrib.ops.high_freq import (BFillNan, Cut, Date, DayCumsum,
+                                        DayLast, FFillNan, IsInf, IsNull,
+                                        Select)
 from qlib.data.dataset import DatasetH
 
 
@@ -53,8 +55,12 @@ class DataWrapper:
         self.feature_cache = LRUCache()
         self.backtest_cache = LRUCache()
 
-    def get(self, stock_id: str, date: pd.Timestamp, backtest: bool = False) -> pd.DataFrame:
-        start_time, end_time = date.replace(hour=0, minute=0, second=0), date.replace(hour=23, minute=59, second=59)
+    def get(
+        self, stock_id: str, date: pd.Timestamp, backtest: bool = False
+    ) -> pd.DataFrame:
+        start_time, end_time = date.replace(hour=0, minute=0, second=0), date.replace(
+            hour=23, minute=59, second=59
+        )
 
         if backtest:
             dataset = self.backtest_dataset
@@ -65,7 +71,9 @@ class DataWrapper:
 
         if cache.has((start_time, end_time, stock_id)):
             return cache.get((start_time, end_time, stock_id))
-        data = dataset.handler.fetch(pd.IndexSlice[stock_id, start_time:end_time], level=None)
+        data = dataset.handler.fetch(
+            pd.IndexSlice[stock_id, start_time:end_time], level=None
+        )
         cache.put((start_time, end_time, stock_id), data)
         return data
 
@@ -78,7 +86,17 @@ def init_qlib(config: dict, part: Optional[str] = None) -> None:
     qlib.init(
         region=REG_CN,
         auto_mount=False,
-        custom_ops=[DayLast, FFillNan, BFillNan, Date, Select, IsNull, IsInf, Cut, DayCumsum],
+        custom_ops=[
+            DayLast,
+            FFillNan,
+            BFillNan,
+            Date,
+            Select,
+            IsNull,
+            IsInf,
+            Cut,
+            DayCumsum,
+        ],
         expression_cache=None,
         calendar_provider={
             "class": "LocalCalendarProvider",

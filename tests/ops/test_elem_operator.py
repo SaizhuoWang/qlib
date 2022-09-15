@@ -1,8 +1,8 @@
 import unittest
 
+from qlib.config import C
 from qlib.data import DatasetProvider
 from qlib.tests import TestOperatorData
-from qlib.config import C
 
 
 class TestOperatorDataSetting(TestOperatorData):
@@ -20,7 +20,14 @@ class TestElementOperator(TestOperatorData):
         ]
         columns = ["change", "abs"]
         self.data = DatasetProvider.inst_calculator(
-            self.inst, self.start_time, self.end_time, freq, expressions, self.spans, C, []
+            self.inst,
+            self.start_time,
+            self.end_time,
+            freq,
+            expressions,
+            self.spans,
+            C,
+            [],
         )
         self.data.columns = columns
 

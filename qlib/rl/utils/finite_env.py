@@ -11,13 +11,16 @@ from __future__ import annotations
 import copy
 import warnings
 from contextlib import contextmanager
-from typing import Any, Callable, cast, Dict, Generator, List, Optional, Set, Tuple, Type, Union
+from typing import (Any, Callable, Dict, Generator, List, Optional, Set, Tuple,
+                    Type, Union, cast)
 
 import gym
 import numpy as np
-from tianshou.env import BaseVectorEnv, DummyVectorEnv, ShmemVectorEnv, SubprocVectorEnv
+from tianshou.env import (BaseVectorEnv, DummyVectorEnv, ShmemVectorEnv,
+                          SubprocVectorEnv)
 
 from qlib.typehint import Literal
+
 from .log import LogWriter
 
 __all__ = [
@@ -122,7 +125,10 @@ class FiniteVectorEnv(BaseVectorEnv):
     _logger: list[LogWriter]
 
     def __init__(
-        self, logger: LogWriter | list[LogWriter] | None, env_fns: list[Callable[..., gym.Env]], **kwargs: Any
+        self,
+        logger: LogWriter | list[LogWriter] | None,
+        env_fns: list[Callable[..., gym.Env]],
+        **kwargs: Any,
     ) -> None:
         super().__init__(env_fns, **kwargs)
 

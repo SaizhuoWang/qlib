@@ -2,12 +2,12 @@
 # Licensed under the MIT License.
 
 import copy
-import torch
+
 import numpy as np
 import pandas as pd
+import torch
 
 from qlib.data.dataset import DatasetH
-
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -125,7 +125,9 @@ class MTSDatasetH(DatasetH):
         self._index = df.index
 
         # add memory to feature
-        self._data = np.c_[self._data, np.zeros((len(self._data), self.num_states), dtype=np.float32)]
+        self._data = np.c_[
+            self._data, np.zeros((len(self._data), self.num_states), dtype=np.float32)
+        ]
 
         # padding tensor
         self.zeros = np.zeros((self.seq_len, self._data.shape[1]), dtype=np.float32)
@@ -236,12 +238,20 @@ class MTSDatasetH(DatasetH):
             label = []
             index = []
             for slc in slices_subset:
-                _data = self._data[slc].clone() if self.pin_memory else self._data[slc].copy()
+                _data = (
+                    self._data[slc].clone()
+                    if self.pin_memory
+                    else self._data[slc].copy()
+                )
                 if len(_data) != self.seq_len:
                     if self.pin_memory:
-                        _data = torch.cat([self.zeros[: self.seq_len - len(_data)], _data], axis=0)
+                        _data = torch.cat(
+                            [self.zeros[: self.seq_len - len(_data)], _data], axis=0
+                        )
                     else:
-                        _data = np.concatenate([self.zeros[: self.seq_len - len(_data)], _data], axis=0)
+                        _data = np.concatenate(
+                            [self.zeros[: self.seq_len - len(_data)], _data], axis=0
+                        )
                 if self.num_states > 0:
                     _data[-self.horizon :, -self.num_states :] = 0
                 data.append(_data)

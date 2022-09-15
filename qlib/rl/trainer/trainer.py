@@ -12,7 +12,8 @@ import torch
 
 from qlib.log import get_module_logger
 from qlib.rl.simulator import InitialStateType
-from qlib.rl.utils import EnvWrapper, FiniteEnvType, LogBuffer, LogCollector, LogLevel, LogWriter, vectorize_env
+from qlib.rl.utils import (EnvWrapper, FiniteEnvType, LogBuffer, LogCollector,
+                           LogLevel, LogWriter, vectorize_env)
 from qlib.rl.utils.finite_env import FiniteVectorEnv
 from qlib.typehint import Literal
 
@@ -107,7 +108,9 @@ class Trainer:
         else:
             self.loggers = []
 
-        self.loggers.append(LogBuffer(self._metrics_callback, loglevel=self._min_loglevel()))
+        self.loggers.append(
+            LogBuffer(self._metrics_callback, loglevel=self._min_loglevel())
+        )
 
         self.callbacks: list[Callback] = callbacks if callbacks is not None else []
         self.finite_env_type = finite_env_type
@@ -142,8 +145,14 @@ class Trainer:
         """
         return {
             "vessel": self.vessel.state_dict(),
-            "callbacks": {name: callback.state_dict() for name, callback in self.named_callbacks().items()},
-            "loggers": {name: logger.state_dict() for name, logger in self.named_loggers().items()},
+            "callbacks": {
+                name: callback.state_dict()
+                for name, callback in self.named_callbacks().items()
+            },
+            "loggers": {
+                name: logger.state_dict()
+                for name, logger in self.named_loggers().items()
+            },
             "should_stop": self.should_stop,
             "current_iter": self.current_iter,
             "current_episode": self.current_episode,
@@ -213,7 +222,10 @@ class Trainer:
 
             self._call_callback_hooks("on_train_end")
 
-            if self.val_every_n_iters is not None and (self.current_iter + 1) % self.val_every_n_iters == 0:
+            if (
+                self.val_every_n_iters is not None
+                and (self.current_iter + 1) % self.val_every_n_iters == 0
+            ):
                 # Implementation of validation loop
                 self.current_stage = "val"
                 self._call_callback_hooks("on_validate_start")
@@ -256,7 +268,9 @@ class Trainer:
             self.vessel.test(vector_env)
         self._call_callback_hooks("on_test_end")
 
-    def venv_from_iterator(self, iterator: Iterable[InitialStateType]) -> FiniteVectorEnv:
+    def venv_from_iterator(
+        self, iterator: Iterable[InitialStateType]
+    ) -> FiniteVectorEnv:
         """Create a vectorized environment from iterator and the training vessel."""
 
         def env_factory():
@@ -291,7 +305,9 @@ class Trainer:
             self.loggers,
         )
 
-    def _metrics_callback(self, on_episode: bool, on_collect: bool, log_buffer: LogBuffer) -> None:
+    def _metrics_callback(
+        self, on_episode: bool, on_collect: bool, log_buffer: LogBuffer
+    ) -> None:
         if on_episode:
             # Update the global counter.
             self.current_episode = log_buffer.global_episode

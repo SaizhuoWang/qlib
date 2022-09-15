@@ -3,15 +3,15 @@
 
 import abc
 import pickle
-from pathlib import Path
 import warnings
+from pathlib import Path
+from typing import List, Tuple, Union
+
 import pandas as pd
 
-from typing import Tuple, Union, List
-
 from qlib.data import D
-from qlib.utils import load_dataset, init_instance_by_config, time_to_slc_point
 from qlib.log import get_module_logger
+from qlib.utils import init_instance_by_config, load_dataset, time_to_slc_point
 from qlib.utils.serial import Serializable
 
 
@@ -83,7 +83,10 @@ class DLWParser(DataLoader):
         self.is_group = isinstance(config, dict)
 
         if self.is_group:
-            self.fields = {grp: self._parse_fields_info(fields_info) for grp, fields_info in config.items()}
+            self.fields = {
+                grp: self._parse_fields_info(fields_info)
+                for grp, fields_info in config.items()
+            }
         else:
             self.fields = self._parse_fields_info(config)
 
@@ -134,7 +137,9 @@ class DLWParser(DataLoader):
         if self.is_group:
             df = pd.concat(
                 {
-                    grp: self.load_group_df(instruments, exprs, names, start_time, end_time, grp)
+                    grp: self.load_group_df(
+                        instruments, exprs, names, start_time, end_time, grp
+                    )
                     for grp, (exprs, names) in self.fields.items()
                 },
                 axis=1,
@@ -177,7 +182,9 @@ class QlibDataLoader(DLWParser):
 
         # sample
         self.inst_processor = inst_processor if inst_processor is not None else {}
-        assert isinstance(self.inst_processor, dict), f"inst_processor(={self.inst_processor}) must be dict"
+        assert isinstance(
+            self.inst_processor, dict
+        ), f"inst_processor(={self.inst_processor}) must be dict"
 
         super().__init__(config)
 
@@ -206,17 +213,33 @@ class QlibDataLoader(DLWParser):
         if isinstance(instruments, str):
             instruments = D.instruments(instruments, filter_pipe=self.filter_pipe)
         elif self.filter_pipe is not None:
-            warnings.warn("`filter_pipe` is not None, but it will not be used with `instruments` as list")
+            warnings.warn(
+                "`filter_pipe` is not None, but it will not be used with `instruments` as list"
+            )
 
         freq = self.freq[gp_name] if isinstance(self.freq, dict) else self.freq
-        self.logger.info('Loading data for group "%s" with freq "%s" from disk', gp_name, freq)
+        self.logger.info(
+            'Loading data for group "%s" with freq "%s" from disk', gp_name, freq
+        )
+        import pdb
+
+        pdb.set_trace()
         df = D.features(
-            instruments, exprs, start_time, end_time, freq=freq, inst_processors=self.inst_processor.get(gp_name, [])
+            instruments,
+            exprs,
+            start_time,
+            end_time,
+            freq=freq,
+            inst_processors=self.inst_processor.get(gp_name, []),
         )
         df.columns = names
-        self.logger.info('Loaded data for group "%s" with freq "%s" from disk', gp_name, freq)
+        self.logger.info(
+            'Loaded data for group "%s" with freq "%s" from disk', gp_name, freq
+        )
         if self.swap_level:
-            df = df.swaplevel().sort_index()  # NOTE: if swaplevel, return <datetime, instrument>
+            df = (
+                df.swaplevel().sort_index()
+            )  # NOTE: if swaplevel, return <datetime, instrument>
         return df
 
 
@@ -262,7 +285,10 @@ class StaticDataLoader(DataLoader, Serializable):
             return
         if isinstance(self._config, dict):
             self._data = pd.concat(
-                {fields_group: load_dataset(path_or_obj) for fields_group, path_or_obj in self._config.items()},
+                {
+                    fields_group: load_dataset(path_or_obj)
+                    for fields_group, path_or_obj in self._config.items()
+                },
                 axis=1,
                 join=self.join,
             )
@@ -309,14 +335,18 @@ class DataLoaderDH(DataLoader):
             is_group will be used to describe whether the key of handler_config is group
 
         """
-        from qlib.data.dataset.handler import DataHandler  # pylint: disable=C0415
+        from qlib.data.dataset.handler import \
+            DataHandler  # pylint: disable=C0415
 
         if is_group:
             self.handlers = {
-                grp: init_instance_by_config(config, accept_types=DataHandler) for grp, config in handler_config.items()
+                grp: init_instance_by_config(config, accept_types=DataHandler)
+                for grp, config in handler_config.items()
             }
         else:
-            self.handlers = init_instance_by_config(handler_config, accept_types=DataHandler)
+            self.handlers = init_instance_by_config(
+                handler_config, accept_types=DataHandler
+            )
 
         self.is_group = is_group
         self.fetch_kwargs = {"col_set": DataHandler.CS_RAW}
@@ -324,16 +354,26 @@ class DataLoaderDH(DataLoader):
 
     def load(self, instruments=None, start_time=None, end_time=None) -> pd.DataFrame:
         if instruments is not None:
-            get_module_logger(self.__class__.__name__).warning(f"instruments[{instruments}] is ignored")
+            get_module_logger(self.__class__.__name__).warning(
+                f"instruments[{instruments}] is ignored"
+            )
 
         if self.is_group:
             df = pd.concat(
                 {
-                    grp: dh.fetch(selector=slice(start_time, end_time), level="datetime", **self.fetch_kwargs)
+                    grp: dh.fetch(
+                        selector=slice(start_time, end_time),
+                        level="datetime",
+                        **self.fetch_kwargs,
+                    )
                     for grp, dh in self.handlers.items()
                 },
                 axis=1,
             )
         else:
-            df = self.handlers.fetch(selector=slice(start_time, end_time), level="datetime", **self.fetch_kwargs)
+            df = self.handlers.fetch(
+                selector=slice(start_time, end_time),
+                level="datetime",
+                **self.fetch_kwargs,
+            )
         return df

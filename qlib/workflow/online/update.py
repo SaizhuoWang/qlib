@@ -8,14 +8,15 @@ from abc import ABCMeta, abstractmethod
 from typing import Optional
 
 import pandas as pd
+
 from qlib import get_module_logger
 from qlib.data import D
 from qlib.data.dataset import Dataset, DatasetH, TSDatasetH
 from qlib.data.dataset.handler import DataHandlerLP
 from qlib.model import Model
 from qlib.utils import get_date_by_shift
-from qlib.workflow.recorder import Recorder
 from qlib.workflow.record_temp import SignalRecord
+from qlib.workflow.recorder import Recorder
 
 
 class RMDLoader:
@@ -27,7 +28,11 @@ class RMDLoader:
         self.rec = rec
 
     def get_dataset(
-        self, start_time, end_time, segments=None, unprepared_dataset: Optional[DatasetH] = None
+        self,
+        start_time,
+        end_time,
+        segments=None,
+        unprepared_dataset: Optional[DatasetH] = None,
     ) -> DatasetH:
         """
         Load, config and setup dataset.
@@ -55,7 +60,10 @@ class RMDLoader:
             dataset: DatasetH = self.rec.load_object("dataset")
         else:
             dataset = unprepared_dataset
-        dataset.config(handler_kwargs={"start_time": start_time, "end_time": end_time}, segments=segments)
+        dataset.config(
+            handler_kwargs={"start_time": start_time, "end_time": end_time},
+            segments=segments,
+        )
         dataset.setup_data(handler_kwargs={"init_type": DataHandlerLP.IT_LS})
         return dataset
 
@@ -164,7 +172,9 @@ class DSBasedUpdater(RecordUpdater, metaclass=ABCMeta):
         if from_date is None:
             # dropna is for being compatible to some data with future information(e.g. label)
             # The recent label data should be updated together
-            self.last_end = self.old_data.dropna().index.get_level_values("datetime").max()
+            self.last_end = (
+                self.old_data.dropna().index.get_level_values("datetime").max()
+            )
         else:
             self.last_end = get_date_by_shift(from_date, -1, align="right")
 
@@ -181,7 +191,11 @@ class DSBasedUpdater(RecordUpdater, metaclass=ABCMeta):
         """
         # automatically getting the historical dependency if not specified
         if self.hist_ref is None:
-            dataset: DatasetH = self.record.load_object("dataset") if unprepared_dataset is None else unprepared_dataset
+            dataset: DatasetH = (
+                self.record.load_object("dataset")
+                if unprepared_dataset is None
+                else unprepared_dataset
+            )
             # Special treatment of historical dependencies
             if isinstance(dataset, TSDatasetH):
                 hist_ref = dataset.step_len - 1
@@ -191,15 +205,23 @@ class DSBasedUpdater(RecordUpdater, metaclass=ABCMeta):
             hist_ref = self.hist_ref
 
         start_time_buffer = get_date_by_shift(
-            self.last_end, -hist_ref + 1, clip_shift=False, freq=self.freq  # pylint: disable=E1130
+            self.last_end,
+            -hist_ref + 1,
+            clip_shift=False,
+            freq=self.freq,  # pylint: disable=E1130
         )
         start_time = get_date_by_shift(self.last_end, 1, freq=self.freq)
         seg = {"test": (start_time, self.to_date)}
         return self.rmdl.get_dataset(
-            start_time=start_time_buffer, end_time=self.to_date, segments=seg, unprepared_dataset=unprepared_dataset
+            start_time=start_time_buffer,
+            end_time=self.to_date,
+            segments=seg,
+            unprepared_dataset=unprepared_dataset,
         )
 
-    def update(self, dataset: DatasetH = None, write: bool = True, ret_new: bool = False) -> Optional[object]:
+    def update(
+        self, dataset: DatasetH = None, write: bool = True, ret_new: bool = False
+    ) -> Optional[object]:
         """
         Parameters
         ----------
@@ -268,7 +290,9 @@ class PredUpdater(DSBasedUpdater):
         model = self.rmdl.get_model()
         new_pred: pd.Series = model.predict(dataset)
         data = _replace_range(self.old_data, new_pred.to_frame("score"))
-        self.logger.info(f"Finish updating new {new_pred.shape[0]} predictions in {self.record.info['id']}.")
+        self.logger.info(
+            f"Finish updating new {new_pred.shape[0]} predictions in {self.record.info['id']}."
+        )
         return data
 
 

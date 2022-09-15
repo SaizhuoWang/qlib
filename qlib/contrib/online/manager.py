@@ -4,14 +4,16 @@
 # pylint: skip-file
 # flake8: noqa
 
-import yaml
 import pathlib
-import pandas as pd
 import shutil
+
+import pandas as pd
+import yaml
+
 from ...backtest.account import Account
+from ...utils import init_instance_by_config
 from .user import User
 from .utils import load_instance, save_instance
-from ...utils import init_instance_by_config
 
 
 class UserManager:
@@ -124,8 +126,12 @@ class UserManager:
 
         # save user
         user_path.mkdir()
-        save_instance(model, self.data_path / user_id / "model_{}.pickle".format(user_id))
-        save_instance(strategy, self.data_path / user_id / "strategy_{}.pickle".format(user_id))
+        save_instance(
+            model, self.data_path / user_id / "model_{}.pickle".format(user_id)
+        )
+        save_instance(
+            strategy, self.data_path / user_id / "strategy_{}.pickle".format(user_id)
+        )
         trade_account.save_account(self.data_path / user_id)
         user_record = pd.read_csv(self.users_file, index_col=0)
         user_record.loc[user_id] = [add_date]

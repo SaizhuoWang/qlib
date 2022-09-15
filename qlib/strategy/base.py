@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Generator, Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Generator, Optional, Union
 
 if TYPE_CHECKING:
     from qlib.backtest.exchange import Exchange
@@ -12,7 +12,8 @@ if TYPE_CHECKING:
 from typing import Tuple
 
 from ..backtest.decision import BaseTradeDecision
-from ..backtest.utils import CommonInfrastructure, LevelInfrastructure, TradeCalendarManager
+from ..backtest.utils import (CommonInfrastructure, LevelInfrastructure,
+                              TradeCalendarManager)
 from ..rl.interpreter import ActionInterpreter, StateInterpreter
 from ..utils import init_instance_by_config
 
@@ -52,7 +53,11 @@ class BaseStrategy:
                 - In minutely execution, the daily exchange is not usable, only the minutely exchange is recommended.
         """
 
-        self._reset(level_infra=level_infra, common_infra=common_infra, outer_trade_decision=outer_trade_decision)
+        self._reset(
+            level_infra=level_infra,
+            common_infra=common_infra,
+            outer_trade_decision=outer_trade_decision,
+        )
         self._trade_exchange = trade_exchange
 
     @property
@@ -66,7 +71,9 @@ class BaseStrategy:
     @property
     def trade_exchange(self) -> Exchange:
         """get trade exchange in a prioritized order"""
-        return getattr(self, "_trade_exchange", None) or self.common_infra.get("trade_exchange")
+        return getattr(self, "_trade_exchange", None) or self.common_infra.get(
+            "trade_exchange"
+        )
 
     def reset_level_infra(self, level_infra: LevelInfrastructure) -> None:
         if not hasattr(self, "level_infra"):
@@ -159,7 +166,9 @@ class BaseStrategy:
         return None
 
     # FIXME: do not define this method as an abstract one since it is never implemented
-    def alter_outer_trade_decision(self, outer_trade_decision: BaseTradeDecision) -> BaseTradeDecision:
+    def alter_outer_trade_decision(
+        self, outer_trade_decision: BaseTradeDecision
+    ) -> BaseTradeDecision:
         """
         A method for updating the outer_trade_decision.
         The outer strategy may change its decision during updating.
@@ -175,7 +184,9 @@ class BaseStrategy:
         """
         # default to reset the decision directly
         # NOTE: normally, user should do something to the strategy due to the change of outer decision
-        raise NotImplementedError(f"Please implement the `alter_outer_trade_decision` method")
+        raise NotImplementedError(
+            f"Please implement the `alter_outer_trade_decision` method"
+        )
 
     # helper methods: not necessary but for convenience
     def get_data_cal_avail_range(self, rtype: str = "full") -> Tuple[int, int]:
@@ -235,7 +246,9 @@ class RLStrategy(BaseStrategy, metaclass=ABCMeta):
         policy :
             RL policy for generate action
         """
-        super(RLStrategy, self).__init__(outer_trade_decision, level_infra, common_infra, **kwargs)
+        super(RLStrategy, self).__init__(
+            outer_trade_decision, level_infra, common_infra, **kwargs
+        )
         self.policy = policy
 
 
@@ -264,14 +277,22 @@ class RLIntStrategy(RLStrategy, metaclass=ABCMeta):
         end_time : Union[str, pd.Timestamp], optional
             end time of trading, by default None
         """
-        super(RLIntStrategy, self).__init__(policy, outer_trade_decision, level_infra, common_infra, **kwargs)
+        super(RLIntStrategy, self).__init__(
+            policy, outer_trade_decision, level_infra, common_infra, **kwargs
+        )
 
         self.policy = policy
-        self.state_interpreter = init_instance_by_config(state_interpreter, accept_types=StateInterpreter)
-        self.action_interpreter = init_instance_by_config(action_interpreter, accept_types=ActionInterpreter)
+        self.state_interpreter = init_instance_by_config(
+            state_interpreter, accept_types=StateInterpreter
+        )
+        self.action_interpreter = init_instance_by_config(
+            action_interpreter, accept_types=ActionInterpreter
+        )
 
     def generate_trade_decision(self, execute_result: list = None) -> BaseTradeDecision:
-        _interpret_state = self.state_interpreter.interpret(execute_result=execute_result)
+        _interpret_state = self.state_interpreter.interpret(
+            execute_result=execute_result
+        )
         _action = self.policy.step(_interpret_state)
         _trade_decision = self.action_interpreter.interpret(action=_action)
         return _trade_decision

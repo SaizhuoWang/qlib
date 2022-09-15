@@ -2,15 +2,17 @@
 # Licensed under the MIT License.
 
 import abc
-from typing import Union, Text
+from typing import Text, Union
+
 import numpy as np
 import pandas as pd
 
 from qlib.utils.data import robust_zscore, zscore
+
 from ...constant import EPS
-from .utils import fetch_df_by_index
-from ...utils.serial import Serializable
 from ...utils.paral import datetime_groupby_apply
+from ...utils.serial import Serializable
+from .utils import fetch_df_by_index
 
 
 def get_group_columns(df: pd.DataFrame, group: Union[Text, None]):
@@ -133,7 +135,9 @@ class FilterCol(Processor):
 
         cols = get_group_columns(df, self.fields_group)
         all_cols = df.columns
-        diff_cols = np.setdiff1d(all_cols.get_level_values(-1), cols.get_level_values(-1))
+        diff_cols = np.setdiff1d(
+            all_cols.get_level_values(-1), cols.get_level_values(-1)
+        )
         self.col_list = np.union1d(diff_cols, self.col_list)
         mask = df.columns.get_level_values(-1).isin(self.col_list)
         return df.loc[:, mask]
@@ -165,7 +169,9 @@ class ProcessInf(Processor):
             def process_inf(df):
                 for col in df.columns:
                     # FIXME: Such behavior is very weird
-                    df[col] = df[col].replace([np.inf, -np.inf], df[col][~np.isinf(df[col])].mean())
+                    df[col] = df[col].replace(
+                        [np.inf, -np.inf], df[col][~np.isinf(df[col])].mean()
+                    )
                 return df
 
             data = datetime_groupby_apply(data, process_inf)
@@ -206,7 +212,9 @@ class MinMaxNorm(Processor):
         self.fields_group = fields_group
 
     def fit(self, df: pd.DataFrame = None):
-        df = fetch_df_by_index(df, slice(self.fit_start_time, self.fit_end_time), level="datetime")
+        df = fetch_df_by_index(
+            df, slice(self.fit_start_time, self.fit_end_time), level="datetime"
+        )
         cols = get_group_columns(df, self.fields_group)
         self.min_val = np.nanmin(df[cols].values, axis=0)
         self.max_val = np.nanmax(df[cols].values, axis=0)
@@ -214,7 +222,9 @@ class MinMaxNorm(Processor):
         self.cols = cols
 
     def __call__(self, df):
-        def normalize(x, min_val=self.min_val, max_val=self.max_val, ignore=self.ignore):
+        def normalize(
+            x, min_val=self.min_val, max_val=self.max_val, ignore=self.ignore
+        ):
             if (~ignore).all():
                 return (x - min_val) / (max_val - min_val)
             for i in range(ignore.size):
@@ -237,7 +247,9 @@ class ZScoreNorm(Processor):
         self.fields_group = fields_group
 
     def fit(self, df: pd.DataFrame = None):
-        df = fetch_df_by_index(df, slice(self.fit_start_time, self.fit_end_time), level="datetime")
+        df = fetch_df_by_index(
+            df, slice(self.fit_start_time, self.fit_end_time), level="datetime"
+        )
         cols = get_group_columns(df, self.fields_group)
         self.mean_train = np.nanmean(df[cols].values, axis=0)
         self.std_train = np.nanstd(df[cols].values, axis=0)
@@ -245,7 +257,9 @@ class ZScoreNorm(Processor):
         self.cols = cols
 
     def __call__(self, df):
-        def normalize(x, mean_train=self.mean_train, std_train=self.std_train, ignore=self.ignore):
+        def normalize(
+            x, mean_train=self.mean_train, std_train=self.std_train, ignore=self.ignore
+        ):
             if (~ignore).all():
                 return (x - mean_train) / std_train
             for i in range(ignore.size):
@@ -268,7 +282,9 @@ class RobustZScoreNorm(Processor):
         https://en.wikipedia.org/wiki/Median_absolute_deviation.
     """
 
-    def __init__(self, fit_start_time, fit_end_time, fields_group=None, clip_outlier=True):
+    def __init__(
+        self, fit_start_time, fit_end_time, fields_group=None, clip_outlier=True
+    ):
         # NOTE: correctly set the `fit_start_time` and `fit_end_time` is very important !!!
         # `fit_end_time` **must not** include any information from the test data!!!
         self.fit_start_time = fit_start_time
@@ -277,7 +293,9 @@ class RobustZScoreNorm(Processor):
         self.clip_outlier = clip_outlier
 
     def fit(self, df: pd.DataFrame = None):
-        df = fetch_df_by_index(df, slice(self.fit_start_time, self.fit_end_time), level="datetime")
+        df = fetch_df_by_index(
+            df, slice(self.fit_start_time, self.fit_end_time), level="datetime"
+        )
         self.cols = get_group_columns(df, self.fields_group)
         X = df[self.cols].values
         self.mean_train = np.nanmedian(X, axis=0)

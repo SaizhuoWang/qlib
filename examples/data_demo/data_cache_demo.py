@@ -5,16 +5,17 @@
     - To show the data modules of Qlib is Serializable, users can dump processed data to disk to avoid duplicated data preprocessing
 """
 
+import pickle
+import subprocess
 from copy import deepcopy
 from pathlib import Path
-import pickle
 from pprint import pprint
-import subprocess
+
 import yaml
-from qlib.log import TimeInspector
 
 from qlib import init
 from qlib.data.dataset.handler import DataHandlerLP
+from qlib.log import TimeInspector
 from qlib.utils import init_instance_by_config
 
 # For general purpose, we use relative path
@@ -23,7 +24,9 @@ DIRNAME = Path(__file__).absolute().resolve().parent
 if __name__ == "__main__":
     init()
 
-    config_path = DIRNAME.parent / "benchmarks/LightGBM/workflow_config_lightgbm_Alpha158.yaml"
+    config_path = (
+        DIRNAME.parent / "benchmarks/LightGBM/workflow_config_lightgbm_Alpha158.yaml"
+    )
 
     # 1) show original time
     with TimeInspector.logt("The original time without handler cache:"):

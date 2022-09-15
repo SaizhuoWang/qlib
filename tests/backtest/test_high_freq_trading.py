@@ -1,14 +1,18 @@
-from typing import List, Tuple, Union
-from qlib.backtest.position import Position
-from qlib.backtest import collect_data, format_decisions
-from qlib.backtest.decision import BaseTradeDecision, TradeRangeByTime
-import qlib
-from qlib.tests import TestAutoData
 import unittest
+from typing import List, Tuple, Union
+
 import pandas as pd
 
+import qlib
+from qlib.backtest import collect_data, format_decisions
+from qlib.backtest.decision import BaseTradeDecision, TradeRangeByTime
+from qlib.backtest.position import Position
+from qlib.tests import TestAutoData
 
-@unittest.skip("This test takes a lot of time due to the large size of high-frequency data")
+
+@unittest.skip(
+    "This test takes a lot of time due to the large size of high-frequency data"
+)
 class TestHFBacktest(TestAutoData):
     @classmethod
     def setUpClass(cls) -> None:
@@ -119,7 +123,12 @@ class TestHFBacktest(TestAutoData):
 
         ret_val = {}
         decisions = list(
-            collect_data(executor=executor_config, strategy=strategy_config, **backtest_config, return_value=ret_val)
+            collect_data(
+                executor=executor_config,
+                strategy=strategy_config,
+                **backtest_config,
+                return_value=ret_val,
+            )
         )
         report, indicator = ret_val["report"], ret_val["indicator"]
         # NOTE: please refer to the docs of format_decisions

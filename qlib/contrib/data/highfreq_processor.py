@@ -1,10 +1,11 @@
 import os
+from typing import Dict
 
 import numpy as np
 import pandas as pd
+
 from qlib.data.dataset.processor import Processor
 from qlib.data.dataset.utils import fetch_df_by_index
-from typing import Dict
 
 
 class HighFreqTrans(Processor):
@@ -36,10 +37,15 @@ class HighFreqNorm(Processor):
         self.norm_groups = norm_groups
 
     def fit(self, df_features) -> None:
-        if os.path.exists(self.feature_save_dir) and len(os.listdir(self.feature_save_dir)) != 0:
+        if (
+            os.path.exists(self.feature_save_dir)
+            and len(os.listdir(self.feature_save_dir)) != 0
+        ):
             return
         os.makedirs(self.feature_save_dir)
-        fetch_df = fetch_df_by_index(df_features, slice(self.fit_start_time, self.fit_end_time), level="datetime")
+        fetch_df = fetch_df_by_index(
+            df_features, slice(self.fit_start_time, self.fit_end_time), level="datetime"
+        )
         del df_features
         index = 0
         names = {}
@@ -77,5 +83,7 @@ class HighFreqNorm(Processor):
                 df_values[:, name_val] = np.log1p(df_values[:, name_val])
             df_values[:, name_val] -= feature_mean
             df_values[:, name_val] /= feature_std
-        df_features = pd.DataFrame(data=df_values, index=df_features.index, columns=df_features.columns)
+        df_features = pd.DataFrame(
+            data=df_values, index=df_features.index, columns=df_features.columns
+        )
         return df_features.fillna(0)

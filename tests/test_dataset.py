@@ -1,14 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-import unittest
-import pytest
 import sys
-from qlib.tests import TestAutoData
-from qlib.data.dataset import TSDatasetH
-import numpy as np
 import time
+import unittest
+
+import numpy as np
+import pytest
+
+from qlib.data.dataset import TSDatasetH
 from qlib.data.dataset.handler import DataHandlerLP
+from qlib.tests import TestAutoData
 
 
 class TestDataset(TestAutoData):
@@ -25,13 +27,25 @@ class TestDataset(TestAutoData):
                     "fit_end_time": "2014-12-31",
                     "instruments": "csi300",
                     "infer_processors": [
-                        {"class": "FilterCol", "kwargs": {"col_list": ["RESI5", "WVMA5", "RSQR5"]}},
-                        {"class": "RobustZScoreNorm", "kwargs": {"fields_group": "feature", "clip_outlier": "true"}},
+                        {
+                            "class": "FilterCol",
+                            "kwargs": {"col_list": ["RESI5", "WVMA5", "RSQR5"]},
+                        },
+                        {
+                            "class": "RobustZScoreNorm",
+                            "kwargs": {
+                                "fields_group": "feature",
+                                "clip_outlier": "true",
+                            },
+                        },
                         {"class": "Fillna", "kwargs": {"fields_group": "feature"}},
                     ],
                     "learn_processors": [
                         "DropnaLabel",
-                        {"class": "CSRankNorm", "kwargs": {"fields_group": "label"}},  # CSRankNorm
+                        {
+                            "class": "CSRankNorm",
+                            "kwargs": {"fields_group": "label"},
+                        },  # CSRankNorm
                     ],
                 },
             },
@@ -41,7 +55,9 @@ class TestDataset(TestAutoData):
                 "test": ("2017-01-01", "2020-08-01"),
             },
         )
-        tsds_train = tsdh.prepare("train", data_key=DataHandlerLP.DK_L)  # Test the correctness
+        tsds_train = tsdh.prepare(
+            "train", data_key=DataHandlerLP.DK_L
+        )  # Test the correctness
         tsds = tsdh.prepare("valid", data_key=DataHandlerLP.DK_L)
 
         t = time.time()
@@ -81,6 +97,7 @@ class TestDataset(TestAutoData):
             # 3) get both index and data
             # NOTE: We don't want to reply on pytorch, so this test can't be included. It is just a example
             from torch.utils.data import DataLoader
+
             from qlib.model.utils import IndexSampler
 
             i = len(tsds) - 1

@@ -6,13 +6,15 @@
 
 import pathlib
 import pickle
-import yaml
+
 import pandas as pd
-from ...data import D
+import yaml
+
+from ...backtest.exchange import Exchange
 from ...config import C
+from ...data import D
 from ...log import get_module_logger
 from ...utils import get_next_trading_date
-from ...backtest.exchange import Exchange
 
 log = get_module_logger("utils")
 
@@ -79,7 +81,11 @@ def prepare(um, today, user_id, exchange_config=None):
         latest_trading_date = um.user_record.loc[user_id][0]
 
     if str(today.date()) < latest_trading_date:
-        log.warning("user_id:{}, last trading date {} after today {}".format(user_id, latest_trading_date, today))
+        log.warning(
+            "user_id:{}, last trading date {} after today {}".format(
+                user_id, latest_trading_date, today
+            )
+        )
         return [pd.Timestamp(latest_trading_date)], None
 
     dates = D.calendar(

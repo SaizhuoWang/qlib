@@ -1,24 +1,27 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from pathlib import Path
-from qlib.model.meta.task import MetaTask
-from qlib.contrib.meta.data_selection.model import MetaModelDS
-from qlib.contrib.meta.data_selection.dataset import InternalData, MetaDatasetDS
-from qlib.data.dataset.handler import DataHandlerLP
-
-import pandas as pd
-import fire
-import sys
 import pickle
+import sys
+from pathlib import Path
+
+import fire
+import pandas as pd
+
 from qlib import auto_init
+from qlib.contrib.meta.data_selection.dataset import (InternalData,
+                                                      MetaDatasetDS)
+from qlib.contrib.meta.data_selection.model import MetaModelDS
+from qlib.data.dataset.handler import DataHandlerLP
+from qlib.model.meta.task import MetaTask
 from qlib.model.trainer import TrainerR
+from qlib.tests.data import GetData
 from qlib.utils import init_instance_by_config
 from qlib.workflow import R
-from qlib.tests.data import GetData
 
 DIRNAME = Path(__file__).absolute().resolve().parent
 sys.path.append(str(DIRNAME.parent / "baseline"))
-from rolling_benchmark import RollingBenchmark  # NOTE: sys.path is changed for import RollingBenchmark
+from rolling_benchmark import \
+    RollingBenchmark  # NOTE: sys.path is changed for import RollingBenchmark
 
 
 class DDGDA:
@@ -36,7 +39,9 @@ class DDGDA:
         # the horizon must match the meaning in the base task template
         self.horizon = 20
         self.meta_exp_name = "DDG-DA"
-        self.sim_task_model = sim_task_model  # The model to capture the distribution of data.
+        self.sim_task_model = (
+            sim_task_model  # The model to capture the distribution of data.
+        )
         self.forecast_model = forecast_model  # downstream forecasting models' type
 
     def get_feature_importance(self):
@@ -53,7 +58,9 @@ class DDGDA:
 
         # Because the model use numpy instead of dataframe for training lightgbm
         # So the we must use following extra steps to get the right feature importance
-        df = dataset.prepare(segments=slice(None), col_set="feature", data_key=DataHandlerLP.DK_R)
+        df = dataset.prepare(
+            segments=slice(None), col_set="feature", data_key=DataHandlerLP.DK_R
+        )
         cols = df.columns
         fi_named = {cols[int(k.split("_")[1])]: imp for k, imp in fi.to_dict().items()}
 
@@ -72,14 +79,18 @@ class DDGDA:
         rb = RollingBenchmark(model_type=self.sim_task_model)
         task = rb.basic_task()
         dataset = init_instance_by_config(task["dataset"])
-        prep_ds = dataset.prepare(slice(None), col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
+        prep_ds = dataset.prepare(
+            slice(None), col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
+        )
 
         feature_df = prep_ds["feature"]
         label_df = prep_ds["label"]
 
         feature_selected = feature_df.loc[:, col_selected.index]
 
-        feature_selected = feature_selected.groupby("datetime").apply(lambda df: (df - df.mean()).div(df.std()))
+        feature_selected = feature_selected.groupby("datetime").apply(
+            lambda df: (df - df.mean()).div(df.std())
+        )
         feature_selected = feature_selected.fillna(0.0)
 
         df_all = {
@@ -112,7 +123,9 @@ class DDGDA:
         sim_task = rb.basic_task()
 
         if self.sim_task_model == "gbdt":
-            sim_task["model"].setdefault("kwargs", {}).update({"early_stopping_rounds": None, "num_boost_round": 150})
+            sim_task["model"].setdefault("kwargs", {}).update(
+                {"early_stopping_rounds": None, "num_boost_round": 150}
+            )
 
         exp_name_sim = f"data_sim_s{self.step}"
 
@@ -139,7 +152,10 @@ class DDGDA:
                     "handler": f"file://{(DIRNAME / 'handler_proxy.pkl').absolute()}",
                     "segments": {
                         "train": ("2008-01-01", "2010-12-31"),
-                        "test": ("2011-01-01", sim_task["dataset"]["kwargs"]["segments"]["test"][1]),
+                        "test": (
+                            "2011-01-01",
+                            sim_task["dataset"]["kwargs"]["segments"]["test"][1],
+                        ),
                     },
                 },
             },
@@ -170,7 +186,13 @@ class DDGDA:
         # 3) train and logging meta model
         with R.start(experiment_name=self.meta_exp_name):
             R.log_params(**kwargs)
-            mm = MetaModelDS(step=self.step, hist_step_n=kwargs["hist_step_n"], lr=0.001, max_epoch=200, seed=43)
+            mm = MetaModelDS(
+                step=self.step,
+                hist_step_n=kwargs["hist_step_n"],
+                lr=0.001,
+                max_epoch=200,
+                seed=43,
+            )
             mm.fit(md)
             R.save_objects(model=mm)
 

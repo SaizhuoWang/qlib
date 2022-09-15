@@ -1,16 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-import re
-import sys
-import qlib
-import shutil
-import zipfile
-import requests
 import datetime
-from tqdm import tqdm
+import re
+import shutil
+import sys
+import zipfile
 from pathlib import Path
+
+import requests
 from loguru import logger
+from tqdm import tqdm
+
+import qlib
 from qlib.utils import exists_qlib_data
 
 
@@ -38,12 +40,18 @@ class GetData:
         return f"{self.REMOTE_URL}/{self.normalize_dataset_version(dataset_version)}/{file_name}"
 
     def _download_data(
-        self, file_name: str, target_dir: [Path, str], delete_old: bool = True, dataset_version: str = None
+        self,
+        file_name: str,
+        target_dir: [Path, str],
+        delete_old: bool = True,
+        dataset_version: str = None,
     ):
         target_dir = Path(target_dir).expanduser()
         target_dir.mkdir(exist_ok=True, parents=True)
         # saved file name
-        _target_file_name = datetime.datetime.now().strftime("%Y%m%d%H%M%S") + "_" + file_name
+        _target_file_name = (
+            datetime.datetime.now().strftime("%Y%m%d%H%M%S") + "_" + file_name
+        )
         target_path = target_dir.joinpath(_target_file_name)
 
         url = self.merge_remote_url(file_name, dataset_version)
@@ -90,7 +98,13 @@ class GetData:
     @staticmethod
     def _delete_qlib_data(file_dir: Path):
         rm_dirs = []
-        for _name in ["features", "calendars", "instruments", "features_cache", "dataset_cache"]:
+        for _name in [
+            "features",
+            "calendars",
+            "instruments",
+            "features_cache",
+            "dataset_cache",
+        ]:
             _p = file_dir.joinpath(_name)
             if _p.exists():
                 rm_dirs.append(str(_p.resolve()))
@@ -157,13 +171,18 @@ class GetData:
 
         def _get_file_name(v):
             return self.QLIB_DATA_NAME.format(
-                dataset_name=name, region=region.lower(), interval=interval.lower(), qlib_version=v
+                dataset_name=name,
+                region=region.lower(),
+                interval=interval.lower(),
+                qlib_version=v,
             )
 
         file_name = _get_file_name(qlib_version)
         if not self.check_dataset(file_name, version):
             file_name = _get_file_name("latest")
-        self._download_data(file_name.lower(), target_dir, delete_old, dataset_version=version)
+        self._download_data(
+            file_name.lower(), target_dir, delete_old, dataset_version=version
+        )
 
     def csv_data_cn(self, target_dir="~/.qlib/csv_data/cn_data"):
         """download cn csv data from remote

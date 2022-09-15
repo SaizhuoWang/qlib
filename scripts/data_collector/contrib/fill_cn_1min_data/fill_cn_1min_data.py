@@ -2,22 +2,25 @@
 # Licensed under the MIT License.
 
 import sys
-from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 import fire
-import qlib
 import pandas as pd
-from tqdm import tqdm
-from qlib.data import D
 from loguru import logger
+from tqdm import tqdm
+
+import qlib
+from qlib.data import D
 
 CUR_DIR = Path(__file__).resolve().parent
 sys.path.append(str(CUR_DIR.parent.parent.parent))
 from data_collector.utils import generate_minutes_calendar_from_daily
 
 
-def get_date_range(data_1min_dir: Path, max_workers: int = 16, date_field_name: str = "date"):
+def get_date_range(
+    data_1min_dir: Path, max_workers: int = 16, date_field_name: str = "date"
+):
     csv_files = list(data_1min_dir.glob("*.csv"))
     min_date = None
     max_date = None
@@ -28,9 +31,13 @@ def get_date_range(data_1min_dir: Path, max_workers: int = 16, date_field_name: 
                     _dates = pd.to_datetime(_result[date_field_name])
 
                     _tmp_min = _dates.min()
-                    min_date = min(min_date, _tmp_min) if min_date is not None else _tmp_min
+                    min_date = (
+                        min(min_date, _tmp_min) if min_date is not None else _tmp_min
+                    )
                     _tmp_max = _dates.max()
-                    max_date = max(max_date, _tmp_max) if max_date is not None else _tmp_max
+                    max_date = (
+                        max(max_date, _tmp_max) if max_date is not None else _tmp_max
+                    )
                 p_bar.update()
     return min_date, max_date
 
@@ -69,9 +76,13 @@ def fill_1min_using_1d(
     symbols_1min = get_symbols(data_1min_dir)
 
     qlib.init(provider_uri=str(qlib_data_1d_dir))
-    data_1d = D.features(D.instruments("all"), ["$close"], min_date, max_date, freq="day")
+    data_1d = D.features(
+        D.instruments("all"), ["$close"], min_date, max_date, freq="day"
+    )
 
-    miss_symbols = set(data_1d.index.get_level_values(level="instrument").unique()) - set(symbols_1min)
+    miss_symbols = set(
+        data_1d.index.get_level_values(level="instrument").unique()
+    ) - set(symbols_1min)
     if not miss_symbols:
         logger.warning("More symbols in 1min than 1d, no padding required")
         return

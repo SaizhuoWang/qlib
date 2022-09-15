@@ -1,10 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Union
+
 import pandas as pd
-from typing import Union, List
+
 from qlib.utils import init_instance_by_config
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from qlib.data.dataset import DataHandler
@@ -94,7 +96,9 @@ def fetch_df_by_col(df: pd.DataFrame, col_set: Union[str, List[str]]) -> pd.Data
         return df.loc(axis=1)[col_set]
 
 
-def convert_index_format(df: Union[pd.DataFrame, pd.Series], level: str = "datetime") -> Union[pd.DataFrame, pd.Series]:
+def convert_index_format(
+    df: Union[pd.DataFrame, pd.Series], level: str = "datetime"
+) -> Union[pd.DataFrame, pd.Series]:
     """
     Convert the format of df.MultiIndex according to the following rules:
         - If `level` is the first level of df.MultiIndex, do nothing

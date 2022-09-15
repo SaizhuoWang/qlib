@@ -4,11 +4,9 @@
 
 import qlib
 from qlib.constant import REG_CN
-
-from qlib.utils import init_instance_by_config
-from qlib.tests.data import GetData
 from qlib.tests.config import CSI300_GBDT_TASK
-
+from qlib.tests.data import GetData
+from qlib.utils import init_instance_by_config
 
 if __name__ == "__main__":
 

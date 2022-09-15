@@ -2,24 +2,23 @@
 # Licensed under the MIT License.
 
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
+
+import copy
+from typing import Text, Union
 
 import numpy as np
 import pandas as pd
-from typing import Text, Union
-import copy
-from ...utils import get_or_create_path
-from ...log import get_module_logger
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from .pytorch_utils import count_parameters
-from ...model.base import Model
 from ...data.dataset import DatasetH
 from ...data.dataset.handler import DataHandlerLP
+from ...log import get_module_logger
+from ...model.base import Model
+from ...utils import get_or_create_path
+from .pytorch_utils import count_parameters
 from .tcn import TemporalConvNet
 
 
@@ -76,7 +75,9 @@ class TCN(Model):
         self.optimizer = optimizer.lower()
         self.loss = loss
         GPU = int(GPU)
-        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
+        self.device = torch.device(
+            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
+        )
         self.seed = seed
 
         self.logger.info(
@@ -126,17 +127,25 @@ class TCN(Model):
             dropout=self.dropout,
         )
         self.logger.info("model:\n{:}".format(self.tcn_model))
-        self.logger.info("model size: {:.4f} MB".format(count_parameters(self.tcn_model)))
+        self.logger.info(
+            "model size: {:.4f} MB".format(count_parameters(self.tcn_model))
+        )
 
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(self.tcn_model.parameters(), lr=self.lr)
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.tcn_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
+            raise NotImplementedError(
+                "optimizer {} is not supported!".format(optimizer)
+            )
 
         self.fitted = False
         self.tcn_model.to(self.device)
+
+    @property
+    def model(self) -> nn.Module:
+        return self.tcn_model
 
     @property
     def use_gpu(self):
@@ -178,8 +187,16 @@ class TCN(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = torch.from_numpy(x_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            label = torch.from_numpy(y_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            feature = (
+                torch.from_numpy(x_train_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
+            )
+            label = (
+                torch.from_numpy(y_train_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
+            )
 
             pred = self.tcn_model(feature)
             loss = self.loss_fn(pred, label)
@@ -205,8 +222,16 @@ class TCN(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            label = torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            feature = (
+                torch.from_numpy(x_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
+            )
+            label = (
+                torch.from_numpy(y_values[indices[i : i + self.batch_size]])
+                .float()
+                .to(self.device)
+            )
 
             with torch.no_grad():
                 pred = self.tcn_model(feature)
@@ -225,6 +250,7 @@ class TCN(Model):
         save_path=None,
     ):
         from qlib.workflow import R
+
         recorder = R.get_recorder()
         df_train, df_valid, df_test = dataset.prepare(
             ["train", "valid", "test"],
@@ -263,8 +289,8 @@ class TCN(Model):
                 stop_steps = 0
                 best_epoch = step
                 best_param = copy.deepcopy(self.tcn_model.state_dict())
-                torch.save(best_param, 'best_param.pth')
-                recorder.save_objects('best_param.pth')
+                torch.save(best_param, "best_param.pth")
+                recorder.save_objects("best_param.pth")
             else:
                 stop_steps += 1
                 if stop_steps >= self.early_stop:
@@ -283,7 +309,9 @@ class TCN(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
+        x_test = dataset.prepare(
+            segment, col_set="feature", data_key=DataHandlerLP.DK_I
+        )
         index = x_test.index
         self.tcn_model.eval()
         x_values = x_test.values
@@ -311,7 +339,9 @@ class TCNModel(nn.Module):
     def __init__(self, num_input, output_size, num_channels, kernel_size, dropout):
         super().__init__()
         self.num_input = num_input
-        self.tcn = TemporalConvNet(num_input, num_channels, kernel_size, dropout=dropout)
+        self.tcn = TemporalConvNet(
+            num_input, num_channels, kernel_size, dropout=dropout
+        )
         self.linear = nn.Linear(num_channels[-1], output_size)
 
     def forward(self, x):
