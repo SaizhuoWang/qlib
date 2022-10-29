@@ -17,9 +17,7 @@ from loguru import logger
 class CollectorFutureCalendar:
     calendar_format = "%Y-%m-%d"
 
-    def __init__(
-        self, qlib_dir: Union[str, Path], start_date: str = None, end_date: str = None
-    ):
+    def __init__(self, qlib_dir: Union[str, Path], start_date: str = None, end_date: str = None):
         """
 
         Parameters
@@ -36,9 +34,7 @@ class CollectorFutureCalendar:
         self.future_path = self.qlib_dir.joinpath("calendars/day_future.txt")
         self._calendar_list = self.calendar_list
         _latest_date = self._calendar_list[-1]
-        self.start_date = (
-            _latest_date if start_date is None else pd.Timestamp(start_date)
-        )
+        self.start_date = _latest_date if start_date is None else pd.Timestamp(start_date)
         self.end_date = (
             _latest_date + pd.Timedelta(days=365 * 2)
             if end_date is None
@@ -95,9 +91,7 @@ class CollectorFutureCalendarCN(CollectorFutureCalendar):
             data_list.append(rs.get_row_data())
         calendar = pd.DataFrame(data_list, columns=rs.fields)
         calendar["is_trading_day"] = calendar["is_trading_day"].astype(int)
-        return pd.to_datetime(
-            calendar[calendar["is_trading_day"] == 1]["calendar_date"]
-        ).to_list()
+        return pd.to_datetime(calendar[calendar["is_trading_day"] == 1]["calendar_date"]).to_list()
 
 
 class CollectorFutureCalendarUS(CollectorFutureCalendar):

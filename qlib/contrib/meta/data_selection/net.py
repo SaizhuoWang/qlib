@@ -35,9 +35,7 @@ class TimeWeightMeta(SingleMetaBase):
             else:
                 return time_belong @ preds
         else:
-            weights = preds_to_weight_with_clamp(
-                preds, self.clip_weight, self.clip_method
-            )
+            weights = preds_to_weight_with_clamp(preds, self.clip_weight, self.clip_method)
             if time_belong is None:
                 return weights
             else:
@@ -63,15 +61,11 @@ class PredNet(nn.Module):
 
     def forward(self, X, y, time_perf, time_belong, X_test, ignore_weight=False):
         """Please refer to the docs of MetaTaskDS for the description of the variables"""
-        weights = self.get_sample_weights(
-            X, time_perf, time_belong, ignore_weight=ignore_weight
-        )
+        weights = self.get_sample_weights(X, time_perf, time_belong, ignore_weight=ignore_weight)
         X_w = X.T * weights.view(1, -1)
         theta = torch.inverse(X_w @ X) @ X_w @ y
         return X_test @ theta, weights
 
     def init_paramters(self, hist_step_n):
-        self.twm.linear.weight.data = (
-            1.0 / hist_step_n + self.twm.linear.weight.data * 0.01
-        )
+        self.twm.linear.weight.data = 1.0 / hist_step_n + self.twm.linear.weight.data * 0.01
         self.twm.linear.bias.data.fill_(0.0)

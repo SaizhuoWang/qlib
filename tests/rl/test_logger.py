@@ -71,9 +71,7 @@ def test_simple_env_logger(caplog):
     for venv_cls_name in ["dummy", "shmem", "subproc"]:
         writer = ConsoleWriter()
         csv_writer = CsvWriter(Path(__file__).parent / ".output")
-        venv = vectorize_env(
-            lambda: SimpleEnv(), venv_cls_name, 4, [writer, csv_writer]
-        )
+        venv = vectorize_env(lambda: SimpleEnv(), venv_cls_name, 4, [writer, csv_writer])
         with venv.collector_guard():
             collector = Collector(AnyPolicy(), venv)
             collector.collect(n_episode=30)
@@ -87,9 +85,7 @@ def test_simple_env_logger(caplog):
         line = line.strip()
         if line:
             line_counter += 1
-            assert re.match(
-                r".*reward .*  a .* \((4|5|6)\.\d+\)  c .* \((14|15|16)\.\d+\)", line
-            )
+            assert re.match(r".*reward .*  a .* \((4|5|6)\.\d+\)  c .* \((14|15|16)\.\d+\)", line)
     assert line_counter >= 3
 
 
@@ -150,9 +146,7 @@ def test_logger_with_env_wrapper():
 
         # loglevel can be debug here because metrics can all dump into csv
         # otherwise, csv writer might crash
-        csv_writer = CsvWriter(
-            Path(__file__).parent / ".output", loglevel=LogLevel.DEBUG
-        )
+        csv_writer = CsvWriter(Path(__file__).parent / ".output", loglevel=LogLevel.DEBUG)
         venv = vectorize_env(env_wrapper_factory, "shmem", 4, csv_writer)
         with venv.collector_guard():
             collector = Collector(RandomFivePolicy(), venv)
@@ -161,9 +155,7 @@ def test_logger_with_env_wrapper():
     output_df = pd.read_csv(Path(__file__).parent / ".output" / "result.csv")
     assert len(output_df) == 20
     # obs has a increasing trend
-    assert (
-        output_df["obs"].to_numpy()[:10].sum() < output_df["obs"].to_numpy()[10:].sum()
-    )
+    assert output_df["obs"].to_numpy()[:10].sum() < output_df["obs"].to_numpy()[10:].sum()
     assert (output_df["test_a"] == 233).all()
     assert (output_df["test_b"] == 200).all()
     assert "steps_per_episode" in output_df and "reward" in output_df

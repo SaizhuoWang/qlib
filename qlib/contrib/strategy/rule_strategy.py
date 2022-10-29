@@ -36,9 +36,7 @@ class TWAPStrategy(BaseStrategy):
         outer_trade_decision : BaseTradeDecision, optional
         """
 
-        super(TWAPStrategy, self).reset(
-            outer_trade_decision=outer_trade_decision, **kwargs
-        )
+        super(TWAPStrategy, self).reset(outer_trade_decision=outer_trade_decision, **kwargs)
         if outer_trade_decision is not None:
             self.trade_amount_remain = {}
             for order in outer_trade_decision.get_decision():
@@ -57,9 +55,7 @@ class TWAPStrategy(BaseStrategy):
         # get the number of trading step finished, trade_step can be [0, 1, 2, ..., trade_len - 1]
         trade_step = self.trade_calendar.get_trade_step()
         # get the total count of trading step
-        start_idx, end_idx = get_start_end_idx(
-            self.trade_calendar, self.outer_trade_decision
-        )
+        start_idx, end_idx = get_start_end_idx(self.trade_calendar, self.outer_trade_decision)
         trade_len = end_idx - start_idx + 1
 
         if trade_step < start_idx or trade_step > end_idx:
@@ -155,9 +151,7 @@ class SBBStrategyBase(BaseStrategy):
         ----------
         outer_trade_decision : BaseTradeDecision, optional
         """
-        super(SBBStrategyBase, self).reset(
-            outer_trade_decision=outer_trade_decision, **kwargs
-        )
+        super(SBBStrategyBase, self).reset(outer_trade_decision=outer_trade_decision, **kwargs)
         if outer_trade_decision is not None:
             self.trade_trend = {}
             self.trade_amount = {}
@@ -181,18 +175,14 @@ class SBBStrategyBase(BaseStrategy):
                 self.trade_amount[order.stock_id] -= order.deal_amount
 
         trade_start_time, trade_end_time = self.trade_calendar.get_step_time(trade_step)
-        pred_start_time, pred_end_time = self.trade_calendar.get_step_time(
-            trade_step, shift=1
-        )
+        pred_start_time, pred_end_time = self.trade_calendar.get_step_time(trade_step, shift=1)
         order_list = []
         # for each order in in self.outer_trade_decision
         for order in self.outer_trade_decision.get_decision():
             # get the price trend
             if trade_step % 2 == 0:
                 # in the first of two adjacent bars, predict the price trend
-                _pred_trend = self._pred_price_trend(
-                    order.stock_id, pred_start_time, pred_end_time
-                )
+                _pred_trend = self._pred_price_trend(order.stock_id, pred_start_time, pred_end_time)
             else:
                 # in the second of two adjacent bars, use the trend predicted in the first one
                 _pred_trend = self.trade_trend[order.stock_id]
@@ -216,16 +206,12 @@ class SBBStrategyBase(BaseStrategy):
                 # considering trade unit
                 if _amount_trade_unit is None:
                     # divide the order into equal parts, and trade one part
-                    _order_amount = self.trade_amount[order.stock_id] / (
-                        trade_len - trade_step
-                    )
+                    _order_amount = self.trade_amount[order.stock_id] / (trade_len - trade_step)
                 # without considering trade unit
                 else:
                     # divide the order into equal parts, and trade one part
                     # calculate the total count of trade units to trade
-                    trade_unit_cnt = int(
-                        self.trade_amount[order.stock_id] // _amount_trade_unit
-                    )
+                    trade_unit_cnt = int(self.trade_amount[order.stock_id] // _amount_trade_unit)
                     # calculate the amount of one part, ceil the amount
                     # floor((trade_unit_cnt + trade_len - trade_step - 1) / (trade_len - trade_step)) == ceil(trade_unit_cnt / (trade_len - trade_step))
                     _order_amount = (
@@ -258,16 +244,12 @@ class SBBStrategyBase(BaseStrategy):
                 if _amount_trade_unit is None:
                     # N trade day left, divide the order into N + 1 parts, and trade 2 parts
                     _order_amount = (
-                        2
-                        * self.trade_amount[order.stock_id]
-                        / (trade_len - trade_step + 1)
+                        2 * self.trade_amount[order.stock_id] / (trade_len - trade_step + 1)
                     )
                 # without considering trade unit
                 else:
                     # cal how many trade unit
-                    trade_unit_cnt = int(
-                        self.trade_amount[order.stock_id] // _amount_trade_unit
-                    )
+                    trade_unit_cnt = int(self.trade_amount[order.stock_id] // _amount_trade_unit)
                     # N trade day left, divide the order into N + 1 parts, and trade 2 parts
                     _order_amount = (
                         (trade_unit_cnt + trade_len - trade_step)
@@ -376,9 +358,7 @@ class SBBStrategyEMA(SBBStrategyBase):
         trade_len = self.trade_calendar.get_trade_len()
         fields = ["EMA($close, 10)-EMA($close, 20)"]
         signal_start_time, _ = self.trade_calendar.get_step_time(trade_step=0, shift=1)
-        _, signal_end_time = self.trade_calendar.get_step_time(
-            trade_step=trade_len - 1, shift=1
-        )
+        _, signal_end_time = self.trade_calendar.get_step_time(trade_step=trade_len - 1, shift=1)
         signal_df = D.features(
             self.instruments,
             fields,
@@ -391,9 +371,7 @@ class SBBStrategyEMA(SBBStrategyBase):
 
         if not signal_df.empty:
             for stock_id, stock_val in signal_df.groupby(level="instrument"):
-                self.signal[stock_id] = stock_val["signal"].droplevel(
-                    level="instrument"
-                )
+                self.signal[stock_id] = stock_val["signal"].droplevel(level="instrument")
 
     def reset_level_infra(self, level_infra):
         """
@@ -415,11 +393,7 @@ class SBBStrategyEMA(SBBStrategyBase):
                 method=ts_data_last,
             )
             # if EMA signal == 0 or None, return mid trend
-            if (
-                _sample_signal is None
-                or np.isnan(_sample_signal)
-                or _sample_signal == 0
-            ):
+            if _sample_signal is None or np.isnan(_sample_signal) or _sample_signal == 0:
                 return self.TREND_MID
             # if EMA signal > 0, return long trend
             elif _sample_signal > 0:
@@ -479,9 +453,7 @@ class ACStrategy(BaseStrategy):
             f"Power(Sum(Power(Log($close/Ref($close, 1)), 2), {self.window_size})/{self.window_size - 1}-Power(Sum(Log($close/Ref($close, 1)), {self.window_size}), 2)/({self.window_size}*{self.window_size - 1}), 0.5)"
         ]
         signal_start_time, _ = self.trade_calendar.get_step_time(trade_step=0, shift=1)
-        _, signal_end_time = self.trade_calendar.get_step_time(
-            trade_step=trade_len - 1, shift=1
-        )
+        _, signal_end_time = self.trade_calendar.get_step_time(trade_step=trade_len - 1, shift=1)
         signal_df = D.features(
             self.instruments,
             fields,
@@ -494,9 +466,7 @@ class ACStrategy(BaseStrategy):
 
         if not signal_df.empty:
             for stock_id, stock_val in signal_df.groupby(level="instrument"):
-                self.signal[stock_id] = stock_val["volatility"].droplevel(
-                    level="instrument"
-                )
+                self.signal[stock_id] = stock_val["volatility"].droplevel(level="instrument")
 
     def reset_level_infra(self, level_infra):
         """
@@ -512,9 +482,7 @@ class ACStrategy(BaseStrategy):
         ----------
         outer_trade_decision : BaseTradeDecision, optional
         """
-        super(ACStrategy, self).reset(
-            outer_trade_decision=outer_trade_decision, **kwargs
-        )
+        super(ACStrategy, self).reset(outer_trade_decision=outer_trade_decision, **kwargs)
         if outer_trade_decision is not None:
             self.trade_amount = {}
             # init the trade amount of order and  predicted trade trend
@@ -533,9 +501,7 @@ class ACStrategy(BaseStrategy):
                 self.trade_amount[order.stock_id] -= order.deal_amount
 
         trade_start_time, trade_end_time = self.trade_calendar.get_step_time(trade_step)
-        pred_start_time, pred_end_time = self.trade_calendar.get_step_time(
-            trade_step, shift=1
-        )
+        pred_start_time, pred_end_time = self.trade_calendar.get_step_time(trade_step, shift=1)
         order_list = []
         for order in self.outer_trade_decision.get_decision():
             # if not tradable, continue
@@ -568,15 +534,11 @@ class ACStrategy(BaseStrategy):
                 )
                 if _amount_trade_unit is None:
                     # divide the order into equal parts, and trade one part
-                    _order_amount = self.trade_amount[order.stock_id] / (
-                        trade_len - trade_step
-                    )
+                    _order_amount = self.trade_amount[order.stock_id] / (trade_len - trade_step)
                 else:
                     # divide the order into equal parts, and trade one part
                     # calculate the total count of trade units to trade
-                    trade_unit_cnt = int(
-                        self.trade_amount[order.stock_id] // _amount_trade_unit
-                    )
+                    trade_unit_cnt = int(self.trade_amount[order.stock_id] // _amount_trade_unit)
                     # calculate the amount of one part, ceil the amount
                     # floor((trade_unit_cnt + trade_len - trade_step - 1) / (trade_len - trade_step)) == ceil(trade_unit_cnt / (trade_len - trade_step))
                     _order_amount = (
@@ -673,10 +635,7 @@ class RandomOrderStrategy(BaseStrategy):
         order_list = []
         if step_time_start in self.volume_df:
             for stock_id, volume in (
-                self.volume_df[step_time_start]
-                .dropna()
-                .sample(frac=self.sample_ratio)
-                .items()
+                self.volume_df[step_time_start].dropna().sample(frac=self.sample_ratio).items()
             ):
                 order_list.append(
                     self.common_infra.get("trade_exchange")
@@ -739,9 +698,7 @@ class FileOrderStrategy(BaseStrategy):
         self.order_df = self.order_df.set_index(["datetime", "instrument"])
 
         # make sure the datetime is the first level for fast indexing
-        self.order_df = lazy_sort_index(
-            convert_index_format(self.order_df, level="datetime")
-        )
+        self.order_df = lazy_sort_index(convert_index_format(self.order_df, level="datetime"))
         self.trade_range = trade_range
 
     def generate_trade_decision(self, execute_result=None) -> TradeDecisionWO:

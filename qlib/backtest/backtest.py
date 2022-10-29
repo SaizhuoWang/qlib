@@ -80,17 +80,13 @@ def collect_data_loop(
     trade_executor.reset(start_time=start_time, end_time=end_time)
     trade_strategy.reset(level_infra=trade_executor.get_level_infra())
 
-    with tqdm(
-        total=trade_executor.trade_calendar.get_trade_len(), desc="backtest loop"
-    ) as bar:
+    with tqdm(total=trade_executor.trade_calendar.get_trade_len(), desc="backtest loop") as bar:
         _execute_result = None
         while not trade_executor.finished():
             _trade_decision: BaseTradeDecision = trade_strategy.generate_trade_decision(
                 _execute_result
             )
-            _execute_result = yield from trade_executor.collect_data(
-                _trade_decision, level=0
-            )
+            _execute_result = yield from trade_executor.collect_data(_trade_decision, level=0)
             bar.update(1)
 
     if return_value is not None:
@@ -107,9 +103,7 @@ def collect_data_loop(
             key = "{}{}".format(*Freq.parse(_executor.time_per_step))
             all_indicators[
                 key
-            ] = (
-                _executor.trade_account.get_trade_indicator().generate_trade_indicators_dataframe()
-            )
+            ] = _executor.trade_account.get_trade_indicator().generate_trade_indicators_dataframe()
             all_indicators[key + "_obj"] = _executor.trade_account.get_trade_indicator()
         return_value.update(
             {"portfolio_metrics": all_portfolio_metrics, "indicator": all_indicators}

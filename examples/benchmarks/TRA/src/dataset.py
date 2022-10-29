@@ -238,16 +238,10 @@ class MTSDatasetH(DatasetH):
             label = []
             index = []
             for slc in slices_subset:
-                _data = (
-                    self._data[slc].clone()
-                    if self.pin_memory
-                    else self._data[slc].copy()
-                )
+                _data = self._data[slc].clone() if self.pin_memory else self._data[slc].copy()
                 if len(_data) != self.seq_len:
                     if self.pin_memory:
-                        _data = torch.cat(
-                            [self.zeros[: self.seq_len - len(_data)], _data], axis=0
-                        )
+                        _data = torch.cat([self.zeros[: self.seq_len - len(_data)], _data], axis=0)
                     else:
                         _data = np.concatenate(
                             [self.zeros[: self.seq_len - len(_data)], _data], axis=0

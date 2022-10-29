@@ -120,14 +120,10 @@ class DatasetH(Dataset):
                     }
         """
         self.logger = get_module_logger("DatasetH")
-        self.handler: DataHandler = init_instance_by_config(
-            handler, accept_types=DataHandler
-        )
+        self.handler: DataHandler = init_instance_by_config(handler, accept_types=DataHandler)
         self.segments = segments.copy()
         self.fetch_kwargs = copy(fetch_kwargs)
-        self.logger.info(
-            f"Successfully initialized handler {self.handler}. Now setup data."
-        )
+        self.logger.info(f"Successfully initialized handler {self.handler}. Now setup data.")
         super().__init__(**kwargs)
 
     def config(self, handler_kwargs: dict = None, **kwargs):
@@ -252,12 +248,8 @@ class DatasetH(Dataset):
         if isinstance(segments, str) and segments in self.segments:
             return self._prepare_seg(self.segments[segments], **seg_kwargs)
 
-        if isinstance(segments, (list, tuple)) and all(
-            seg in self.segments for seg in segments
-        ):
-            return [
-                self._prepare_seg(self.segments[seg], **seg_kwargs) for seg in segments
-            ]
+        if isinstance(segments, (list, tuple)) and all(seg in self.segments for seg in segments):
+            return [self._prepare_seg(self.segments[seg], **seg_kwargs) for seg in segments]
 
         # 2) Use pass it directly to prepare a single seg
         return self._prepare_seg(segments, **seg_kwargs)
@@ -385,9 +377,7 @@ class TSDataSampler:
         self.start_idx, self.end_idx = self.data_index.slice_locs(
             start=time_to_slc_point(start), end=time_to_slc_point(end)
         )
-        self.idx_arr = np.array(
-            self.idx_df.values, dtype=np.float64
-        )  # for better performance
+        self.idx_arr = np.array(self.idx_df.values, dtype=np.float64)  # for better performance
 
         del self.data  # save memory
 
@@ -490,9 +480,7 @@ class TSDataSampler:
         indices = self.idx_arr[max(row - self.step_len + 1, 0) : row + 1, col]
 
         if len(indices) < self.step_len:
-            indices = np.concatenate(
-                [np.full((self.step_len - len(indices),), np.nan), indices]
-            )
+            indices = np.concatenate([np.full((self.step_len - len(indices),), np.nan), indices])
 
         if self.fillna_type == "ffill":
             indices = np_ffill(indices)
@@ -520,13 +508,9 @@ class TSDataSampler:
         if isinstance(idx, (int, np.integer)):
             real_idx = self.start_idx + idx
             if self.start_idx <= real_idx < self.end_idx:
-                i, j = self.idx_map[
-                    real_idx
-                ]  # TODO: The performance of this line is not good
+                i, j = self.idx_map[real_idx]  # TODO: The performance of this line is not good
             else:
-                raise KeyError(
-                    f"{real_idx} is out of [{self.start_idx}, {self.end_idx})"
-                )
+                raise KeyError(f"{real_idx} is out of [{self.start_idx}, {self.end_idx})")
         elif isinstance(idx, tuple):
             # <TSDataSampler object>["datetime", "instruments"]
             date, inst = idx
@@ -567,9 +551,7 @@ class TSDataSampler:
         # 1) for better performance, use the last nan line for padding the lost date
         # 2) In case of precision problems. We use np.float64. # TODO: I'm not sure if whether np.float64 will result in
         # precision problems. It will not cause any problems in my tests at least
-        indices = np.nan_to_num(indices.astype(np.float64), nan=self.nan_idx).astype(
-            int
-        )
+        indices = np.nan_to_num(indices.astype(np.float64), nan=self.nan_idx).astype(int)
 
         data = self.data_arr[indices]
         if isinstance(idx, mtit):

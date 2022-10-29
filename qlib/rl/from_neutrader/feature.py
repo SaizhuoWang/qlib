@@ -55,9 +55,7 @@ class DataWrapper:
         self.feature_cache = LRUCache()
         self.backtest_cache = LRUCache()
 
-    def get(
-        self, stock_id: str, date: pd.Timestamp, backtest: bool = False
-    ) -> pd.DataFrame:
+    def get(self, stock_id: str, date: pd.Timestamp, backtest: bool = False) -> pd.DataFrame:
         start_time, end_time = date.replace(hour=0, minute=0, second=0), date.replace(
             hour=23, minute=59, second=59
         )
@@ -71,9 +69,7 @@ class DataWrapper:
 
         if cache.has((start_time, end_time, stock_id)):
             return cache.get((start_time, end_time, stock_id))
-        data = dataset.handler.fetch(
-            pd.IndexSlice[stock_id, start_time:end_time], level=None
-        )
+        data = dataset.handler.fetch(pd.IndexSlice[stock_id, start_time:end_time], level=None)
         cache.put((start_time, end_time, stock_id), data)
         return data
 

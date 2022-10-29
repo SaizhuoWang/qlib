@@ -46,9 +46,7 @@ def get_mongodb() -> Database:
     try:
         cfg = C["mongo"]
     except KeyError:
-        get_module_logger("task").error(
-            "Please configure `C['mongo']` before using TaskManager"
-        )
+        get_module_logger("task").error("Please configure `C['mongo']` before using TaskManager")
         raise
     get_module_logger("task").info(f"mongo config:{cfg}")
     client = MongoClient(cfg["task_url"])
@@ -265,9 +263,9 @@ class TimeAdjuster:
             shift will raise error if the index(both start and end) is out of self.cal
         """
         if isinstance(seg, tuple):
-            start_idx, end_idx = self.align_idx(
-                seg[0], tp_type="start"
-            ), self.align_idx(seg[1], tp_type="end")
+            start_idx, end_idx = self.align_idx(seg[0], tp_type="start"), self.align_idx(
+                seg[1], tp_type="end"
+            )
             if rtype == self.SHIFT_SD:
                 start_idx = self._add_step(start_idx, step)
                 end_idx = self._add_step(end_idx, step)

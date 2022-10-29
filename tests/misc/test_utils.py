@@ -24,18 +24,10 @@ def cal_sam_minute(x, sam_minutes):
     day_time = pd.Timestamp(x.date())
     shift = C.min_data_shift
 
-    open_time = (
-        day_time + pd.Timedelta(hours=9, minutes=30) - shift * pd.Timedelta(minutes=1)
-    )
-    mid_close_time = (
-        day_time + pd.Timedelta(hours=11, minutes=29) - shift * pd.Timedelta(minutes=1)
-    )
-    mid_open_time = (
-        day_time + pd.Timedelta(hours=13, minutes=00) - shift * pd.Timedelta(minutes=1)
-    )
-    close_time = (
-        day_time + pd.Timedelta(hours=14, minutes=59) - shift * pd.Timedelta(minutes=1)
-    )
+    open_time = day_time + pd.Timedelta(hours=9, minutes=30) - shift * pd.Timedelta(minutes=1)
+    mid_close_time = day_time + pd.Timedelta(hours=11, minutes=29) - shift * pd.Timedelta(minutes=1)
+    mid_open_time = day_time + pd.Timedelta(hours=13, minutes=00) - shift * pd.Timedelta(minutes=1)
+    close_time = day_time + pd.Timedelta(hours=14, minutes=59) - shift * pd.Timedelta(minutes=1)
 
     if open_time <= x <= mid_close_time:
         minute_index = (x - open_time).seconds // 60
@@ -50,9 +42,7 @@ def cal_sam_minute(x, sam_minutes):
     elif 120 <= minute_index < 240:
         return mid_open_time + (minute_index - 120) * pd.Timedelta(minutes=1)
     else:
-        raise ValueError(
-            "calendar minute_index error, check `min_data_shift` in qlib.config.C"
-        )
+        raise ValueError("calendar minute_index error, check `min_data_shift` in qlib.config.C")
 
 
 class TimeUtils(TestCase):

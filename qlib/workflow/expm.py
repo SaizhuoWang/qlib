@@ -185,27 +185,21 @@ class ExpManager:
                 experiment_id=experiment_id, experiment_name=experiment_name
             )
         else:
-            exp = self._get_exp(
-                experiment_id=experiment_id, experiment_name=experiment_name
-            )
+            exp = self._get_exp(experiment_id=experiment_id, experiment_name=experiment_name)
         if self.active_experiment is None and start:
             self.active_experiment = exp
             # start the recorder
             self.active_experiment.start()
         return exp
 
-    def _get_or_create_exp(
-        self, experiment_id=None, experiment_name=None
-    ) -> (object, bool):
+    def _get_or_create_exp(self, experiment_id=None, experiment_name=None) -> (object, bool):
         """
         Method for getting or creating an experiment. It will try to first get a valid experiment, if exception occurs, it will
         automatically create a new experiment based on the given id and name.
         """
         try:
             return (
-                self._get_exp(
-                    experiment_id=experiment_id, experiment_name=experiment_name
-                ),
+                self._get_exp(experiment_id=experiment_id, experiment_name=experiment_name),
                 False,
             )
         except ValueError:
@@ -228,9 +222,7 @@ class ExpManager:
                 return self.create_exp(experiment_name), True
             except ExpAlreadyExistError:
                 return (
-                    self._get_exp(
-                        experiment_id=experiment_id, experiment_name=experiment_name
-                    ),
+                    self._get_exp(experiment_id=experiment_id, experiment_name=experiment_name),
                     False,
                 )
 
@@ -300,9 +292,7 @@ class ExpManager:
         """
         if uri is None:
             if self._current_uri is None:
-                logger.debug(
-                    "No tracking URI is provided. Use the default tracking URI."
-                )
+                logger.debug("No tracking URI is provided. Use the default tracking URI.")
                 self._current_uri = self.default_uri
         else:
             # Temporarily re-set the current uri as the uri argument.
@@ -422,9 +412,7 @@ class MLflowExpManager(ExpManager):
                 exp = self.client.get_experiment_by_name(experiment_name)
                 if exp is None or exp.lifecycle_stage.upper() == "DELETED":
                     raise MlflowException("No valid experiment has been found.")
-                experiment = MLflowExperiment(
-                    exp.experiment_id, experiment_name, self.uri
-                )
+                experiment = MLflowExperiment(exp.experiment_id, experiment_name, self.uri)
                 return experiment
             except MlflowException as e:
                 raise ValueError(
@@ -432,15 +420,9 @@ class MLflowExpManager(ExpManager):
                 ) from e
 
     def search_records(self, experiment_ids=None, **kwargs):
-        filter_string = (
-            "" if kwargs.get("filter_string") is None else kwargs.get("filter_string")
-        )
-        run_view_type = (
-            1 if kwargs.get("run_view_type") is None else kwargs.get("run_view_type")
-        )
-        max_results = (
-            100000 if kwargs.get("max_results") is None else kwargs.get("max_results")
-        )
+        filter_string = "" if kwargs.get("filter_string") is None else kwargs.get("filter_string")
+        run_view_type = 1 if kwargs.get("run_view_type") is None else kwargs.get("run_view_type")
+        max_results = 100000 if kwargs.get("max_results") is None else kwargs.get("max_results")
         order_by = kwargs.get("order_by")
         return self.client.search_runs(
             experiment_ids, filter_string, run_view_type, max_results, order_by

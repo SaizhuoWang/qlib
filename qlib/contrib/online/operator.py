@@ -59,9 +59,7 @@ class Operator:
         else:
             trade_date = pd.Timestamp(date)
             if not is_tradable_date(trade_date):
-                raise ValueError(
-                    "trade date is not tradable date".format(trade_date.date())
-                )
+                raise ValueError("trade date is not tradable date".format(trade_date.date()))
             pred_date = get_pre_trading_date(trade_date, future=True)
         return um, pred_date, trade_date
 
@@ -133,9 +131,7 @@ class Operator:
                 user_path=(pathlib.Path(path) / user_id),
                 trade_date=trade_date,
             )
-            self.logger.info(
-                "Generate order list at {} for {}".format(trade_date, user_id)
-            )
+            self.logger.info("Generate order list at {} for {}".format(trade_date, user_id))
             um.save_user_data(user_id)
 
     def execute(self, date, exchange_config, path):
@@ -174,9 +170,7 @@ class Operator:
                 user_path=(pathlib.Path(path) / user_id),
                 trade_date=trade_date,
             )
-            self.logger.info(
-                "execute order list at {} for {}".format(trade_date.date(), user_id)
-            )
+            self.logger.info("execute order list at {} for {}".format(trade_date.date(), user_id))
 
     def update(self, date, path, type="SIM"):
         """Update account at 'date'.
@@ -219,9 +213,7 @@ class Operator:
             )
             self.logger.info(portfolio_metrics)
             um.save_user_data(user_id)
-            self.logger.info(
-                "Update account state {} for {}".format(trade_date, user_id)
-            )
+            self.logger.info("Update account state {} for {}".format(trade_date, user_id))
 
     def simulate(self, id, config, exchange_config, start, end, path, bench="SH000905"):
         """Run the ( generate_trade_decision -> execute_order_list -> update_account) process everyday
@@ -278,9 +270,7 @@ class Operator:
                 trade_exchange=trade_exchange,
                 trade_date=trade_date,
             )
-            save_order_list(
-                order_list=order_list, user_path=user_path, trade_date=trade_date
-            )
+            save_order_list(order_list=order_list, user_path=user_path, trade_date=trade_date)
 
             # 4. auto execute order list
             order_list = load_order_list(user_path=user_path, trade_date=trade_date)
@@ -295,9 +285,7 @@ class Operator:
                 user_path=user_path, trade_date=trade_date
             )
             update_account(user.account, trade_info, trade_exchange, trade_date)
-        portfolio_metrics = (
-            user.account.portfolio_metrics.generate_portfolio_metrics_dataframe()
-        )
+        portfolio_metrics = user.account.portfolio_metrics.generate_portfolio_metrics_dataframe()
         self.logger.info(portfolio_metrics)
         um.save_user_data(id)
         self.show(id, path, bench)
@@ -327,9 +315,7 @@ class Operator:
         r = (portfolio_metrics["return"] - portfolio_metrics["bench"]).dropna()
         analysis_result["excess_return_without_cost"] = risk_analysis(r)
         r = (
-            portfolio_metrics["return"]
-            - portfolio_metrics["bench"]
-            - portfolio_metrics["cost"]
+            portfolio_metrics["return"] - portfolio_metrics["bench"] - portfolio_metrics["cost"]
         ).dropna()
         analysis_result["excess_return_with_cost"] = risk_analysis(r)
         print("Result:")

@@ -148,10 +148,7 @@ class Account:
             # fill stock value
             # The frequency of account may not align with the trading frequency.
             # This may result in obscure bugs when data quality is low.
-            if (
-                isinstance(self.benchmark_config, dict)
-                and "start_time" in self.benchmark_config
-            ):
+            if isinstance(self.benchmark_config, dict) and "start_time" in self.benchmark_config:
                 self.current_position.fill_stock_value(
                     self.benchmark_config["start_time"], self.freq
                 )
@@ -204,28 +201,19 @@ class Account:
             if order.direction == Order.SELL:  # 0 for sell
                 # when sell stock, get profit from price change
                 profit = (
-                    trade_val
-                    - self.current_position.get_stock_price(order.stock_id)
-                    * trade_amount
+                    trade_val - self.current_position.get_stock_price(order.stock_id) * trade_amount
                 )
-                self.accum_info.add_return_value(
-                    profit
-                )  # note here do not consider cost
+                self.accum_info.add_return_value(profit)  # note here do not consider cost
 
             elif order.direction == Order.BUY:  # 1 for buy
                 # when buy stock, we get return for the rtn computing method
                 # profit in buy order is to make rtn is consistent with earning at the end of bar
                 profit = (
-                    self.current_position.get_stock_price(order.stock_id) * trade_amount
-                    - trade_val
+                    self.current_position.get_stock_price(order.stock_id) * trade_amount - trade_val
                 )
-                self.accum_info.add_return_value(
-                    profit
-                )  # note here do not consider cost
+                self.accum_info.add_return_value(profit)  # note here do not consider cost
 
-    def update_order(
-        self, order: Order, trade_val: float, cost: float, trade_price: float
-    ) -> None:
+    def update_order(self, order: Order, trade_val: float, cost: float, trade_price: float) -> None:
         if self.current_position.skip_update():
             # TODO: supporting polymorphism for account
             # updating order for infinite position is meaningless
@@ -264,9 +252,7 @@ class Account:
             stock_list = self.current_position.get_stock_list()
             for code in stock_list:
                 # if suspend, no new price to be updated, profit is 0
-                if trade_exchange.check_stock_suspended(
-                    code, trade_start_time, trade_end_time
-                ):
+                if trade_exchange.check_stock_suspended(code, trade_start_time, trade_end_time):
                     continue
                 bar_close = cast(
                     float,
@@ -362,9 +348,7 @@ class Account:
             )
 
         # aggregate all the order metrics a single step
-        self.indicator.cal_trade_indicators(
-            trade_start_time, self.freq, indicator_config
-        )
+        self.indicator.cal_trade_indicators(trade_start_time, self.freq, indicator_config)
 
         # record the metrics
         self.indicator.record(trade_start_time)
@@ -414,9 +398,7 @@ class Account:
         if atomic is True and trade_info is None:
             raise ValueError("trade_info is necessary in atomic executor")
         elif atomic is False and inner_order_indicators is None:
-            raise ValueError(
-                "inner_order_indicators is necessary in un-atomic executor"
-            )
+            raise ValueError("inner_order_indicators is necessary in un-atomic executor")
 
         # update current position and hold bar count in each bar end
         self.update_current_position(trade_start_time, trade_end_time, trade_exchange)
@@ -442,9 +424,7 @@ class Account:
         """get the history portfolio_metrics and positions instance"""
         if self.is_port_metr_enabled():
             assert self.portfolio_metrics is not None
-            _portfolio_metrics = (
-                self.portfolio_metrics.generate_portfolio_metrics_dataframe()
-            )
+            _portfolio_metrics = self.portfolio_metrics.generate_portfolio_metrics_dataframe()
             _positions = self.get_hist_positions()
             return _portfolio_metrics, _positions
         else:

@@ -188,9 +188,7 @@ class RecorderCollector(Collector):
         self.list_kwargs = list_kwargs
         self.status = status
 
-    def collect(
-        self, artifacts_key=None, rec_filter_func=None, only_exist=True
-    ) -> dict:
+    def collect(self, artifacts_key=None, rec_filter_func=None, only_exist=True) -> dict:
         """
         Collect different artifacts based on recorder after filtering.
 

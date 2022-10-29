@@ -118,18 +118,14 @@ class ALSTM(Model):
             dropout=self.dropout,
         )
         self.logger.info("model:\n{:}".format(self.ALSTM_model))
-        self.logger.info(
-            "model size: {:.4f} MB".format(count_parameters(self.ALSTM_model))
-        )
+        self.logger.info("model size: {:.4f} MB".format(count_parameters(self.ALSTM_model)))
 
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(self.ALSTM_model.parameters(), lr=self.lr)
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.ALSTM_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         self.fitted = False
         self.ALSTM_model.to(self.device)
@@ -216,14 +212,10 @@ class ALSTM(Model):
                 break
 
             feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
+                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
             )
             label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
+                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
             )
 
             with torch.no_grad():
@@ -248,9 +240,7 @@ class ALSTM(Model):
             data_key=DataHandlerLP.DK_L,
         )
         if df_train.empty or df_valid.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
 
         x_train, y_train = df_train["feature"], df_train["label"]
         x_valid, y_valid = df_valid["feature"], df_valid["label"]
@@ -300,9 +290,7 @@ class ALSTM(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        x_test = dataset.prepare(
-            segment, col_set="feature", data_key=DataHandlerLP.DK_I
-        )
+        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
         index = x_test.index
         self.ALSTM_model.eval()
         x_values = x_test.values
@@ -327,9 +315,7 @@ class ALSTM(Model):
 
 
 class ALSTMModel(nn.Module):
-    def __init__(
-        self, d_feat=6, hidden_size=64, num_layers=2, dropout=0.0, rnn_type="GRU"
-    ):
+    def __init__(self, d_feat=6, hidden_size=64, num_layers=2, dropout=0.0, rnn_type="GRU"):
         super().__init__()
         self.hid_size = hidden_size
         self.input_size = d_feat
@@ -375,9 +361,7 @@ class ALSTMModel(nn.Module):
         inputs = inputs.permute(
             0, 2, 1
         )  # [batch, input_size, seq_len] -> [batch, seq_len, input_size]
-        rnn_out, _ = self.rnn(
-            self.net(inputs)
-        )  # [batch, seq_len, num_directions * hidden_size]
+        rnn_out, _ = self.rnn(self.net(inputs))  # [batch, seq_len, num_directions * hidden_size]
         attention_score = self.att_net(rnn_out)  # [batch, seq_len, 1]
         out_att = torch.mul(rnn_out, attention_score)
         out_att = torch.sum(out_att, dim=1)

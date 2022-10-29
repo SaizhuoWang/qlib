@@ -37,9 +37,7 @@ class PAPenaltyReward(Reward[SAOEState]):
 
         # Inspect the "break-down" of the latest step: trading amount at every tick
         last_step_breakdown = simulator_state.history_exec.loc[last_step["datetime"] :]
-        penalty = (
-            -self.penalty * ((last_step_breakdown["amount"] / whole_order) ** 2).sum()
-        )
+        penalty = -self.penalty * ((last_step_breakdown["amount"] / whole_order) ** 2).sum()
 
         reward = pa + penalty
 

@@ -127,18 +127,14 @@ class TCN(Model):
             dropout=self.dropout,
         )
         self.logger.info("model:\n{:}".format(self.tcn_model))
-        self.logger.info(
-            "model size: {:.4f} MB".format(count_parameters(self.tcn_model))
-        )
+        self.logger.info("model size: {:.4f} MB".format(count_parameters(self.tcn_model)))
 
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(self.tcn_model.parameters(), lr=self.lr)
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.tcn_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         self.fitted = False
         self.tcn_model.to(self.device)
@@ -223,14 +219,10 @@ class TCN(Model):
                 break
 
             feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
+                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
             )
             label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
+                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
             )
 
             with torch.no_grad():
@@ -309,9 +301,7 @@ class TCN(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        x_test = dataset.prepare(
-            segment, col_set="feature", data_key=DataHandlerLP.DK_I
-        )
+        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
         index = x_test.index
         self.tcn_model.eval()
         x_values = x_test.values
@@ -339,9 +329,7 @@ class TCNModel(nn.Module):
     def __init__(self, num_input, output_size, num_channels, kernel_size, dropout):
         super().__init__()
         self.num_input = num_input
-        self.tcn = TemporalConvNet(
-            num_input, num_channels, kernel_size, dropout=dropout
-        )
+        self.tcn = TemporalConvNet(num_input, num_channels, kernel_size, dropout=dropout)
         self.linear = nn.Linear(num_channels[-1], output_size)
 
     def forward(self, x):

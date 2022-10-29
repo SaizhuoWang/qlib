@@ -39,12 +39,7 @@ def get_benchmark_weight(
 
     """
     if not path:
-        path = (
-            Path(C.dpm.get_data_uri(freq)).expanduser()
-            / "raw"
-            / "AIndexMembers"
-            / "weights.csv"
-        )
+        path = Path(C.dpm.get_data_uri(freq)).expanduser() / "raw" / "AIndexMembers" / "weights.csv"
     # TODO: the storage of weights should be implemented in a more elegent way
     # TODO: The benchmark is not consistent with the filename in instruments.
     bench_weight_df = pd.read_csv(path, usecols=["code", "date", "index", "weight"])
@@ -55,8 +50,7 @@ def get_benchmark_weight(
     if end_date is not None:
         bench_weight_df = bench_weight_df[bench_weight_df.date <= end_date]
     bench_stock_weight = (
-        bench_weight_df.pivot_table(index="date", columns="code", values="weight")
-        / 100.0
+        bench_weight_df.pivot_table(index="date", columns="code", values="weight") / 100.0
     )
     return bench_stock_weight
 
@@ -212,15 +206,13 @@ def get_daily_bin_group(bench_values, stock_values, group_n):
     # Modify the biggest uppper bound and smallest lowerbound
     split_points[0], split_points[-1] = -np.inf, np.inf
     for i, (lb, up) in enumerate(zip(split_points, split_points[1:])):
-        stock_group.loc[
-            stock_values[(stock_values >= lb) & (stock_values < up)].index
-        ] = (group_n - i)
+        stock_group.loc[stock_values[(stock_values >= lb) & (stock_values < up)].index] = (
+            group_n - i
+        )
     return stock_group
 
 
-def get_stock_group(
-    stock_group_field_df, bench_stock_weight_df, group_method, group_n=None
-):
+def get_stock_group(stock_group_field_df, bench_stock_weight_df, group_method, group_n=None):
     if group_method == "category":
         # use the value of the benchmark as the category
         return stock_group_field_df
@@ -302,9 +294,7 @@ def brinson_pa(
     stock_group_field = stock_group_field.fillna(method="ffill")
     stock_group_field = stock_group_field.loc[start_date:end_date]
 
-    stock_group = get_stock_group(
-        stock_group_field, bench_stock_weight, group_method, group_n
-    )
+    stock_group = get_stock_group(stock_group_field, bench_stock_weight, group_method, group_n)
 
     deal_price_df = stock_df["deal_price"].unstack().T
     deal_price_df = deal_price_df.fillna(method="ffill")

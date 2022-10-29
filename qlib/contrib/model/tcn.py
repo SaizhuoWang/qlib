@@ -14,9 +14,7 @@ class Chomp1d(nn.Module):
 
 
 class TemporalBlock(nn.Module):
-    def __init__(
-        self, n_inputs, n_outputs, kernel_size, stride, dilation, padding, dropout=0.2
-    ):
+    def __init__(self, n_inputs, n_outputs, kernel_size, stride, dilation, padding, dropout=0.2):
         super(TemporalBlock, self).__init__()
         self.conv1 = weight_norm(
             nn.Conv1d(
@@ -56,9 +54,7 @@ class TemporalBlock(nn.Module):
             self.relu2,
             self.dropout2,
         )
-        self.downsample = (
-            nn.Conv1d(n_inputs, n_outputs, 1) if n_inputs != n_outputs else None
-        )
+        self.downsample = nn.Conv1d(n_inputs, n_outputs, 1) if n_inputs != n_outputs else None
         self.relu = nn.ReLU()
         self.init_weights()
 

@@ -165,9 +165,7 @@ class DistplotGraph(BaseGraph):
         _t_df = self._df.dropna()
         _data_list = [_t_df[_col] for _col in self._name_dict]
         _label_list = list(self._name_dict.values())
-        _fig = create_distplot(
-            _data_list, _label_list, show_rug=False, **self._graph_kwargs
-        )
+        _fig = create_distplot(_data_list, _label_list, show_rug=False, **self._graph_kwargs)
 
         return _fig["data"]
 
@@ -202,10 +200,7 @@ class HistogramGraph(BaseGraph):
         """
         _data = [
             self.get_instance_with_graph_parameters(
-                graph_type=self._graph_type,
-                x=self._df[_col],
-                name=_name,
-                **self._graph_kwargs
+                graph_type=self._graph_type, x=self._df[_col], name=_name, **self._graph_kwargs
             )
             for _col, _name in self._name_dict.items()
         ]
@@ -360,12 +355,8 @@ class SubplotsGraph:
                 _graph_obj = column_name
             elif isinstance(column_name, str):
                 temp_name = column_map.get("name", column_name.replace("_", " "))
-                kind = column_map.get(
-                    "kind", self._kind_map.get("kind", "ScatterGraph")
-                )
-                _graph_kwargs = column_map.get(
-                    "graph_kwargs", self._kind_map.get("kwargs", {})
-                )
+                kind = column_map.get("kind", self._kind_map.get("kind", "ScatterGraph"))
+                _graph_kwargs = column_map.get("graph_kwargs", self._kind_map.get("kwargs", {}))
                 _graph_obj = BaseGraph.get_instance_with_graph_parameters(
                     kind,
                     **dict(

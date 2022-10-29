@@ -119,9 +119,7 @@ class BaseExecutor:
         self._settle_type = settle_type
         self.reset(start_time=start_time, end_time=end_time, common_infra=common_infra)
         if common_infra is None:
-            get_module_logger("BaseExecutor").warning(
-                f"`common_infra` is not set for {self}"
-            )
+            get_module_logger("BaseExecutor").warning(f"`common_infra` is not set for {self}")
 
         # record deal order amount in one day
         self.dealt_order_amount: Dict[str, float] = defaultdict(float)
@@ -157,9 +155,7 @@ class BaseExecutor:
     @property
     def trade_exchange(self) -> Exchange:
         """get trade exchange in a prioritized order"""
-        return getattr(self, "_trade_exchange", None) or self.common_infra.get(
-            "trade_exchange"
-        )
+        return getattr(self, "_trade_exchange", None) or self.common_infra.get("trade_exchange")
 
     @property
     def trade_calendar(self) -> TradeCalendarManager:
@@ -190,9 +186,7 @@ class BaseExecutor:
     def finished(self) -> bool:
         return self.trade_calendar.finished()
 
-    def execute(
-        self, trade_decision: BaseTradeDecision, level: int = 0
-    ) -> List[object]:
+    def execute(self, trade_decision: BaseTradeDecision, level: int = 0) -> List[object]:
         """execute the trade decision and return the executed result
 
         NOTE: this function is never used directly in the framework. Should we delete it?
@@ -210,9 +204,7 @@ class BaseExecutor:
             the executed result for trade decision
         """
         return_value: dict = {}
-        for _decision in self.collect_data(
-            trade_decision, return_value=return_value, level=level
-        ):
+        for _decision in self.collect_data(trade_decision, return_value=return_value, level=level):
             pass
         return cast(list, return_value.get("execute_result"))
 
@@ -221,9 +213,7 @@ class BaseExecutor:
         self,
         trade_decision: BaseTradeDecision,
         level: int = 0,
-    ) -> Union[
-        Generator[Any, Any, Tuple[List[object], dict]], Tuple[List[object], dict]
-    ]:
+    ) -> Union[Generator[Any, Any, Tuple[List[object], dict]], Tuple[List[object], dict]]:
         """
         Please refer to the doc of collect_data
         The only difference between `_collect_data` and `collect_data` is that some common steps are moved into
@@ -277,9 +267,7 @@ class BaseExecutor:
         if self.track_data:
             yield trade_decision
 
-        atomic = not issubclass(
-            self.__class__, NestedExecutor
-        )  # issubclass(A, A) is True
+        atomic = not issubclass(self.__class__, NestedExecutor)  # issubclass(A, A) is True
 
         if atomic and trade_decision.get_range_limit(default_value=None) is not None:
             raise ValueError("atomic executor doesn't support specify `range_limit`")
@@ -411,17 +399,11 @@ class NestedExecutor(BaseExecutor):
         self.inner_executor.reset(start_time=trade_start_time, end_time=trade_end_time)
         sub_level_infra = self.inner_executor.get_level_infra()
         self.level_infra.set_sub_level_infra(sub_level_infra)
-        self.inner_strategy.reset(
-            level_infra=sub_level_infra, outer_trade_decision=trade_decision
-        )
+        self.inner_strategy.reset(level_infra=sub_level_infra, outer_trade_decision=trade_decision)
 
-    def _update_trade_decision(
-        self, trade_decision: BaseTradeDecision
-    ) -> BaseTradeDecision:
+    def _update_trade_decision(self, trade_decision: BaseTradeDecision) -> BaseTradeDecision:
         # outer strategy have chance to update decision each iterator
-        updated_trade_decision = trade_decision.update(
-            self.inner_executor.trade_calendar
-        )
+        updated_trade_decision = trade_decision.update(self.inner_executor.trade_calendar)
         if updated_trade_decision is not None:  # TODO: always is None for now?
             trade_decision = updated_trade_decision
             # NEW UPDATE
@@ -456,10 +438,7 @@ class NestedExecutor(BaseExecutor):
 
             # NOTE: make sure get_start_end_idx is after `self._update_trade_decision`
             start_idx, end_idx = get_start_end_idx(sub_cal, trade_decision)
-            if (
-                not self._align_range_limit
-                or start_idx <= sub_cal.get_trade_step() <= end_idx
-            ):
+            if not self._align_range_limit or start_idx <= sub_cal.get_trade_step() <= end_idx:
                 # if force align the range limit, skip the steps outside the decision range limit
 
                 res = self.inner_strategy.generate_trade_decision(_inner_execute_result)

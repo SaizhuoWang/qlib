@@ -127,18 +127,14 @@ class TCN(Model):
             dropout=self.dropout,
         )
         self.logger.info("model:\n{:}".format(self.TCN_model))
-        self.logger.info(
-            "model size: {:.4f} MB".format(count_parameters(self.TCN_model))
-        )
+        self.logger.info("model size: {:.4f} MB".format(count_parameters(self.TCN_model)))
 
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(self.TCN_model.parameters(), lr=self.lr)
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.TCN_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         self.fitted = False
         self.TCN_model.to(self.device)
@@ -286,13 +282,9 @@ class TCN(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        dl_test = dataset.prepare(
-            "test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I
-        )
+        dl_test = dataset.prepare("test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I)
         dl_test.config(fillna_type="ffill+bfill")
-        test_loader = DataLoader(
-            dl_test, batch_size=self.batch_size, num_workers=self.n_jobs
-        )
+        test_loader = DataLoader(dl_test, batch_size=self.batch_size, num_workers=self.n_jobs)
         self.TCN_model.eval()
         preds = []
 
@@ -312,9 +304,7 @@ class TCNModel(nn.Module):
     def __init__(self, num_input, output_size, num_channels, kernel_size, dropout):
         super().__init__()
         self.num_input = num_input
-        self.tcn = TemporalConvNet(
-            num_input, num_channels, kernel_size, dropout=dropout
-        )
+        self.tcn = TemporalConvNet(num_input, num_channels, kernel_size, dropout=dropout)
         self.linear = nn.Linear(num_channels[-1], output_size)
 
     def forward(self, x):

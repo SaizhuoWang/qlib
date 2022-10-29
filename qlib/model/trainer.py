@@ -40,9 +40,7 @@ def _exe_task(task_config: dict):
     rec = R.get_recorder()
     # model & dataset initiation
     model: Model = init_instance_by_config(task_config["model"], accept_types=Model)
-    dataset: Dataset = init_instance_by_config(
-        task_config["dataset"], accept_types=Dataset
-    )
+    dataset: Dataset = init_instance_by_config(task_config["dataset"], accept_types=Dataset)
     reweighter: Reweighter = task_config.get("reweighter", None)
     # model training
     auto_filter_kwargs(model.fit)(dataset, reweighter=reweighter)
@@ -100,17 +98,13 @@ def end_task_train(rec: Recorder, experiment_name: str) -> Recorder:
     Returns:
         Recorder: the model recorder
     """
-    with R.start(
-        experiment_name=experiment_name, recorder_id=rec.info["id"], resume=True
-    ):
+    with R.start(experiment_name=experiment_name, recorder_id=rec.info["id"], resume=True):
         task_config = R.load_object("task")
         _exe_task(task_config)
     return rec
 
 
-def task_train(
-    task_config: dict, experiment_name: str, recorder_name: str = None
-) -> Recorder:
+def task_train(task_config: dict, experiment_name: str, recorder_name: str = None) -> Recorder:
     """
     Task based training, will be divided into two steps.
 
@@ -279,9 +273,7 @@ class TrainerR(Trainer):
                     "running models in sub process (for forcing release memroy)."
                 )
                 train_func = call_in_subproc(train_func, C)
-            rec = train_func(
-                task, experiment_name, recorder_name=self.default_rec_name, **kwargs
-            )
+            rec = train_func(task, experiment_name, recorder_name=self.default_rec_name, **kwargs)
             rec.set_tags(**{self.STATUS_KEY: self.STATUS_BEGIN})
             recs.append(rec)
         return recs

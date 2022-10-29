@@ -37,10 +37,7 @@ class HighFreqNorm(Processor):
         self.norm_groups = norm_groups
 
     def fit(self, df_features) -> None:
-        if (
-            os.path.exists(self.feature_save_dir)
-            and len(os.listdir(self.feature_save_dir)) != 0
-        ):
+        if os.path.exists(self.feature_save_dir) and len(os.listdir(self.feature_save_dir)) != 0:
             return
         os.makedirs(self.feature_save_dir)
         fetch_df = fetch_df_by_index(

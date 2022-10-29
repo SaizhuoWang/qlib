@@ -90,9 +90,7 @@ class ShrinkCovEstimator(RiskModel):
         else:
             raise TypeError("invalid argument type for `target`")
         if alpha == self.SHR_OAS and target != self.TGT_CONST_VAR:
-            raise NotImplementedError(
-                "currently `oas` can only support `const_var` as target"
-            )
+            raise NotImplementedError("currently `oas` can only support `const_var` as target")
         self.target = target
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -149,9 +147,7 @@ class ShrinkCovEstimator(RiskModel):
         np.fill_diagonal(F, var)
         return F
 
-    def _get_shrink_target_single_factor(
-        self, X: np.ndarray, S: np.ndarray
-    ) -> np.ndarray:
+    def _get_shrink_target_single_factor(self, X: np.ndarray, S: np.ndarray) -> np.ndarray:
         """get shrinking target with single factor model"""
         X_mkt = np.nanmean(X, axis=1)
         cov_mkt = np.asarray(X.T.dot(X_mkt) / len(X))
@@ -177,9 +173,7 @@ class ShrinkCovEstimator(RiskModel):
                 return self._get_shrink_param_lw_single_factor(X, S, F)
         return self.alpha
 
-    def _get_shrink_param_oas(
-        self, X: np.ndarray, S: np.ndarray, F: np.ndarray
-    ) -> float:
+    def _get_shrink_param_oas(self, X: np.ndarray, S: np.ndarray, F: np.ndarray) -> float:
         """Oracle Approximating Shrinkage Estimator
 
         This method uses the following formula to estimate the `alpha`
@@ -200,9 +194,7 @@ class ShrinkCovEstimator(RiskModel):
 
         return alpha
 
-    def _get_shrink_param_lw_const_var(
-        self, X: np.ndarray, S: np.ndarray, F: np.ndarray
-    ) -> float:
+    def _get_shrink_param_lw_const_var(self, X: np.ndarray, S: np.ndarray, F: np.ndarray) -> float:
         """Ledoit-Wolf Shrinkage Estimator (Constant Variance)
 
         This method shrinks the covariance matrix towards the constand variance target.
@@ -219,9 +211,7 @@ class ShrinkCovEstimator(RiskModel):
 
         return alpha
 
-    def _get_shrink_param_lw_const_corr(
-        self, X: np.ndarray, S: np.ndarray, F: np.ndarray
-    ) -> float:
+    def _get_shrink_param_lw_const_corr(self, X: np.ndarray, S: np.ndarray, F: np.ndarray) -> float:
         """Ledoit-Wolf Shrinkage Estimator (Constant Correlation)
 
         This method shrinks the covariance matrix towards the constand correlation target.
@@ -268,10 +258,7 @@ class ShrinkCovEstimator(RiskModel):
         rdiag = np.sum(y**2) / t - np.sum(np.diag(S) ** 2)
         z = X * X_mkt[:, None]
         v1 = y.T.dot(z) / t - cov_mkt[:, None] * S
-        roff1 = (
-            np.sum(v1 * cov_mkt[:, None].T) / var_mkt
-            - np.sum(np.diag(v1) * cov_mkt) / var_mkt
-        )
+        roff1 = np.sum(v1 * cov_mkt[:, None].T) / var_mkt - np.sum(np.diag(v1) * cov_mkt) / var_mkt
         v3 = z.T.dot(z) / t - var_mkt * S
         roff3 = (
             np.sum(v3 * np.outer(cov_mkt, cov_mkt)) / var_mkt**2

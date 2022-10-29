@@ -14,19 +14,13 @@ class TestOperatorDataSetting(TestOperatorData):
         # get market return for "SH600519"
         df = D.features(
             ["SH600519"],
-            [
-                "ChangeInstrument('SH000300', Feature('close')/Ref(Feature('close'),1) -1)"
-            ],
+            ["ChangeInstrument('SH000300', Feature('close')/Ref(Feature('close'),1) -1)"],
         )
-        df = D.features(
-            ["SH600519"], ["ChangeInstrument('SH000300', $close/Ref($close,1) -1)"]
-        )
+        df = D.features(["SH600519"], ["ChangeInstrument('SH000300', $close/Ref($close,1) -1)"])
         # excess return
         df = D.features(
             ["SH600519"],
-            [
-                "($close/Ref($close,1) -1) - ChangeInstrument('SH000300', $close/Ref($close,1) -1)"
-            ],
+            ["($close/Ref($close,1) -1) - ChangeInstrument('SH000300', $close/Ref($close,1) -1)"],
         )
         print(df)
 
@@ -46,9 +40,7 @@ class TestOperatorDataSetting(TestOperatorData):
         )
         test_case(
             ["SH600519"],
-            [
-                "ChangeInstrument('SH000300', Feature('close')/Ref(Feature('close'),1) -1)"
-            ],
+            ["ChangeInstrument('SH000300', Feature('close')/Ref(Feature('close'),1) -1)"],
             "get market index return with Feature",
         )
         test_case(
@@ -58,16 +50,16 @@ class TestOperatorDataSetting(TestOperatorData):
         )
         test_case(
             ["SH600519"],
-            [
-                "($close/Ref($close,1) -1) - ChangeInstrument('SH000300', $close/Ref($close,1) -1)"
-            ],
+            ["($close/Ref($close,1) -1) - ChangeInstrument('SH000300', $close/Ref($close,1) -1)"],
             "get excess return with expression with beta=1",
         )
 
         ret = "Feature('close') / Ref(Feature('close'), 1) - 1"
         benchmark = "SH000300"
         n_period = 252
-        marketRet = f"ChangeInstrument('{benchmark}', Feature('close') / Ref(Feature('close'), 1) - 1)"
+        marketRet = (
+            f"ChangeInstrument('{benchmark}', Feature('close') / Ref(Feature('close'), 1) - 1)"
+        )
         marketVar = f"ChangeInstrument('{benchmark}', Var({marketRet}, {n_period}))"
         beta = f"Cov({ret}, {marketRet}, {n_period}) / {marketVar}"
         excess_return = f"{ret} - {beta}*({marketRet})"
@@ -89,9 +81,7 @@ class TestOperatorDataSetting(TestOperatorData):
         ret = Feature("close") / Ref(Feature("close"), 1) - 1
         benchmark = "sh000300"
         n_period = 252
-        marketRet = ChangeInstrument(
-            benchmark, Feature("close") / Ref(Feature("close"), 1) - 1
-        )
+        marketRet = ChangeInstrument(benchmark, Feature("close") / Ref(Feature("close"), 1) - 1)
         marketVar = ChangeInstrument(benchmark, Var(marketRet, n_period))
         beta = Cov(ret, marketRet, n_period) / marketVar
         fields = [

@@ -65,9 +65,7 @@ class LinearModel(Model):
             "train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
         )
         if df_train.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
         if reweighter is not None:
             w: pd.Series = reweighter.reweight(df_train)
             w = w.values
@@ -111,9 +109,5 @@ class LinearModel(Model):
     def predict(self, dataset: DatasetH, segment: Union[Text, slice] = "test"):
         if self.coef_ is None:
             raise ValueError("model is not fitted yet!")
-        x_test = dataset.prepare(
-            segment, col_set="feature", data_key=DataHandlerLP.DK_I
-        )
-        return pd.Series(
-            x_test.values @ self.coef_ + self.intercept_, index=x_test.index
-        )
+        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
+        return pd.Series(x_test.values @ self.coef_ + self.intercept_, index=x_test.index)

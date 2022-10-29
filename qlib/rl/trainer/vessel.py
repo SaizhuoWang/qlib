@@ -33,9 +33,7 @@ class SeedIteratorNotAvailable(BaseException):
     pass
 
 
-class TrainingVesselBase(
-    Generic[InitialStateType, StateType, ActType, ObsType, PolicyActType]
-):
+class TrainingVesselBase(Generic[InitialStateType, StateType, ActType, ObsType, PolicyActType]):
     """A ship that contains simulator, interpreter, and policy, will be sent to trainer.
     This class controls algorithm-related parts of training, while trainer is responsible for runtime part.
 
@@ -43,9 +41,7 @@ class TrainingVesselBase(
     and (optionally) some callbacks to insert customized logics at specific events.
     """
 
-    simulator_fn: Callable[
-        [InitialStateType], Simulator[InitialStateType, StateType, ActType]
-    ]
+    simulator_fn: Callable[[InitialStateType], Simulator[InitialStateType, StateType, ActType]]
     state_interpreter: StateInterpreter[StateType, ObsType]
     action_interpreter: ActionInterpreter[StateType, PolicyActType, ActType]
     policy: BasePolicy
@@ -127,9 +123,7 @@ class TrainingVessel(TrainingVesselBase):
     def __init__(
         self,
         *,
-        simulator_fn: Callable[
-            [InitialStateType], Simulator[InitialStateType, StateType, ActType]
-        ],
+        simulator_fn: Callable[[InitialStateType], Simulator[InitialStateType, StateType, ActType]],
         state_interpreter: StateInterpreter[StateType, ObsType],
         action_interpreter: ActionInterpreter[StateType, PolicyActType, ActType],
         policy: BasePolicy,
@@ -242,9 +236,7 @@ class TrainingVessel(TrainingVesselBase):
             return res
 
     @staticmethod
-    def _random_subset(
-        name: str, collection: Sequence[T], size: int | None
-    ) -> Sequence[T]:
+    def _random_subset(name: str, collection: Sequence[T], size: int | None) -> Sequence[T]:
         if size is None:
             # Size = None -> original collection
             return collection

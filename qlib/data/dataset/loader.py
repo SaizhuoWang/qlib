@@ -84,8 +84,7 @@ class DLWParser(DataLoader):
 
         if self.is_group:
             self.fields = {
-                grp: self._parse_fields_info(fields_info)
-                for grp, fields_info in config.items()
+                grp: self._parse_fields_info(fields_info) for grp, fields_info in config.items()
             }
         else:
             self.fields = self._parse_fields_info(config)
@@ -137,9 +136,7 @@ class DLWParser(DataLoader):
         if self.is_group:
             df = pd.concat(
                 {
-                    grp: self.load_group_df(
-                        instruments, exprs, names, start_time, end_time, grp
-                    )
+                    grp: self.load_group_df(instruments, exprs, names, start_time, end_time, grp)
                     for grp, (exprs, names) in self.fields.items()
                 },
                 axis=1,
@@ -218,9 +215,7 @@ class QlibDataLoader(DLWParser):
             )
 
         freq = self.freq[gp_name] if isinstance(self.freq, dict) else self.freq
-        self.logger.info(
-            'Loading data for group "%s" with freq "%s" from disk', gp_name, freq
-        )
+        self.logger.info('Loading data for group "%s" with freq "%s" from disk', gp_name, freq)
         import pdb
 
         pdb.set_trace()
@@ -233,13 +228,9 @@ class QlibDataLoader(DLWParser):
             inst_processors=self.inst_processor.get(gp_name, []),
         )
         df.columns = names
-        self.logger.info(
-            'Loaded data for group "%s" with freq "%s" from disk', gp_name, freq
-        )
+        self.logger.info('Loaded data for group "%s" with freq "%s" from disk', gp_name, freq)
         if self.swap_level:
-            df = (
-                df.swaplevel().sort_index()
-            )  # NOTE: if swaplevel, return <datetime, instrument>
+            df = df.swaplevel().sort_index()  # NOTE: if swaplevel, return <datetime, instrument>
         return df
 
 
@@ -259,7 +250,9 @@ class StaticDataLoader(DataLoader, Serializable):
         join : str
             How to align different dataframes
         """
-        self._config = config  # using "_" to avoid confliction with the method `config` of Serializable
+        self._config = (
+            config  # using "_" to avoid confliction with the method `config` of Serializable
+        )
         self.join = join
         self._data = None
 
@@ -344,9 +337,7 @@ class DataLoaderDH(DataLoader):
                 for grp, config in handler_config.items()
             }
         else:
-            self.handlers = init_instance_by_config(
-                handler_config, accept_types=DataHandler
-            )
+            self.handlers = init_instance_by_config(handler_config, accept_types=DataHandler)
 
         self.is_group = is_group
         self.fetch_kwargs = {"col_set": DataHandler.CS_RAW}

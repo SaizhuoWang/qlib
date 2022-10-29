@@ -28,15 +28,11 @@ if __name__ == "__main__":
     repeat = 2
     exp_name = "data_mem_reuse_demo"
 
-    config_path = (
-        DIRNAME.parent / "benchmarks/LightGBM/workflow_config_lightgbm_Alpha158.yaml"
-    )
+    config_path = DIRNAME.parent / "benchmarks/LightGBM/workflow_config_lightgbm_Alpha158.yaml"
     task_config = yaml.safe_load(config_path.open())
 
     # 1) without using processed data in memory
-    with TimeInspector.logt(
-        "The original time without reusing processed data in memory:"
-    ):
+    with TimeInspector.logt("The original time without reusing processed data in memory:"):
         for i in range(repeat):
             task_train(task_config["task"], experiment_name=exp_name)
 

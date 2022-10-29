@@ -49,9 +49,7 @@ class GetData:
         target_dir = Path(target_dir).expanduser()
         target_dir.mkdir(exist_ok=True, parents=True)
         # saved file name
-        _target_file_name = (
-            datetime.datetime.now().strftime("%Y%m%d%H%M%S") + "_" + file_name
-        )
+        _target_file_name = datetime.datetime.now().strftime("%Y%m%d%H%M%S") + "_" + file_name
         target_path = target_dir.joinpath(_target_file_name)
 
         url = self.merge_remote_url(file_name, dataset_version)
@@ -180,9 +178,7 @@ class GetData:
         file_name = _get_file_name(qlib_version)
         if not self.check_dataset(file_name, version):
             file_name = _get_file_name("latest")
-        self._download_data(
-            file_name.lower(), target_dir, delete_old, dataset_version=version
-        )
+        self._download_data(file_name.lower(), target_dir, delete_old, dataset_version=version)
 
     def csv_data_cn(self, target_dir="~/.qlib/csv_data/cn_data"):
         """download cn csv data from remote

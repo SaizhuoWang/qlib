@@ -108,9 +108,7 @@ class RollingDataWorkflow:
                         "start_time": datetime(
                             train_start_time[0] + rolling_offset, *train_start_time[1:]
                         ),
-                        "end_time": datetime(
-                            test_end_time[0] + rolling_offset, *test_end_time[1:]
-                        ),
+                        "end_time": datetime(test_end_time[0] + rolling_offset, *test_end_time[1:]),
                         "processor_kwargs": {
                             "fit_start_time": datetime(
                                 train_start_time[0] + rolling_offset,
@@ -127,27 +125,21 @@ class RollingDataWorkflow:
                                 train_start_time[0] + rolling_offset,
                                 *train_start_time[1:],
                             ),
-                            datetime(
-                                train_end_time[0] + rolling_offset, *train_end_time[1:]
-                            ),
+                            datetime(train_end_time[0] + rolling_offset, *train_end_time[1:]),
                         ),
                         "valid": (
                             datetime(
                                 valid_start_time[0] + rolling_offset,
                                 *valid_start_time[1:],
                             ),
-                            datetime(
-                                valid_end_time[0] + rolling_offset, *valid_end_time[1:]
-                            ),
+                            datetime(valid_end_time[0] + rolling_offset, *valid_end_time[1:]),
                         ),
                         "test": (
                             datetime(
                                 test_start_time[0] + rolling_offset,
                                 *test_start_time[1:],
                             ),
-                            datetime(
-                                test_end_time[0] + rolling_offset, *test_end_time[1:]
-                            ),
+                            datetime(test_end_time[0] + rolling_offset, *test_end_time[1:]),
                         ),
                     },
                 )

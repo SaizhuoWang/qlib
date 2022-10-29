@@ -151,17 +151,13 @@ class PitCollector(BaseCollector):
         return profit_df
 
     @staticmethod
-    def get_forecast_report_df(
-        code: str, start_date: str, end_date: str
-    ) -> pd.DataFrame:
+    def get_forecast_report_df(code: str, start_date: str, end_date: str) -> pd.DataFrame:
         column_mapping = {
             "profitForcastExpPubDate": "date",
             "profitForcastExpStatDate": "period",
             "value": "value",
         }
-        resp = bs.query_forecast_report(
-            code=code, start_date=start_date, end_date=end_date
-        )
+        resp = bs.query_forecast_report(code=code, start_date=start_date, end_date=end_date)
         forecast_list = []
         while (resp.error_code == "0") and resp.next():
             forecast_list.append(resp.get_row_data())
@@ -251,9 +247,7 @@ class PitNormalize(BaseNormalize):
             lambda x: (
                 pd.to_datetime(x)
                 + pd.DateOffset(
-                    days=(
-                        45 if self.interval == PitCollector.INTERVAL_QUARTERLY else 90
-                    )
+                    days=(45 if self.interval == PitCollector.INTERVAL_QUARTERLY else 90)
                 )
             ).date()
         )

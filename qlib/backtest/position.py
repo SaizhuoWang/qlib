@@ -55,9 +55,7 @@ class BasePosition:
         """
         raise NotImplementedError(f"Please implement the `check_stock` method")
 
-    def update_order(
-        self, order: Order, trade_val: float, cost: float, trade_price: float
-    ) -> None:
+    def update_order(self, order: Order, trade_val: float, cost: float, trade_price: float) -> None:
         """
         Parameters
         ----------
@@ -95,9 +93,7 @@ class BasePosition:
         float:
             the value(money) of all the stock
         """
-        raise NotImplementedError(
-            f"Please implement the `calculate_stock_value` method"
-        )
+        raise NotImplementedError(f"Please implement the `calculate_stock_value` method")
 
     def calculate_value(self) -> float:
         raise NotImplementedError(f"Please implement the `calculate_value` method")
@@ -159,9 +155,7 @@ class BasePosition:
         Dict:
             {stock_id : amount of stock}
         """
-        raise NotImplementedError(
-            f"Please implement the `get_stock_amount_dict` method"
-        )
+        raise NotImplementedError(f"Please implement the `get_stock_amount_dict` method")
 
     def get_stock_weight_dict(self, only_stock: bool = False) -> dict:
         """
@@ -180,9 +174,7 @@ class BasePosition:
         Dict:
             {stock_id : value weight of stock in the position}
         """
-        raise NotImplementedError(
-            f"Please implement the `get_stock_weight_dict` method"
-        )
+        raise NotImplementedError(f"Please implement the `get_stock_weight_dict` method")
 
     def add_count_all(self, bar: str) -> None:
         """
@@ -359,13 +351,9 @@ class Position(BasePosition):
         self.position[stock_id] = {}
         self.position[stock_id]["amount"] = amount
         self.position[stock_id]["price"] = price
-        self.position[stock_id][
-            "weight"
-        ] = 0  # update the weight in the end of the trade date
+        self.position[stock_id]["weight"] = 0  # update the weight in the end of the trade date
 
-    def _buy_stock(
-        self, stock_id: str, trade_val: float, cost: float, trade_price: float
-    ) -> None:
+    def _buy_stock(self, stock_id: str, trade_val: float, cost: float, trade_price: float) -> None:
         trade_amount = trade_val / trade_price
         if stock_id not in self.position:
             self._init_stock(stock_id=stock_id, amount=trade_amount, price=trade_price)
@@ -375,9 +363,7 @@ class Position(BasePosition):
 
         self.position["cash"] -= trade_val + cost
 
-    def _sell_stock(
-        self, stock_id: str, trade_val: float, cost: float, trade_price: float
-    ) -> None:
+    def _sell_stock(self, stock_id: str, trade_val: float, cost: float, trade_price: float) -> None:
         trade_amount = trade_val / trade_price
         if stock_id not in self.position:
             raise KeyError("{} not in current position".format(stock_id))
@@ -415,9 +401,7 @@ class Position(BasePosition):
     def check_stock(self, stock_id: str) -> bool:
         return stock_id in self.position
 
-    def update_order(
-        self, order: Order, trade_val: float, cost: float, trade_price: float
-    ) -> None:
+    def update_order(self, order: Order, trade_val: float, cost: float, trade_price: float) -> None:
         # handle order, order is a order class, defined in exchange.py
         if order.direction == Order.BUY:
             # BUY
@@ -426,9 +410,7 @@ class Position(BasePosition):
             # SELL
             self._sell_stock(order.stock_id, trade_val, cost, trade_price)
         else:
-            raise NotImplementedError(
-                "do not support order direction {}".format(order.direction)
-            )
+            raise NotImplementedError("do not support order direction {}".format(order.direction))
 
     def update_stock_price(self, stock_id: str, price: float) -> None:
         self.position[stock_id]["price"] = price
@@ -445,9 +427,7 @@ class Position(BasePosition):
         stock_list = self.get_stock_list()
         value = 0
         for stock_id in stock_list:
-            value += (
-                self.position[stock_id]["amount"] * self.position[stock_id]["price"]
-            )
+            value += self.position[stock_id]["amount"] * self.position[stock_id]["price"]
         return value
 
     def calculate_value(self) -> float:
@@ -456,9 +436,7 @@ class Position(BasePosition):
         return value
 
     def get_stock_list(self) -> List[str]:
-        stock_list = list(
-            set(self.position.keys()) - {"cash", "now_account_value", "cash_delay"}
-        )
+        stock_list = list(set(self.position.keys()) - {"cash", "now_account_value", "cash_delay"})
         return stock_list
 
     def get_stock_price(self, code: str) -> float:
@@ -527,9 +505,7 @@ class Position(BasePosition):
             self.update_stock_weight(stock_code, weight)
 
     def settle_start(self, settle_type: str) -> None:
-        assert (
-            self._settle_type == self.ST_NO
-        ), "Currently, settlement can't be nested!!!!!"
+        assert self._settle_type == self.ST_NO, "Currently, settlement can't be nested!!!!!"
         self._settle_type = settle_type
         if settle_type == self.ST_CASH:
             self.position["cash_delay"] = 0.0
@@ -559,9 +535,7 @@ class InfPosition(BasePosition):
         # InfPosition always have any stocks
         return True
 
-    def update_order(
-        self, order: Order, trade_val: float, cost: float, trade_price: float
-    ) -> None:
+    def update_order(self, order: Order, trade_val: float, cost: float, trade_price: float) -> None:
         pass
 
     def update_stock_price(self, stock_id: str, price: float) -> None:

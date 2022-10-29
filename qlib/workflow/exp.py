@@ -180,9 +180,7 @@ class Experiment:
             )
         else:
             recorder, is_new = (
-                self._get_recorder(
-                    recorder_id=recorder_id, recorder_name=recorder_name
-                ),
+                self._get_recorder(recorder_id=recorder_id, recorder_name=recorder_name),
                 False,
             )
         if is_new and start:
@@ -191,9 +189,7 @@ class Experiment:
             self.active_recorder.start_run()
         return recorder
 
-    def _get_or_create_rec(
-        self, recorder_id=None, recorder_name=None
-    ) -> (object, bool):
+    def _get_or_create_rec(self, recorder_id=None, recorder_name=None) -> (object, bool):
         """
         Method for getting or creating a recorder. It will try to first get a valid recorder, if exception occurs, it will
         automatically create a new recorder based on the given id and name.
@@ -202,9 +198,7 @@ class Experiment:
             if recorder_id is None and recorder_name is None:
                 recorder_name = self._default_rec_name
             return (
-                self._get_recorder(
-                    recorder_id=recorder_id, recorder_name=recorder_name
-                ),
+                self._get_recorder(recorder_id=recorder_id, recorder_name=recorder_name),
                 False,
             )
         except ValueError:
@@ -344,15 +338,9 @@ class MLflowExperiment(Experiment):
             )
 
     def search_records(self, **kwargs):
-        filter_string = (
-            "" if kwargs.get("filter_string") is None else kwargs.get("filter_string")
-        )
-        run_view_type = (
-            1 if kwargs.get("run_view_type") is None else kwargs.get("run_view_type")
-        )
-        max_results = (
-            100000 if kwargs.get("max_results") is None else kwargs.get("max_results")
-        )
+        filter_string = "" if kwargs.get("filter_string") is None else kwargs.get("filter_string")
+        run_view_type = 1 if kwargs.get("run_view_type") is None else kwargs.get("run_view_type")
+        max_results = 100000 if kwargs.get("max_results") is None else kwargs.get("max_results")
         order_by = kwargs.get("order_by")
 
         return self._client.search_runs(

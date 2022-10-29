@@ -62,15 +62,12 @@ def parse_position(position: dict = None) -> pd.DataFrame:
         # Trading day sell
         if not result_df.empty:
             _trading_day_sell_df = result_df.loc[
-                (result_df["date"] == previous_data["date"])
-                & (result_df.index.isin(_cur_day_sell))
+                (result_df["date"] == previous_data["date"]) & (result_df.index.isin(_cur_day_sell))
             ].copy()
             if not _trading_day_sell_df.empty:
                 _trading_day_sell_df["status"] = -1
                 _trading_day_sell_df["date"] = _trading_date
-                _trading_day_df = pd.concat(
-                    [_trading_day_df, _trading_day_sell_df], sort=False
-                )
+                _trading_day_df = pd.concat([_trading_day_df, _trading_day_sell_df], sort=False)
 
         result_df = pd.concat([result_df, _trading_day_df], sort=True)
 
@@ -84,9 +81,7 @@ def parse_position(position: dict = None) -> pd.DataFrame:
     return result_df.set_index(["instrument", "datetime"])
 
 
-def _add_label_to_position(
-    position_df: pd.DataFrame, label_data: pd.DataFrame
-) -> pd.DataFrame:
+def _add_label_to_position(position_df: pd.DataFrame, label_data: pd.DataFrame) -> pd.DataFrame:
     """Concat position with custom label
 
     :param position_df: position DataFrame
@@ -97,9 +92,7 @@ def _add_label_to_position(
     _start_time = position_df.index.get_level_values(level="datetime").min()
     _end_time = position_df.index.get_level_values(level="datetime").max()
     label_data = label_data.loc(axis=0)[:, pd.to_datetime(_start_time) :]
-    _result_df = pd.concat([position_df, label_data], axis=1, sort=True).reindex(
-        label_data.index
-    )
+    _result_df = pd.concat([position_df, label_data], axis=1, sort=True).reindex(label_data.index)
     _result_df = _result_df.loc[_result_df.index.get_level_values(1) <= _end_time]
     return _result_df
 
@@ -134,9 +127,9 @@ def _calculate_label_rank(df: pd.DataFrame) -> pd.DataFrame:
 
         # Sell: -1, Hold: 0, Buy: 1
         for i in [-1, 0, 1]:
-            g_df.loc[g_df["status"] == i, "rank_label_mean"] = g_df[
-                g_df["status"] == i
-            ]["rank_ratio"].mean()
+            g_df.loc[g_df["status"] == i, "rank_label_mean"] = g_df[g_df["status"] == i][
+                "rank_ratio"
+            ].mean()
 
         g_df["excess_return"] = g_df[_label_name] - g_df[_label_name].mean()
         return g_df
@@ -180,7 +173,5 @@ def get_position_data(
     _date_list = _position_df.index.get_level_values(level="datetime")
     start_date = _date_list.min() if start_date is None else start_date
     end_date = _date_list.max() if end_date is None else end_date
-    _position_df = _position_df.loc[
-        (start_date <= _date_list) & (_date_list <= end_date)
-    ]
+    _position_df = _position_df.loc[(start_date <= _date_list) & (_date_list <= end_date)]
     return _position_df

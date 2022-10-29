@@ -79,15 +79,13 @@ def tensorflow_quantile_loss(y, y_pred, quantile):
     # Checks quantile
     if quantile < 0 or quantile > 1:
         raise ValueError(
-            "Illegal quantile value={}! Values should be between 0 and 1.".format(
-                quantile
-            )
+            "Illegal quantile value={}! Values should be between 0 and 1.".format(quantile)
         )
 
     prediction_underflow = y - y_pred
-    q_loss = quantile * tf.maximum(prediction_underflow, 0.0) + (
-        1.0 - quantile
-    ) * tf.maximum(-prediction_underflow, 0.0)
+    q_loss = quantile * tf.maximum(prediction_underflow, 0.0) + (1.0 - quantile) * tf.maximum(
+        -prediction_underflow, 0.0
+    )
 
     return tf.reduce_sum(q_loss, axis=-1)
 
@@ -177,9 +175,7 @@ def save(tf_session, model_folder, cp_name, scope=None):
         var_list = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope=scope)
         saver = tf.train.Saver(var_list=var_list, max_to_keep=100000)
 
-    save_path = saver.save(
-        tf_session, os.path.join(model_folder, "{0}.ckpt".format(cp_name))
-    )
+    save_path = saver.save(tf_session, os.path.join(model_folder, "{0}.ckpt".format(cp_name)))
     print("Model saved to: {0}".format(save_path))
 
 

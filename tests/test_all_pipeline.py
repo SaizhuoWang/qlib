@@ -184,9 +184,7 @@ class TestAllFlow(TestAutoData):
     REPORT_NORMAL = None
     POSITIONS = None
     RID = None
-    URI_PATH = "file:" + str(
-        Path(__file__).parent.joinpath("test_all_flow_mlruns").resolve()
-    )
+    URI_PATH = "file:" + str(Path(__file__).parent.joinpath("test_all_flow_mlruns").resolve())
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -206,13 +204,9 @@ class TestAllFlow(TestAutoData):
 
     @pytest.mark.slow
     def test_2_backtest(self):
-        analyze_df = backtest_analysis(
-            TestAllFlow.PRED_SCORE, TestAllFlow.RID, self.URI_PATH
-        )
+        analyze_df = backtest_analysis(TestAllFlow.PRED_SCORE, TestAllFlow.RID, self.URI_PATH)
         self.assertGreaterEqual(
-            analyze_df.loc(axis=0)[
-                "excess_return_with_cost", "annualized_return"
-            ].values[0],
+            analyze_df.loc(axis=0)["excess_return_with_cost", "annualized_return"].values[0],
             0.10,
             "backtest failed",
         )

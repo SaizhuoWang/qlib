@@ -96,9 +96,9 @@ class WIKIIndex(IndexBase):
         """
         if self.freq != "day":
             inst_df[self.END_DATE_FIELD] = inst_df[self.END_DATE_FIELD].apply(
-                lambda x: (
-                    pd.Timestamp(x) + pd.Timedelta(hours=23, minutes=59)
-                ).strftime("%Y-%m-%d %H:%M:%S")
+                lambda x: (pd.Timestamp(x) + pd.Timedelta(hours=23, minutes=59)).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
             )
         return inst_df
 
@@ -113,9 +113,7 @@ class WIKIIndex(IndexBase):
         _calendar_list = getattr(self, "_calendar_list", None)
         if _calendar_list is None:
             _calendar_list = list(
-                filter(
-                    lambda x: x >= self.bench_start_date, get_calendar_list("US_ALL")
-                )
+                filter(lambda x: x >= self.bench_start_date, get_calendar_list("US_ALL"))
             )
             setattr(self, "_calendar_list", _calendar_list)
         return _calendar_list
@@ -180,9 +178,7 @@ class NASDAQ100Index(WIKIIndex):
                 raise ValueError(f"request error: {url}")
             df = pd.DataFrame(resp.json()["aaData"])
             df[self.DATE_FIELD_NAME] = trade_date
-            df.rename(
-                columns={"Name": "name", "Symbol": self.SYMBOL_FIELD_NAME}, inplace=True
-            )
+            df.rename(columns={"Name": "name", "Symbol": self.SYMBOL_FIELD_NAME}, inplace=True)
             if not df.empty:
                 df.to_pickle(cache_path)
         return df
@@ -244,9 +240,7 @@ class SP500Index(WIKIIndex):
         changes_df = pd.read_html(self.WIKISP500_CHANGES_URL)[-1]
         changes_df = changes_df.iloc[:, [0, 1, 3]]
         changes_df.columns = [self.DATE_FIELD_NAME, self.ADD, self.REMOVE]
-        changes_df[self.DATE_FIELD_NAME] = pd.to_datetime(
-            changes_df[self.DATE_FIELD_NAME]
-        )
+        changes_df[self.DATE_FIELD_NAME] = pd.to_datetime(changes_df[self.DATE_FIELD_NAME])
         _result = []
         for _type in [self.ADD, self.REMOVE]:
             _df = changes_df.copy()

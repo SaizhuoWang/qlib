@@ -35,12 +35,8 @@ class Avg15minHandler(DataHandlerLP):
         inst_processor=None,
         **kwargs,
     ):
-        infer_processors = check_transform_proc(
-            infer_processors, fit_start_time, fit_end_time
-        )
-        learn_processors = check_transform_proc(
-            learn_processors, fit_start_time, fit_end_time
-        )
+        infer_processors = check_transform_proc(infer_processors, fit_start_time, fit_end_time)
+        learn_processors = check_transform_proc(learn_processors, fit_start_time, fit_end_time)
         data_loader = Avg15minLoader(
             config=self.loader_config(),
             filter_pipe=filter_pipe,
@@ -134,10 +130,7 @@ class Avg15minHandler(DataHandlerLP):
         tmp_names = []
         for i, _f in enumerate(fields):
             _fields = [f"Ref(Mean({_f}, 15), {j * 15})" for j in range(1, 240 // 15)]
-            _names = [
-                f"{names[i][:-1]}{int(names[i][-1])+j}"
-                for j in range(240 // 15 - 1, 0, -1)
-            ]
+            _names = [f"{names[i][:-1]}{int(names[i][-1])+j}" for j in range(240 // 15 - 1, 0, -1)]
             _fields.append(f"Mean({_f}, 15)")
             _names.append(f"{names[i][:-1]}{int(names[i][-1])+240 // 15}")
             tmp_fields += _fields

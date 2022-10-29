@@ -144,9 +144,7 @@ class ADARNN(Model):
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         self.fitted = False
         self.model.to(self.device)
@@ -226,9 +224,7 @@ class ADARNN(Model):
             self.train_optimizer.step()
         if epoch >= self.pre_epoch:
             if epoch > self.pre_epoch:
-                weight_mat = self.model.update_weight_Boosting(
-                    weight_mat, dist_old, dist_mat
-                )
+                weight_mat = self.model.update_weight_Boosting(weight_mat, dist_old, dist_mat)
             return weight_mat, dist_mat
         else:
             weight_mat = self.transform_type(out_weight_list)
@@ -279,9 +275,7 @@ class ADARNN(Model):
         days = df_train.index.get_level_values(level=0).unique()
         train_splits = np.array_split(days, self.n_splits)
         train_splits = [df_train[s[0] : s[-1]] for s in train_splits]
-        train_loader_list = [
-            get_stock_loader(df, self.batch_size) for df in train_splits
-        ]
+        train_loader_list = [get_stock_loader(df, self.batch_size) for df in train_splits]
 
         save_path = get_or_create_path(save_path)
         stop_steps = 0
@@ -300,9 +294,7 @@ class ADARNN(Model):
         for step in range(self.n_epochs):
             self.logger.info("Epoch%d:", step)
             self.logger.info("training...")
-            weight_mat, dist_mat = self.train_AdaRNN(
-                train_loader_list, step, dist_mat, weight_mat
-            )
+            weight_mat, dist_mat = self.train_AdaRNN(train_loader_list, step, dist_mat, weight_mat)
             self.logger.info("evaluating...")
             train_metrics = self.test_epoch(df_train)
             valid_metrics = self.test_epoch(df_valid)
@@ -338,9 +330,7 @@ class ADARNN(Model):
     def predict(self, dataset: DatasetH, segment: Union[Text, slice] = "test"):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
-        x_test = dataset.prepare(
-            segment, col_set="feature", data_key=DataHandlerLP.DK_I
-        )
+        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
         return self.infer(x_test)
 
     def infer(self, x_test):
@@ -384,9 +374,7 @@ class data_loader(Dataset):
             self.df_feature.values.reshape(-1, 6, 60).transpose(0, 2, 1),
             dtype=torch.float32,
         )
-        self.df_label_reg = torch.tensor(
-            self.df_label_reg.values.reshape(-1), dtype=torch.float32
-        )
+        self.df_label_reg = torch.tensor(self.df_label_reg.values.reshape(-1), dtype=torch.float32)
 
     def __getitem__(self, index):
         sample, label_reg = self.df_feature[index], self.df_label_reg[index]
@@ -503,9 +491,7 @@ class AdaRNN(nn.Module):
         out_list_s, out_list_t = self.get_features(out_list_all)
         loss_transfer = torch.zeros((1,)).to(self.device)
         for i, n in enumerate(out_list_s):
-            criterion_transder = TransferLoss(
-                loss_type=self.trans_loss, input_dim=n.shape[2]
-            )
+            criterion_transder = TransferLoss(loss_type=self.trans_loss, input_dim=n.shape[2])
             h_start = 0
             for j in range(h_start, self.len_seq, 1):
                 i_start = j - len_win if j - len_win >= 0 else 0
@@ -566,20 +552,16 @@ class AdaRNN(nn.Module):
         out_list_s, out_list_t = self.get_features(out_list_all)
         loss_transfer = torch.zeros((1,)).to(self.device)
         if weight_mat is None:
-            weight = (
-                1.0 / self.len_seq * torch.ones(self.num_layers, self.len_seq)
-            ).to(self.device)
+            weight = (1.0 / self.len_seq * torch.ones(self.num_layers, self.len_seq)).to(
+                self.device
+            )
         else:
             weight = weight_mat
         dist_mat = torch.zeros(self.num_layers, self.len_seq).to(self.device)
         for i, n in enumerate(out_list_s):
-            criterion_transder = TransferLoss(
-                loss_type=self.trans_loss, input_dim=n.shape[2]
-            )
+            criterion_transder = TransferLoss(loss_type=self.trans_loss, input_dim=n.shape[2])
             for j in range(self.len_seq):
-                loss_trans = criterion_transder.compute(
-                    n[:, j, :], out_list_t[i][:, j, :]
-                )
+                loss_trans = criterion_transder.compute(n[:, j, :], out_list_t[i][:, j, :])
                 loss_transfer = loss_transfer + weight[i, j] * loss_trans
                 dist_mat[i, j] = loss_trans
         return fc_out, loss_transfer, dist_mat, weight
@@ -590,9 +572,7 @@ class AdaRNN(nn.Module):
         dist_old = dist_old.detach()
         dist_new = dist_new.detach()
         ind = dist_new > dist_old + epsilon
-        weight_mat[ind] = weight_mat[ind] * (
-            1 + torch.sigmoid(dist_new[ind] - dist_old[ind])
-        )
+        weight_mat[ind] = weight_mat[ind] * (1 + torch.sigmoid(dist_new[ind] - dist_old[ind]))
         weight_norm = torch.norm(weight_mat, dim=1, p=1)
         weight_mat = weight_mat / weight_norm.t().unsqueeze(1).repeat(1, self.len_seq)
         return weight_mat
@@ -641,9 +621,7 @@ class TransferLoss:
         elif self.loss_type == "js":
             loss = js(X, Y)
         elif self.loss_type == "mine":
-            mine_model = Mine_estimator(input_dim=self.input_dim, hidden_dim=60).to(
-                self.device
-            )
+            mine_model = Mine_estimator(input_dim=self.input_dim, hidden_dim=60).to(self.device)
             loss = mine_model(X, Y)
         elif self.loss_type == "adv":
             loss = adv(X, Y, self.device, input_dim=self.input_dim, hidden_dim=32)
@@ -704,9 +682,7 @@ def adv(source, target, device, input_dim=256, hidden_dim=512):
     reverse_tar = ReverseLayerF.apply(target, 1)
     pred_src = adv_net(reverse_src)
     pred_tar = adv_net(reverse_tar)
-    loss_s, loss_t = domain_loss(pred_src, domain_src), domain_loss(
-        pred_tar, domain_tar
-    )
+    loss_s, loss_t = domain_loss(pred_src, domain_src), domain_loss(pred_tar, domain_tar)
     loss = loss_s + loss_t
     return loss
 
@@ -738,9 +714,7 @@ class MMD_loss(nn.Module):
         self.fix_sigma = None
         self.kernel_type = kernel_type
 
-    def guassian_kernel(
-        self, source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None
-    ):
+    def guassian_kernel(self, source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None):
         n_samples = int(source.size()[0]) + int(target.size()[0])
         total = torch.cat([source, target], dim=0)
         total0 = total.unsqueeze(0).expand(
@@ -756,10 +730,7 @@ class MMD_loss(nn.Module):
             bandwidth = torch.sum(L2_distance.data) / (n_samples**2 - n_samples)
         bandwidth /= kernel_mul ** (kernel_num // 2)
         bandwidth_list = [bandwidth * (kernel_mul**i) for i in range(kernel_num)]
-        kernel_val = [
-            torch.exp(-L2_distance / bandwidth_temp)
-            for bandwidth_temp in bandwidth_list
-        ]
+        kernel_val = [torch.exp(-L2_distance / bandwidth_temp) for bandwidth_temp in bandwidth_list]
         return sum(kernel_val)
 
     def linear_mmd(self, X, Y):

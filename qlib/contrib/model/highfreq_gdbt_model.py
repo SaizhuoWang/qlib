@@ -32,9 +32,7 @@ class HFLGBModel(ModelFT, LightGBMFInt):
         for date in y_test.index.get_level_values(0).unique():
             df_res = y_test.loc[date].sort_values("pred")
             if int(l_cut * len(df_res)) < 10:
-                warnings.warn(
-                    "Warning: threhold is too low or instruments number is not enough"
-                )
+                warnings.warn("Warning: threhold is too low or instruments number is not enough")
                 continue
             top = df_res.iloc[: int(l_cut * len(df_res))]
             bottom = df_res.iloc[int(r_cut * len(df_res)) :]
@@ -63,33 +61,25 @@ class HFLGBModel(ModelFT, LightGBMFInt):
         """
         if self.model is None:
             raise ValueError("Model hasn't been trained yet")
-        df_test = dataset.prepare(
-            "test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I
-        )
+        df_test = dataset.prepare("test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I)
         df_test.dropna(inplace=True)
         x_test, y_test = df_test["feature"], df_test["label"]
         # Convert label into alpha
-        y_test[y_test.columns[0]] = y_test[y_test.columns[0]] - y_test[
-            y_test.columns[0]
-        ].mean(level=0)
+        y_test[y_test.columns[0]] = y_test[y_test.columns[0]] - y_test[y_test.columns[0]].mean(
+            level=0
+        )
 
         res = pd.Series(self.model.predict(x_test.values), index=x_test.index)
         y_test["pred"] = res
 
-        up_p, down_p, up_a, down_a = self._cal_signal_metrics(
-            y_test, threhold, 1 - threhold
-        )
+        up_p, down_p, up_a, down_a = self._cal_signal_metrics(y_test, threhold, 1 - threhold)
         print("===============================")
         print("High frequency signal test")
         print("===============================")
         print("Test set precision: ")
         print("Positive precision: {}, Negative precision: {}".format(up_p, down_p))
         print("Test Alpha Average in test set: ")
-        print(
-            "Positive average alpha: {}, Negative average alpha: {}".format(
-                up_a, down_a
-            )
-        )
+        print("Positive average alpha: {}, Negative average alpha: {}".format(up_a, down_a))
 
     def _prepare_data(self, dataset: DatasetH):
         df_train, df_valid = dataset.prepare(
@@ -98,21 +88,19 @@ class HFLGBModel(ModelFT, LightGBMFInt):
             data_key=DataHandlerLP.DK_L,
         )
         if df_train.empty or df_valid.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
 
         x_train, y_train = df_train["feature"], df_train["label"]
         x_valid, y_valid = df_valid["feature"], df_valid["label"]
         if y_train.values.ndim == 2 and y_train.values.shape[1] == 1:
             l_name = df_train["label"].columns[0]
             # Convert label into alpha
-            df_train["label"][l_name] = df_train["label"][l_name] - df_train["label"][
-                l_name
-            ].mean(level=0)
-            df_valid["label"][l_name] = df_valid["label"][l_name] - df_valid["label"][
-                l_name
-            ].mean(level=0)
+            df_train["label"][l_name] = df_train["label"][l_name] - df_train["label"][l_name].mean(
+                level=0
+            )
+            df_valid["label"][l_name] = df_valid["label"][l_name] - df_valid["label"][l_name].mean(
+                level=0
+            )
 
             def mapping_fn(x):
                 return 0 if x < 0 else 1

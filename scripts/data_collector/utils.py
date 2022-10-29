@@ -79,20 +79,9 @@ def get_calendar_list(bench_code="CSI300") -> List[pd.Timestamp]:
             or bench_code.startswith("BR_")
         ):
             print(Ticker(CALENDAR_BENCH_URL_MAP[bench_code]))
-            print(
-                Ticker(CALENDAR_BENCH_URL_MAP[bench_code]).history(
-                    interval="1d", period="max"
-                )
-            )
-            df = Ticker(CALENDAR_BENCH_URL_MAP[bench_code]).history(
-                interval="1d", period="max"
-            )
-            calendar = (
-                df.index.get_level_values(level="date")
-                .map(pd.Timestamp)
-                .unique()
-                .tolist()
-            )
+            print(Ticker(CALENDAR_BENCH_URL_MAP[bench_code]).history(interval="1d", period="max"))
+            df = Ticker(CALENDAR_BENCH_URL_MAP[bench_code]).history(interval="1d", period="max")
+            calendar = df.index.get_level_values(level="date").map(pd.Timestamp).unique().tolist()
         else:
             if bench_code.upper() == "ALL":
 
@@ -219,9 +208,7 @@ def get_hs_stock_symbols() -> list:
             _res |= set(
                 map(
                     lambda x: "{}.{}".format(re.findall(r"\d+", x)[0], _v),
-                    etree.HTML(resp.text).xpath(
-                        "//div[@class='result']/ul//li/a/text()"
-                    ),
+                    etree.HTML(resp.text).xpath("//div[@class='result']/ul//li/a/text()"),
                 )
             )
             time.sleep(3)
@@ -266,10 +253,7 @@ def get_us_stock_symbols(qlib_data_path: [str, Path] = None) -> list:
             raise ValueError("request error")
 
         try:
-            _symbols = [
-                _v["f12"].replace("_", "-P")
-                for _v in resp.json()["data"]["diff"].values()
-            ]
+            _symbols = [_v["f12"].replace("_", "-P") for _v in resp.json()["data"]["diff"].values()]
         except Exception as e:
             logger.warning(f"request error: {e}")
             raise
@@ -539,9 +523,7 @@ def deco_retry(retry: int = 5, retry_sleep: int = 3):
     return deco_func(retry) if callable(retry) else deco_func
 
 
-def get_trading_date_by_shift(
-    trading_list: list, trading_date: pd.Timestamp, shift: int = 1
-):
+def get_trading_date_by_shift(trading_list: list, trading_date: pd.Timestamp, shift: int = 1):
     """get trading date by shift
 
     Parameters
@@ -639,9 +621,7 @@ def get_instruments(
         $ python collector.py --index_name CSI300 --qlib_dir ~/.qlib/qlib_data/cn_data --method save_new_companies
 
     """
-    _cur_module = importlib.import_module(
-        "data_collector.{}.collector".format(market_index)
-    )
+    _cur_module = importlib.import_module("data_collector.{}.collector".format(market_index))
     obj = getattr(_cur_module, f"{index_name.upper()}Index")(
         qlib_dir=qlib_dir,
         index_name=index_name,

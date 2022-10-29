@@ -29,9 +29,7 @@ class Client:
         # bind connect/disconnect callbacks
         self.sio.on(
             "connect",
-            lambda: self.logger.debug(
-                "Connect to server {}".format(self.sio.connection_url)
-            ),
+            lambda: self.logger.debug("Connect to server {}".format(self.sio.connection_url)),
         )
         self.sio.on("disconnect", lambda: self.logger.debug("Disconnect from server!"))
 
@@ -40,9 +38,7 @@ class Client:
         try:
             self.sio.connect("ws://" + self.server_host + ":" + str(self.server_port))
         except socketio.exceptions.ConnectionError:
-            self.logger.error(
-                "Cannot connect to server - check your network or server status"
-            )
+            self.logger.error("Cannot connect to server - check your network or server status")
 
     def disconnect(self):
         """Disconnect from server."""
@@ -51,9 +47,7 @@ class Client:
         except Exception as e:
             self.logger.error("Cannot disconnect from server : %s" % e)
 
-    def send_request(
-        self, request_type, request_content, msg_queue, msg_proc_func=None
-    ):
+    def send_request(self, request_type, request_content, msg_queue, msg_proc_func=None):
         """Send a certain request to server.
 
         Parameters

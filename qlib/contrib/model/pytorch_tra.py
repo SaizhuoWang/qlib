@@ -130,9 +130,7 @@ class TRAModel(Model):
         self.freeze_predictors = freeze_predictors
         self.transport_method = transport_method
         self.use_daily_transport = memory_mode == "daily"
-        self.transport_fn = (
-            transport_daily if self.use_daily_transport else transport_sample
-        )
+        self.transport_fn = transport_daily if self.use_daily_transport else transport_sample
 
         self._writer = None
         if self.logdir is not None:
@@ -181,8 +179,7 @@ class TRAModel(Model):
             % sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         )
         self.logger.info(
-            "# tra params: %d"
-            % sum(p.numel() for p in self.tra.parameters() if p.requires_grad)
+            "# tra params: %d" % sum(p.numel() for p in self.tra.parameters() if p.requires_grad)
         )
 
         self.optimizer = optim.Adam(
@@ -250,24 +247,14 @@ class TRAModel(Model):
                 data_set.assign_data(index, L)  # save loss to memory
                 if self.use_daily_transport:  # only save for daily transport
                     P_all.append(pd.DataFrame(P.detach().cpu().numpy(), index=index))
-                    prob_all.append(
-                        pd.DataFrame(prob.detach().cpu().numpy(), index=index)
-                    )
-                    choice_all.append(
-                        pd.DataFrame(choice.detach().cpu().numpy(), index=index)
-                    )
+                    prob_all.append(pd.DataFrame(prob.detach().cpu().numpy(), index=index))
+                    choice_all.append(pd.DataFrame(choice.detach().cpu().numpy(), index=index))
                 decay = self.rho ** (self.global_step // 100)  # decay every 100 steps
                 lamb = 0 if is_pretrain else self.lamb * decay
-                reg = (
-                    prob.log().mul(P).sum(dim=1).mean()
-                )  # train router to predict TO assignment
+                reg = prob.log().mul(P).sum(dim=1).mean()  # train router to predict TO assignment
                 if self._writer is not None and not is_pretrain:
-                    self._writer.add_scalar(
-                        "training/router_loss", -reg.item(), self.global_step
-                    )
-                    self._writer.add_scalar(
-                        "training/reg_loss", loss.item(), self.global_step
-                    )
+                    self._writer.add_scalar("training/router_loss", -reg.item(), self.global_step)
+                    self._writer.add_scalar("training/reg_loss", loss.item(), self.global_step)
                     self._writer.add_scalar("training/lamb", lamb, self.global_step)
                     if not self.use_daily_transport:
                         P_mean = P.mean(axis=0).detach()
@@ -285,9 +272,7 @@ class TRAModel(Model):
                 self.optimizer.zero_grad()
 
             if self._writer is not None and not is_pretrain:
-                self._writer.add_scalar(
-                    "training/total_loss", loss.item(), self.global_step
-                )
+                self._writer.add_scalar("training/total_loss", loss.item(), self.global_step)
 
             total_loss += loss.item()
             total_count += 1
@@ -302,9 +287,7 @@ class TRAModel(Model):
             if not is_pretrain:
                 self._writer.add_image("P", plot(P_all), epoch, dataformats="HWC")
                 self._writer.add_image("prob", plot(prob_all), epoch, dataformats="HWC")
-                self._writer.add_image(
-                    "choice", plot(choice_all), epoch, dataformats="HWC"
-                )
+                self._writer.add_image("choice", plot(choice_all), epoch, dataformats="HWC")
 
         total_loss /= total_count
 
@@ -313,9 +296,7 @@ class TRAModel(Model):
 
         return total_loss
 
-    def test_epoch(
-        self, epoch, data_set, return_pred=False, prefix="test", is_pretrain=False
-    ):
+    def test_epoch(self, epoch, data_set, return_pred=False, prefix="test", is_pretrain=False):
 
         self.model.eval()
         self.tra.eval()
@@ -357,9 +338,7 @@ class TRAModel(Model):
                 pred = all_preds.mean(dim=1)
 
             X = np.c_[pred.cpu().numpy(), label.cpu().numpy(), all_preds.cpu().numpy()]
-            columns = ["score", "label"] + [
-                "score_%d" % d for d in range(all_preds.shape[1])
-            ]
+            columns = ["score", "label"] + ["score_%d" % d for d in range(all_preds.shape[1])]
             pred = pd.DataFrame(X, index=batch["index"], columns=columns)
 
             metrics.append(evaluate(pred))
@@ -368,9 +347,7 @@ class TRAModel(Model):
                 preds.append(pred)
                 if prob is not None:
                     columns = ["prob_%d" % d for d in range(all_preds.shape[1])]
-                    probs.append(
-                        pd.DataFrame(prob.cpu().numpy(), index=index, columns=columns)
-                    )
+                    probs.append(pd.DataFrame(prob.cpu().numpy(), index=index, columns=columns))
 
         metrics = pd.DataFrame(metrics)
         metrics = {
@@ -432,9 +409,7 @@ class TRAModel(Model):
 
             self.logger.info("evaluating...")
             # NOTE: during evaluating, the whole memory will be refreshed
-            if not is_pretrain and (
-                self.transport_method == "router" or self.eval_train
-            ):
+            if not is_pretrain and (self.transport_method == "router" or self.eval_train):
                 train_set.clear_memory()  # NOTE: clear the shared memory
                 train_metrics = self.test_epoch(
                     epoch, train_set, is_pretrain=is_pretrain, prefix="train"
@@ -506,9 +481,7 @@ class TRAModel(Model):
             )
 
         self.logger.info("training...")
-        best_score = self._fit(
-            train_set, valid_set, test_set, evals_result, is_pretrain=False
-        )
+        best_score = self._fit(train_set, valid_set, test_set, evals_result, is_pretrain=False)
 
         self.logger.info("inference")
         train_metrics, train_preds, train_probs, train_P = self.test_epoch(
@@ -679,9 +652,7 @@ class PositionalEncoding(nn.Module):
 
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(
-            torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
-        )
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe.unsqueeze(0).transpose(0, 1)

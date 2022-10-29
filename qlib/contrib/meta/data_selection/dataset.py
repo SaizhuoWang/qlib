@@ -55,17 +55,13 @@ class InternalData:
             self.task_tpl
         )  # this task is supposed to contains no complicated objects
 
-        trainer = auto_filter_kwargs(trainer)(
-            experiment_name=self.exp_name, **trainer_kwargs
-        )
+        trainer = auto_filter_kwargs(trainer)(experiment_name=self.exp_name, **trainer_kwargs)
         # NOTE:
         # The handler is initialized for only once.
         if not trainer.has_worker():
             self.dh = init_task_handler(perf_task_tpl)
         else:
-            self.dh = init_instance_by_config(
-                perf_task_tpl["dataset"]["kwargs"]["handler"]
-            )
+            self.dh = init_instance_by_config(perf_task_tpl["dataset"]["kwargs"]["handler"])
 
         seg = perf_task_tpl["dataset"]["kwargs"]["segments"]
 
@@ -91,9 +87,7 @@ class InternalData:
             get_module_logger("Internal Data").info("the data has been initialized")
         else:
             # train new models
-            assert 0 == len(
-                recorders
-            ), "An empty experiment is required for setup `InternalData``"
+            assert 0 == len(recorders), "An empty experiment is required for setup `InternalData``"
             trainer.train(gen_task)
 
         # 2) extract the similarity matrix
@@ -166,16 +160,12 @@ class MetaTaskDS(MetaTask):
             ds = self.get_dataset()
 
             # these three lines occupied 70% of the time of initializing MetaTaskDS
-            d_train, d_test = ds.prepare(
-                ["train", "test"], col_set=["feature", "label"]
-            )
+            d_train, d_test = ds.prepare(["train", "test"], col_set=["feature", "label"])
             prev_size = d_test.shape[0]
             d_train = d_train.dropna(axis=0)
             d_test = d_test.dropna(axis=0)
             if prev_size == 0 or d_test.shape[0] / prev_size <= 0.1:
-                raise ValueError(
-                    f"Most of samples are dropped. Please check this task: {task}"
-                )
+                raise ValueError(f"Most of samples are dropped. Please check this task: {task}")
 
             assert (
                 d_test.groupby("datetime").size().shape[0] >= 5
@@ -206,9 +196,7 @@ class MetaTaskDS(MetaTask):
         self.processed_meta_input = data_to_tensor(self.processed_meta_input)
 
     def _get_processed_meta_info(self):
-        meta_info_norm = self.meta_info.sub(
-            self.meta_info.mean(axis=1), axis=0
-        )  # .fillna(0.)
+        meta_info_norm = self.meta_info.sub(self.meta_info.mean(axis=1), axis=0)  # .fillna(0.)
         if self.fill_method == "max":
             meta_info_norm = meta_info_norm.T.fillna(
                 meta_info_norm.max(axis=1)
@@ -321,9 +309,7 @@ class MetaDatasetDS(MetaTaskDataset):
                 self.task_list.append(t)
             except ValueError as e:
                 logger.warning(f"ValueError: {e}")
-        assert (
-            len(self.meta_task_l) > 0
-        ), "No meta tasks found. Please check the data and setting"
+        assert len(self.meta_task_l) > 0, "No meta tasks found. Please check the data and setting"
 
     def _prepare_meta_ipt(self, task):
         ic_df = self.internal_data.data_ic_df
@@ -338,9 +324,7 @@ class MetaDatasetDS(MetaTaskDataset):
             """mask future information"""
             # from qlib.utils import get_date_by_shift
             start, end = s.name
-            end = get_date_by_shift(
-                trading_date=end, shift=self.trunc_days - 1, future=True
-            )
+            end = get_date_by_shift(trading_date=end, shift=self.trunc_days - 1, future=True)
             return s.mask((s.index >= start) & (s.index <= end))
 
         ic_df_avail = ic_df_avail.apply(mask_future)  # apply to each col

@@ -64,9 +64,7 @@ class BaseSignalStrategy(BaseStrategy):
 
         # This is trying to be compatible with previous version of qlib task config
         if model is not None and dataset is not None:
-            warnings.warn(
-                "`model` `dataset` is deprecated; use `signal`.", DeprecationWarning
-            )
+            warnings.warn("`model` `dataset` is deprecated; use `signal`.", DeprecationWarning)
             signal = model, dataset
 
         self.signal: Signal = create_signal_from(signal)
@@ -129,12 +127,8 @@ class TopkDropoutStrategy(BaseSignalStrategy):
         # get the number of trading step finished, trade_step can be [0, 1, 2, ..., trade_len - 1]
         trade_step = self.trade_calendar.get_trade_step()
         trade_start_time, trade_end_time = self.trade_calendar.get_step_time(trade_step)
-        pred_start_time, pred_end_time = self.trade_calendar.get_step_time(
-            trade_step, shift=1
-        )
-        pred_score = self.signal.get_signal(
-            start_time=pred_start_time, end_time=pred_end_time
-        )
+        pred_start_time, pred_end_time = self.trade_calendar.get_step_time(trade_step, shift=1)
+        pred_score = self.signal.get_signal(start_time=pred_start_time, end_time=pred_end_time)
         # NOTE: the current version of topk dropout strategy can't handle pd.DataFrame(multiple signal)
         # So it only leverage the first col of signal
         if isinstance(pred_score, pd.DataFrame):
@@ -196,15 +190,11 @@ class TopkDropoutStrategy(BaseSignalStrategy):
         # The new stocks today want to buy **at most**
         if self.method_buy == "top":
             today = get_first_n(
-                pred_score[~pred_score.index.isin(last)]
-                .sort_values(ascending=False)
-                .index,
+                pred_score[~pred_score.index.isin(last)].sort_values(ascending=False).index,
                 self.n_drop + self.topk - len(last),
             )
         elif self.method_buy == "random":
-            topk_candi = get_first_n(
-                pred_score.sort_values(ascending=False).index, self.topk
-            )
+            topk_candi = get_first_n(pred_score.sort_values(ascending=False).index, self.topk)
             candi = list(filter(lambda x: x not in last, topk_candi))
             n = self.n_drop + self.topk - len(last)
             try:
@@ -215,11 +205,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
             raise NotImplementedError(f"This type of input is not supported")
         # combine(new stocks + last stocks),  we will drop stocks from this list
         # In case of dropping higher score stock and buying lower score stock.
-        comb = (
-            pred_score.reindex(last.union(pd.Index(today)))
-            .sort_values(ascending=False)
-            .index
-        )
+        comb = pred_score.reindex(last.union(pd.Index(today))).sort_values(ascending=False).index
 
         # Get the stock list we really want to sell (After filtering the case that we sell high and buy low)
         if self.method_sell == "bottom":
@@ -228,9 +214,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
             candi = filter_stock(last)
             try:
                 sell = pd.Index(
-                    np.random.choice(candi, self.n_drop, replace=False)
-                    if len(last)
-                    else []
+                    np.random.choice(candi, self.n_drop, replace=False) if len(last) else []
                 )
             except ValueError:  # No enough candidates
                 sell = candi
@@ -247,10 +231,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
             if code in sell:
                 # check hold limit
                 time_per_step = self.trade_calendar.get_freq()
-                if (
-                    current_temp.get_stock_count(code, bar=time_per_step)
-                    < self.hold_thresh
-                ):
+                if current_temp.get_stock_count(code, bar=time_per_step) < self.hold_thresh:
                     continue
                 # sell order
                 sell_amount = current_temp.get_stock_amount(code=code)
@@ -298,9 +279,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
             factor = self.trade_exchange.get_factor(
                 stock_id=code, start_time=trade_start_time, end_time=trade_end_time
             )
-            buy_amount = self.trade_exchange.round_amount_by_trade_unit(
-                buy_amount, factor
-            )
+            buy_amount = self.trade_exchange.round_amount_by_trade_unit(buy_amount, factor)
             buy_order = Order(
                 stock_id=code,
                 amount=buy_amount,
@@ -342,9 +321,7 @@ class WeightStrategyBase(BaseSignalStrategy):
         else:
             self.order_generator = order_generator_cls_or_obj
 
-    def generate_target_weight_position(
-        self, score, current, trade_start_time, trade_end_time
-    ):
+    def generate_target_weight_position(self, score, current, trade_start_time, trade_end_time):
         """
         Generate target position from score for this date and the current position.The cash is not considered in the position
         Parameters
@@ -366,12 +343,8 @@ class WeightStrategyBase(BaseSignalStrategy):
         # get the number of trading step finished, trade_step can be [0, 1, 2, ..., trade_len - 1]
         trade_step = self.trade_calendar.get_trade_step()
         trade_start_time, trade_end_time = self.trade_calendar.get_step_time(trade_step)
-        pred_start_time, pred_end_time = self.trade_calendar.get_step_time(
-            trade_step, shift=1
-        )
-        pred_score = self.signal.get_signal(
-            start_time=pred_start_time, end_time=pred_end_time
-        )
+        pred_start_time, pred_end_time = self.trade_calendar.get_step_time(trade_step, shift=1)
+        pred_score = self.signal.get_signal(start_time=pred_start_time, end_time=pred_end_time)
         if pred_score is None:
             return TradeDecisionWO([], self)
         current_temp = copy.deepcopy(self.trade_position)
@@ -383,17 +356,15 @@ class WeightStrategyBase(BaseSignalStrategy):
             trade_start_time=trade_start_time,
             trade_end_time=trade_end_time,
         )
-        order_list = (
-            self.order_generator.generate_order_list_from_target_weight_position(
-                current=current_temp,
-                trade_exchange=self.trade_exchange,
-                risk_degree=self.get_risk_degree(trade_step),
-                target_weight_position=target_weight_position,
-                pred_start_time=pred_start_time,
-                pred_end_time=pred_end_time,
-                trade_start_time=trade_start_time,
-                trade_end_time=trade_end_time,
-            )
+        order_list = self.order_generator.generate_order_list_from_target_weight_position(
+            current=current_temp,
+            trade_exchange=self.trade_exchange,
+            risk_degree=self.get_risk_degree(trade_step),
+            target_weight_position=target_weight_position,
+            pred_start_time=pred_start_time,
+            pred_end_time=pred_end_time,
+            trade_start_time=trade_start_time,
+            trade_end_time=trade_end_time,
         )
         return TradeDecisionWO(order_list, self)
 
@@ -449,9 +420,7 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
 
         self.factor_exp_path = name_mapping.get("factor_exp", self.FACTOR_EXP_NAME)
         self.factor_cov_path = name_mapping.get("factor_cov", self.FACTOR_COV_NAME)
-        self.specific_risk_path = name_mapping.get(
-            "specific_risk", self.SPECIFIC_RISK_NAME
-        )
+        self.specific_risk_path = name_mapping.get("specific_risk", self.SPECIFIC_RISK_NAME)
         self.blacklist_path = name_mapping.get("blacklist", self.BLACKLIST_NAME)
 
         self.optimizer = EnhancedIndexingOptimizer(**optimizer_kwargs)
@@ -471,15 +440,11 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
 
         factor_exp = load_dataset(root + "/" + self.factor_exp_path, index_col=[0])
         factor_cov = load_dataset(root + "/" + self.factor_cov_path, index_col=[0])
-        specific_risk = load_dataset(
-            root + "/" + self.specific_risk_path, index_col=[0]
-        )
+        specific_risk = load_dataset(root + "/" + self.specific_risk_path, index_col=[0])
 
         if not factor_exp.index.equals(specific_risk.index):
             # NOTE: for stocks missing specific_risk, we always assume it have the highest volatility
-            specific_risk = specific_risk.reindex(
-                factor_exp.index, fill_value=specific_risk.max()
-            )
+            specific_risk = specific_risk.reindex(factor_exp.index, fill_value=specific_risk.max())
 
         universe = factor_exp.index.tolist()
 
@@ -497,9 +462,7 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
 
         return self._riskdata_cache[date]
 
-    def generate_target_weight_position(
-        self, score, current, trade_start_time, trade_end_time
-    ):
+    def generate_target_weight_position(self, score, current, trade_start_time, trade_end_time):
 
         trade_date = trade_start_time
         pre_date = get_pre_trading_date(trade_date, future=True)  # previous trade date
@@ -507,9 +470,7 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
         # load risk data
         outs = self.get_risk_data(pre_date)
         if outs is None:
-            self.logger.warning(
-                f"no risk data for {pre_date:%Y-%m-%d}, skip optimization"
-            )
+            self.logger.warning(f"no risk data for {pre_date:%Y-%m-%d}, skip optimization")
             return None
         factor_exp, factor_cov, specific_risk, universe, blacklist = outs
 
@@ -550,9 +511,7 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
         mask_force_hold = ~tradable
 
         # mask force sell
-        mask_force_sell = np.array(
-            [stock in blacklist for stock in universe], dtype=bool
-        )
+        mask_force_sell = np.array([stock in blacklist for stock in universe], dtype=bool)
 
         # optimize
         weight = self.optimizer(
@@ -572,9 +531,7 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
 
         if self.verbose:
             self.logger.info("trade date: {:%Y-%m-%d}".format(trade_date))
-            self.logger.info(
-                "number of holding stocks: {}".format(len(target_weight_position))
-            )
+            self.logger.info("number of holding stocks: {}".format(len(target_weight_position)))
             self.logger.info("total holding weight: {:.6f}".format(weight.sum()))
 
         return target_weight_position

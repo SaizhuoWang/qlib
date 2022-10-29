@@ -62,14 +62,10 @@ class ValueCNT(FeaAnalyser):
         self._val_cnt = {}
         for col, item in self._dataset.items():
             if not super().skip(col):
-                self._val_cnt[col] = item.groupby(DT_COL_NAME).apply(
-                    lambda s: len(s.unique())
-                )
+                self._val_cnt[col] = item.groupby(DT_COL_NAME).apply(lambda s: len(s.unique()))
         self._val_cnt = pd.DataFrame(self._val_cnt)
         if self.ratio:
-            self._val_cnt = self._val_cnt.div(
-                self._dataset.groupby(DT_COL_NAME).size(), axis=0
-            )
+            self._val_cnt = self._val_cnt.div(self._dataset.groupby(DT_COL_NAME).size(), axis=0)
 
         # TODO: transfer this feature to other analysers
         ymin, ymax = self._val_cnt.min().min(), self._val_cnt.max().max()
@@ -92,9 +88,7 @@ class FeaInfAna(NumFeaAnalyser):
         self._inf_cnt = {}
         for col, item in self._dataset.items():
             if not super().skip(col):
-                self._inf_cnt[col] = (
-                    item.apply(np.isinf).astype(np.int).groupby(DT_COL_NAME).sum()
-                )
+                self._inf_cnt[col] = item.apply(np.isinf).astype(np.int).groupby(DT_COL_NAME).sum()
         self._inf_cnt = pd.DataFrame(self._inf_cnt)
 
     def skip(self, col):
@@ -147,9 +141,7 @@ class FeaACAna(FeaAnalyser):
 class FeaSkewTurt(NumFeaAnalyser):
     def calc_stat_values(self):
         self._skew = datetime_groupby_apply(self._dataset, "skew", skip_group=True)
-        self._kurt = datetime_groupby_apply(
-            self._dataset, pd.DataFrame.kurt, skip_group=True
-        )
+        self._kurt = datetime_groupby_apply(self._dataset, pd.DataFrame.kurt, skip_group=True)
 
     def plot_single(self, col, ax):
         self._skew[col].plot(ax=ax, label="skew")

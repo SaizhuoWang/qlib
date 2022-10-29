@@ -119,9 +119,7 @@ def test_simulator_first_step():
     assert (state.history_exec["deal_amount"] == AMOUNT / 30).all()
     assert is_close(state.history_exec["trade_price"].iloc[0], 149.566483)
     assert is_close(state.history_exec["trade_value"].iloc[0], 1495.664825)
-    assert is_close(
-        state.history_exec["position"].iloc[0], TOTAL_POSITION - AMOUNT / 30
-    )
+    assert is_close(state.history_exec["position"].iloc[0], TOTAL_POSITION - AMOUNT / 30)
     # assert state.history_exec["ffr"].iloc[0] == 1 / 60  # FIXME
 
     assert is_close(state.history_steps["market_volume"].iloc[0], 1254848.5756835938)
@@ -129,8 +127,7 @@ def test_simulator_first_step():
     assert state.history_steps["deal_amount"].iloc[0] == AMOUNT
     assert state.history_steps["ffr"].iloc[0] == 1.0
     assert is_close(
-        state.history_steps["pa"].iloc[0]
-        * (1.0 if order.direction == OrderDir.SELL else -1.0),
+        state.history_steps["pa"].iloc[0] * (1.0 if order.direction == OrderDir.SELL else -1.0),
         (state.history_steps["trade_price"].iloc[0] / simulator.twap_price - 1) * 10000,
     )
 
@@ -147,9 +144,7 @@ def test_simulator_stop_twap() -> None:
     state = simulator.get_state()
     assert len(state.history_exec) == HISTORY_STEP_LENGTH
 
-    assert (
-        state.history_exec["deal_amount"] == TOTAL_POSITION / HISTORY_STEP_LENGTH
-    ).all()
+    assert (state.history_exec["deal_amount"] == TOTAL_POSITION / HISTORY_STEP_LENGTH).all()
     assert is_close(
         state.history_steps["position"].iloc[0],
         TOTAL_POSITION * (NUM_STEPS - 1) / NUM_STEPS,
@@ -158,12 +153,8 @@ def test_simulator_stop_twap() -> None:
     assert is_close(state.position, 0.0)
     assert is_close(state.metrics["ffr"], 1.0)
 
-    assert is_close(
-        state.metrics["market_price"], state.backtest_data.get_deal_price().mean()
-    )
-    assert is_close(
-        state.metrics["market_volume"], state.backtest_data.get_volume().sum()
-    )
+    assert is_close(state.metrics["market_price"], state.backtest_data.get_deal_price().mean())
+    assert is_close(state.metrics["market_volume"], state.backtest_data.get_volume().sum())
     assert is_close(state.metrics["trade_price"], state.metrics["market_price"])
     assert is_close(state.metrics["pa"], 0.0)
 

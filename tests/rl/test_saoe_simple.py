@@ -83,8 +83,7 @@ def test_simulator_first_step():
     assert state.history_steps["ffr"].iloc[0] == 0.5
     assert (
         state.history_steps["pa"].iloc[0]
-        == (state.history_steps["trade_price"].iloc[0] / simulator.twap_price - 1)
-        * 10000
+        == (state.history_steps["trade_price"].iloc[0] / simulator.twap_price - 1) * 10000
     )
 
     assert state.position == 15.0
@@ -113,13 +112,8 @@ def test_simulator_stop_twap():
     )
 
     assert (state.metrics["ffr"] - 1) < 1e-3
-    assert (
-        abs(state.metrics["market_price"] - state.backtest_data.get_deal_price().mean())
-        < 1e-4
-    )
-    assert np.isclose(
-        state.metrics["market_volume"], state.backtest_data.get_volume().sum()
-    )
+    assert abs(state.metrics["market_price"] - state.backtest_data.get_deal_price().mean()) < 1e-4
+    assert np.isclose(state.metrics["market_volume"], state.backtest_data.get_volume().sum())
     assert state.position == 0.0
     assert abs(state.metrics["trade_price"] - state.metrics["market_price"]) < 1e-4
     assert abs(state.metrics["pa"]) < 1e-2
@@ -252,9 +246,7 @@ def test_interpreter():
     # last step
     simulator.step(5.0)
     interpreter.env = EmulateEnvWrapper(
-        status=EnvWrapperStatus(
-            cur_step=12, done=simulator.done(), **wrapper_status_kwargs
-        )
+        status=EnvWrapperStatus(cur_step=12, done=simulator.done(), **wrapper_status_kwargs)
     )
 
     assert interpreter.env.status["done"]
@@ -292,9 +284,7 @@ def test_network_sanity():
     )
 
     network = Recurrent(interpreter.observation_space)
-    policy = PPO(
-        network, interpreter.observation_space, action_interp.action_space, 1e-3
-    )
+    policy = PPO(network, interpreter.observation_space, action_interp.action_space, 1e-3)
 
     for i in range(14):
         interpreter.env = EmulateEnvWrapper(
@@ -324,9 +314,7 @@ def test_twap_strategy(finite_env_type):
     csv_writer = CsvWriter(Path(__file__).parent / ".output")
 
     backtest(
-        partial(
-            SingleAssetOrderExecution, data_dir=BACKTEST_DATA_DIR, ticks_per_step=30
-        ),
+        partial(SingleAssetOrderExecution, data_dir=BACKTEST_DATA_DIR, ticks_per_step=30),
         state_interp,
         action_interp,
         orders,
@@ -354,20 +342,14 @@ def test_cn_ppo_strategy():
     state_interp = FullHistoryStateInterpreter(CN_FEATURE_DATA_DIR, 8, 240, 6)
     action_interp = CategoricalActionInterpreter(4)
     network = Recurrent(state_interp.observation_space)
-    policy = PPO(
-        network, state_interp.observation_space, action_interp.action_space, 1e-4
-    )
+    policy = PPO(network, state_interp.observation_space, action_interp.action_space, 1e-4)
     policy.load_state_dict(
-        torch.load(
-            CN_POLICY_WEIGHTS_DIR / "ppo_recurrent_30min.pth", map_location="cpu"
-        )
+        torch.load(CN_POLICY_WEIGHTS_DIR / "ppo_recurrent_30min.pth", map_location="cpu")
     )
     csv_writer = CsvWriter(Path(__file__).parent / ".output")
 
     backtest(
-        partial(
-            SingleAssetOrderExecution, data_dir=CN_BACKTEST_DATA_DIR, ticks_per_step=30
-        ),
+        partial(SingleAssetOrderExecution, data_dir=CN_BACKTEST_DATA_DIR, ticks_per_step=30),
         state_interp,
         action_interp,
         orders,
@@ -395,14 +377,10 @@ def test_ppo_train():
     state_interp = FullHistoryStateInterpreter(CN_FEATURE_DATA_DIR, 8, 240, 6)
     action_interp = CategoricalActionInterpreter(4)
     network = Recurrent(state_interp.observation_space)
-    policy = PPO(
-        network, state_interp.observation_space, action_interp.action_space, 1e-4
-    )
+    policy = PPO(network, state_interp.observation_space, action_interp.action_space, 1e-4)
 
     train(
-        partial(
-            SingleAssetOrderExecution, data_dir=CN_BACKTEST_DATA_DIR, ticks_per_step=30
-        ),
+        partial(SingleAssetOrderExecution, data_dir=CN_BACKTEST_DATA_DIR, ticks_per_step=30),
         state_interp,
         action_interp,
         orders,

@@ -199,9 +199,7 @@ class SignalRecord(RecordTemp):
             f"Signal record 'pred.pkl' has been saved as the artifact of the Experiment {self.recorder.experiment_id}"
         )
         # print out results
-        pprint(
-            f"The following are prediction results of the {type(self.model).__name__} model."
-        )
+        pprint(f"The following are prediction results of the {type(self.model).__name__} model.")
         pprint(pred.head(5))
 
         if isinstance(self.dataset, DatasetH):
@@ -269,9 +267,7 @@ class HFSignalRecord(SignalRecord):
         }
         objects = {"ic.pkl": ic, "ric.pkl": ric}
         objects.update({"long_pre.pkl": long_pre, "short_pre.pkl": short_pre})
-        long_short_r, long_avg_r = calc_long_short_return(
-            pred.iloc[:, 0], raw_label.iloc[:, 0]
-        )
+        long_short_r, long_avg_r = calc_long_short_return(pred.iloc[:, 0], raw_label.iloc[:, 0])
         metrics.update(
             {
                 "Long-Short Average Return": long_short_r.mean(),
@@ -463,8 +459,7 @@ class PortAnaRecord(ACRecordTemp):
             indicator_analysis_freq = [indicator_analysis_freq]
 
         self.risk_analysis_freq = [
-            "{0}{1}".format(*Freq.parse(_analysis_freq))
-            for _analysis_freq in risk_analysis_freq
+            "{0}{1}".format(*Freq.parse(_analysis_freq)) for _analysis_freq in risk_analysis_freq
         ]
         self.indicator_analysis_freq = [
             "{0}{1}".format(*Freq.parse(_analysis_freq))
@@ -478,9 +473,7 @@ class PortAnaRecord(ACRecordTemp):
             _count, _freq = Freq.parse(executor_config["kwargs"]["time_per_step"])
             ret_freq.append(f"{_count}{_freq}")
         if "inner_executor" in executor_config["kwargs"]:
-            ret_freq.extend(
-                self._get_report_freq(executor_config["kwargs"]["inner_executor"])
-            )
+            ret_freq.extend(self._get_report_freq(executor_config["kwargs"]["inner_executor"]))
         return ret_freq
 
     def _generate(self, **kwargs):
@@ -524,9 +517,7 @@ class PortAnaRecord(ACRecordTemp):
                     freq=_analysis_freq,
                 )
                 analysis["excess_return_with_cost"] = risk_analysis(
-                    report_normal["return"]
-                    - report_normal["bench"]
-                    - report_normal["cost"],
+                    report_normal["return"] - report_normal["bench"] - report_normal["cost"],
                     freq=_analysis_freq,
                 )
 
@@ -542,9 +533,7 @@ class PortAnaRecord(ACRecordTemp):
                     f"Portfolio analysis record 'port_analysis_{_analysis_freq}.pkl' has been saved as the artifact of the Experiment {self.recorder.experiment_id}"
                 )
                 # print out results
-                pprint(
-                    f"The following are analysis results of benchmark return({_analysis_freq})."
-                )
+                pprint(f"The following are analysis results of benchmark return({_analysis_freq}).")
                 pprint(risk_analysis(report_normal["bench"], freq=_analysis_freq))
                 pprint(
                     f"The following are analysis results of the excess return without cost({_analysis_freq})."
@@ -576,9 +565,7 @@ class PortAnaRecord(ACRecordTemp):
                 logger.info(
                     f"Indicator analysis record 'indicator_analysis_{_analysis_freq}.pkl' has been saved as the artifact of the Experiment {self.recorder.experiment_id}"
                 )
-                pprint(
-                    f"The following are analysis results of indicators({_analysis_freq})."
-                )
+                pprint(f"The following are analysis results of indicators({_analysis_freq}).")
                 pprint(analysis_df)
 
     def list(self):

@@ -152,9 +152,7 @@ class OnlineManager(Serializable):
         """
         return self.status == self.STATUS_SIMULATING and self.trainer.is_delay()
 
-    def first_train(
-        self, strategies: List[OnlineStrategy] = None, model_kwargs: dict = {}
-    ):
+    def first_train(self, strategies: List[OnlineStrategy] = None, model_kwargs: dict = {}):
         """
         Get tasks from every strategy's first_tasks method and train them.
         If using DelayTrainer, it can finish training all together after every strategy's first_tasks.
@@ -180,9 +178,7 @@ class OnlineManager(Serializable):
 
         if not self._postpone_action():
             for strategy, models in zip(strategies, models_list):
-                models = self.trainer.end_train(
-                    models, experiment_name=strategy.name_id
-                )
+                models = self.trainer.end_train(models, experiment_name=strategy.name_id)
 
     def routine(
         self,
@@ -227,9 +223,7 @@ class OnlineManager(Serializable):
 
         if not self._postpone_action():
             for strategy, models in zip(self.strategies, models_list):
-                models = self.trainer.end_train(
-                    models, experiment_name=strategy.name_id
-                )
+                models = self.trainer.end_train(models, experiment_name=strategy.name_id)
             self.prepare_signals(**signal_kwargs)
 
     def get_collector(self, **kwargs) -> MergeCollector:
@@ -260,9 +254,7 @@ class OnlineManager(Serializable):
         self.first_train(strategies)
         self.strategies.extend(strategies)
 
-    def prepare_signals(
-        self, prepare_func: Callable = AverageEnsemble(), over_write=False
-    ):
+    def prepare_signals(self, prepare_func: Callable = AverageEnsemble(), over_write=False):
         """
         After preparing the data of the last routine (a box in box-plot) which means the end of the routine, we can prepare trading signals for the next routine.
 
@@ -341,9 +333,7 @@ class OnlineManager(Serializable):
         logging.addLevelName(simulate_level, self.SIM_LOG_NAME)
 
         for cur_time in cal:
-            self.logger.log(
-                level=simulate_level, msg=f"Simulating at {str(cur_time)}......"
-            )
+            self.logger.log(level=simulate_level, msg=f"Simulating at {str(cur_time)}......")
             self.routine(
                 cur_time,
                 task_kwargs=task_kwargs,

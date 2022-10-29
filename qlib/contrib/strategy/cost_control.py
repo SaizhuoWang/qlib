@@ -57,9 +57,7 @@ class SoftTopkStrategy(WeightStrategyBase):
         # It will use 95% amount of your total value by default
         return self.risk_degree
 
-    def generate_target_weight_position(
-        self, score, current, trade_start_time, trade_end_time
-    ):
+    def generate_target_weight_position(self, score, current, trade_start_time, trade_end_time):
         """Parameter:
         score : pred score for this trade date, pd.Series, index is stock_id, contain 'score' column
         current : current position, use Position() class
@@ -70,9 +68,7 @@ class SoftTopkStrategy(WeightStrategyBase):
         # TODO:
         # If the current stock list is more than topk(eg. The weights are modified
         # by risk control), the weight will not be handled correctly.
-        buy_signal_stocks = set(
-            score.sort_values(ascending=False).iloc[: self.topk].index
-        )
+        buy_signal_stocks = set(score.sort_values(ascending=False).iloc[: self.topk].index)
         cur_stock_weight = current.get_stock_weight_dict(only_stock=True)
 
         if len(cur_stock_weight) == 0:

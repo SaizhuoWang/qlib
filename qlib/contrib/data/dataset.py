@@ -15,9 +15,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 def _to_tensor(x):
     if not isinstance(x, torch.Tensor):
-        return torch.tensor(
-            x, dtype=torch.float, device=device
-        )  # pylint: disable=E1101
+        return torch.tensor(x, dtype=torch.float, device=device)  # pylint: disable=E1101
     return x
 
 
@@ -133,9 +131,7 @@ class MTSDatasetH(DatasetH):
         **kwargs,
     ):
 
-        assert (
-            num_states == 0 or horizon > 0
-        ), "please specify `horizon` to avoid data leakage"
+        assert num_states == 0 or horizon > 0, "please specify `horizon` to avoid data leakage"
         assert memory_mode in ["sample", "daily"], "unsupported memory mode"
         assert (
             memory_mode == "sample" or batch_size < 0
@@ -143,9 +139,7 @@ class MTSDatasetH(DatasetH):
         assert batch_size != 0, "invalid batch size"
 
         if batch_size > 0 and n_samples is not None:
-            warnings.warn(
-                "`n_samples` can only be used for daily sampling (`batch_size < 0`)"
-            )
+            warnings.warn("`n_samples` can only be used for daily sampling (`batch_size < 0`)")
 
         self.seq_len = seq_len
         self.horizon = horizon
@@ -203,25 +197,17 @@ class MTSDatasetH(DatasetH):
         self._batch_slices = _create_ts_slices(self._index, self.seq_len)
 
         # create daily slices
-        daily_slices = {
-            date: [] for date in sorted(self._index.unique(level=1))
-        }  # sorted by date
+        daily_slices = {date: [] for date in sorted(self._index.unique(level=1))}  # sorted by date
         for i, (code, date) in enumerate(self._index):
             daily_slices[date].append(self._batch_slices[i])
         self._daily_slices = np.array(list(daily_slices.values()), dtype="object")
-        self._daily_index = pd.Series(
-            list(daily_slices.keys())
-        )  # index is the original date index
+        self._daily_index = pd.Series(list(daily_slices.keys()))  # index is the original date index
 
         # add memory (sample wise and daily)
         if self.memory_mode == "sample":
-            self._memory = np.zeros(
-                (len(self._data), self.num_states), dtype=np.float32
-            )
+            self._memory = np.zeros((len(self._data), self.num_states), dtype=np.float32)
         elif self.memory_mode == "daily":
-            self._memory = np.zeros(
-                (len(self._daily_index), self.num_states), dtype=np.float32
-            )
+            self._memory = np.zeros((len(self._daily_index), self.num_states), dtype=np.float32)
         else:
             raise ValueError(f"invalid memory_mode `{self.memory_mode}`")
 
@@ -252,9 +238,7 @@ class MTSDatasetH(DatasetH):
         obj._batch_slices = self._batch_slices[
             (date_index >= start_date) & (date_index <= end_date)
         ]
-        mask = (self._daily_index.values >= start_date) & (
-            self._daily_index.values <= end_date
-        )
+        mask = (self._daily_index.values >= start_date) & (self._daily_index.values <= end_date)
         obj._daily_slices = self._daily_slices[mask]
         obj._daily_index = self._daily_index[mask]
         return obj
@@ -344,9 +328,7 @@ class MTSDatasetH(DatasetH):
                             max(idx - self.seq_len - self.horizon, 0),
                             max(idx - self.horizon, 0),
                         )
-                        state.append(
-                            _maybe_padding(self._memory[slc], self.seq_len, self._zeros)
-                        )
+                        state.append(_maybe_padding(self._memory[slc], self.seq_len, self._zeros))
 
                     # down-sample stocks and store count
                     if self.n_samples and 0 < self.n_samples < len(
@@ -367,19 +349,15 @@ class MTSDatasetH(DatasetH):
 
                     # legacy support for Alpha360 data by `input_size`
                     if self.input_size:
-                        data.append(
-                            self._data[slc.stop - 1].reshape(self.input_size, -1).T
-                        )
+                        data.append(self._data[slc.stop - 1].reshape(self.input_size, -1).T)
                     else:
-                        data.append(
-                            _maybe_padding(self._data[slc], self.seq_len, self._zeros)
-                        )
+                        data.append(_maybe_padding(self._data[slc], self.seq_len, self._zeros))
 
                     if self.memory_mode == "sample":
                         state.append(
-                            _maybe_padding(
-                                self._memory[slc], self.seq_len, self._zeros
-                            )[: -self.horizon]
+                            _maybe_padding(self._memory[slc], self.seq_len, self._zeros)[
+                                : -self.horizon
+                            ]
                         )
 
                     label.append(self._label[slc.stop - 1])

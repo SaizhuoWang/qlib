@@ -21,9 +21,7 @@ class TestStructuredCovEstimator(unittest.TestCase):
         X = np.random.rand(NUM_OBSERVATION, NUM_VARIABLE)
 
         est_cov = estimator.predict(X, is_price=False)
-        np_cov = np.cov(
-            X.T
-        )  # While numpy assume row means variable, qlib assume the other wise.
+        np_cov = np.cov(X.T)  # While numpy assume row means variable, qlib assume the other wise.
 
         delta = abs(est_cov - np_cov)
         if_identical = (delta < EPS).all()
@@ -43,9 +41,7 @@ class TestStructuredCovEstimator(unittest.TestCase):
         X = np.random.rand(NUM_OBSERVATION, NUM_VARIABLE)
 
         est_cov = estimator.predict(X, is_price=False)
-        np_cov = np.cov(
-            X.T
-        )  # While numpy assume row means variable, qlib assume the other wise.
+        np_cov = np.cov(X.T)  # While numpy assume row means variable, qlib assume the other wise.
 
         delta = abs(est_cov - np_cov)
         if_identical = (delta < EPS).all()
@@ -63,9 +59,7 @@ class TestStructuredCovEstimator(unittest.TestCase):
 
         X = np.random.rand(NUM_OBSERVATION, NUM_VARIABLE)
 
-        F, cov_b, var_u = estimator.predict(
-            X, is_price=False, return_decomposed_components=True
-        )
+        F, cov_b, var_u = estimator.predict(X, is_price=False, return_decomposed_components=True)
 
         self.assertTrue(F is not None and cov_b is not None and var_u is not None)
 
@@ -89,9 +83,7 @@ class TestStructuredCovEstimator(unittest.TestCase):
         X = np.random.rand(NUM_OBSERVATION, NUM_VARIABLE) @ sqrt_cov
 
         est_cov = estimator.predict(X, is_price=False)
-        np_cov = np.cov(
-            X.T
-        )  # While numpy assume row means variable, qlib assume the other wise.
+        np_cov = np.cov(X.T)  # While numpy assume row means variable, qlib assume the other wise.
 
         delta = abs(est_cov - np_cov)
         if_identical = (delta < EPS).all()
@@ -116,9 +108,7 @@ class TestStructuredCovEstimator(unittest.TestCase):
         X = (F @ B).T + U
 
         est_cov = estimator.predict(X, is_price=False)
-        np_cov = np.cov(
-            X.T
-        )  # While numpy assume row means variable, qlib assume the other wise.
+        np_cov = np.cov(X.T)  # While numpy assume row means variable, qlib assume the other wise.
 
         delta = abs(est_cov - np_cov)
         if_identical = (delta < EPS).all()

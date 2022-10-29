@@ -115,19 +115,15 @@ class OrderGenWInteract(OrderGenerator):
                     del target_amount_dict[stock_id]
         else:
             # consider cost rate
-            current_tradable_value /= 1 + max(
-                trade_exchange.close_cost, trade_exchange.open_cost
-            )
+            current_tradable_value /= 1 + max(trade_exchange.close_cost, trade_exchange.open_cost)
 
             # strategy 1 : generate amount_position by weight_position
             # Use API in Exchange()
-            target_amount_dict = (
-                trade_exchange.generate_amount_position_from_weight_position(
-                    weight_position=target_weight_position,
-                    cash=current_tradable_value,
-                    start_time=trade_start_time,
-                    end_time=trade_end_time,
-                )
+            target_amount_dict = trade_exchange.generate_amount_position_from_weight_position(
+                weight_position=target_weight_position,
+                cash=current_tradable_value,
+                start_time=trade_start_time,
+                end_time=trade_end_time,
             )
         order_list = trade_exchange.generate_order_for_target_amount_position(
             target_position=target_amount_dict,

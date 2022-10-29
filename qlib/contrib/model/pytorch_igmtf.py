@@ -125,18 +125,14 @@ class IGMTF(Model):
             base_model=self.base_model,
         )
         self.logger.info("model:\n{:}".format(self.igmtf_model))
-        self.logger.info(
-            "model size: {:.4f} MB".format(count_parameters(self.igmtf_model))
-        )
+        self.logger.info("model size: {:.4f} MB".format(count_parameters(self.igmtf_model)))
 
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(self.igmtf_model.parameters(), lr=self.lr)
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.igmtf_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         self.fitted = False
         self.igmtf_model.to(self.device)
@@ -272,9 +268,7 @@ class IGMTF(Model):
             data_key=DataHandlerLP.DK_L,
         )
         if df_train.empty or df_valid.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
 
         x_train, y_train = df_train["feature"], df_train["label"]
         x_valid, y_valid = df_valid["feature"], df_valid["label"]
@@ -297,9 +291,7 @@ class IGMTF(Model):
 
         if self.model_path is not None:
             self.logger.info("Loading pretrained model...")
-            pretrained_model.load_state_dict(
-                torch.load(self.model_path, map_location=self.device)
-            )
+            pretrained_model.load_state_dict(torch.load(self.model_path, map_location=self.device))
 
         model_dict = self.igmtf_model.state_dict()
         pretrained_dict = {
@@ -324,9 +316,7 @@ class IGMTF(Model):
             train_loss, train_score = self.test_epoch(
                 x_train, y_train, train_hidden, train_hidden_day
             )
-            val_loss, val_score = self.test_epoch(
-                x_valid, y_valid, train_hidden, train_hidden_day
-            )
+            val_loss, val_score = self.test_epoch(x_valid, y_valid, train_hidden, train_hidden_day)
             self.logger.info("train %.6f, valid %.6f" % (train_score, val_score))
             evals_result["train"].append(train_score)
             evals_result["valid"].append(val_score)
@@ -352,13 +342,9 @@ class IGMTF(Model):
     def predict(self, dataset: DatasetH, segment: Union[Text, slice] = "test"):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
-        x_train = dataset.prepare(
-            "train", col_set="feature", data_key=DataHandlerLP.DK_L
-        )
+        x_train = dataset.prepare("train", col_set="feature", data_key=DataHandlerLP.DK_L)
         train_hidden, train_hidden_day = self.get_train_hidden(x_train)
-        x_test = dataset.prepare(
-            segment, col_set="feature", data_key=DataHandlerLP.DK_I
-        )
+        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
         index = x_test.index
         self.igmtf_model.eval()
         x_values = x_test.values
@@ -388,9 +374,7 @@ class IGMTF(Model):
 
 
 class IGMTFModel(nn.Module):
-    def __init__(
-        self, d_feat=6, hidden_size=64, num_layers=2, dropout=0.0, base_model="GRU"
-    ):
+    def __init__(self, d_feat=6, hidden_size=64, num_layers=2, dropout=0.0, base_model="GRU"):
         super().__init__()
 
         if base_model == "GRU":
@@ -457,9 +441,7 @@ class IGMTFModel(nn.Module):
             return mini_batch_out
 
         mini_batch_out_day = torch.mean(mini_batch_out, dim=0).unsqueeze(0)
-        day_similarity = self.cal_cos_similarity(
-            mini_batch_out_day, train_hidden_day.to(device)
-        )
+        day_similarity = self.cal_cos_similarity(mini_batch_out_day, train_hidden_day.to(device))
         day_index = torch.topk(day_similarity, k_day, dim=1)[1]
         sample_train_hidden = train_hidden[day_index.long().cpu()].squeeze()
         sample_train_hidden = torch.cat(list(sample_train_hidden)).to(device)

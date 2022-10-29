@@ -22,7 +22,9 @@ quarter_dict = {"1Q": "01-03", "2Q": "05-01", "3Q": "09-01"}
 
 class IBOVIndex(IndexBase):
 
-    ibov_index_composition = "https://raw.githubusercontent.com/igor17400/IBOV-HCI/main/historic_composition/{}.csv"
+    ibov_index_composition = (
+        "https://raw.githubusercontent.com/igor17400/IBOV-HCI/main/historic_composition/{}.csv"
+    )
     years_4_month_periods = []
 
     def __init__(
@@ -109,9 +111,7 @@ class IBOVIndex(IndexBase):
         # For current year the logic must be a little different
         current_4_month_period = self.get_current_4_month_period(current_month)
         for i in range(int(current_4_month_period[0])):
-            self.years_4_month_periods.append(
-                str(current_year) + "_" + str(i + 1) + "Q"
-            )
+            self.years_4_month_periods.append(str(current_year) + "_" + str(i + 1) + "Q")
         return self.years_4_month_periods
 
     def format_datetime(self, inst_df: pd.DataFrame) -> pd.DataFrame:
@@ -130,9 +130,9 @@ class IBOVIndex(IndexBase):
         logger.info("Formatting Datetime")
         if self.freq != "day":
             inst_df[self.END_DATE_FIELD] = inst_df[self.END_DATE_FIELD].apply(
-                lambda x: (
-                    pd.Timestamp(x) + pd.Timedelta(hours=23, minutes=59)
-                ).strftime("%Y-%m-%d %H:%M:%S")
+                lambda x: (pd.Timestamp(x) + pd.Timedelta(hours=23, minutes=59)).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
             )
         else:
             inst_df[self.START_DATE_FIELD] = inst_df[self.START_DATE_FIELD].apply(
@@ -201,9 +201,7 @@ class IBOVIndex(IndexBase):
                     on_bad_lines="skip",
                 )["symbol"]
                 df_ = pd.read_csv(
-                    self.ibov_index_composition.format(
-                        self.years_4_month_periods[i + 1]
-                    ),
+                    self.ibov_index_composition.format(self.years_4_month_periods[i + 1]),
                     on_bad_lines="skip",
                 )["symbol"]
 
@@ -244,11 +242,7 @@ class IBOVIndex(IndexBase):
             return df
 
         except Exception as E:
-            logger.error(
-                "An error occured while downloading 2008 index composition - {}".format(
-                    E
-                )
-            )
+            logger.error("An error occured while downloading 2008 index composition - {}".format(E))
 
     def get_new_companies(self):
         """
@@ -279,9 +273,7 @@ class IBOVIndex(IndexBase):
             ## Get index composition
 
             df_index = pd.read_csv(
-                self.ibov_index_composition.format(
-                    self.year + "_" + self.current_4_month_period
-                ),
+                self.ibov_index_composition.format(self.year + "_" + self.current_4_month_period),
                 on_bad_lines="skip",
             )
             df_date_first_added = pd.read_csv(
@@ -290,15 +282,11 @@ class IBOVIndex(IndexBase):
                 ),
                 on_bad_lines="skip",
             )
-            df = df_index.merge(df_date_first_added, on="symbol")[
-                ["symbol", "Date First Added"]
-            ]
+            df = df_index.merge(df_date_first_added, on="symbol")[["symbol", "Date First Added"]]
             df[self.START_DATE_FIELD] = df["Date First Added"].map(self.format_quarter)
 
             # end_date will be our current quarter + 1, since the IBOV index updates itself every quarter
-            df[self.END_DATE_FIELD] = (
-                self.year + "-" + quarter_dict[self.current_4_month_period]
-            )
+            df[self.END_DATE_FIELD] = self.year + "-" + quarter_dict[self.current_4_month_period]
             df = df[["symbol", self.START_DATE_FIELD, self.END_DATE_FIELD]]
             df["symbol"] = df["symbol"].astype(str) + ".SA"
 

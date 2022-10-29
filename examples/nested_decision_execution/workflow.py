@@ -237,9 +237,7 @@ class NestedDecisionExecutionWorkflow:
             exists_skip=True,
         )
         provider_uri_map = {"1min": provider_uri_1min, "day": provider_uri_day}
-        qlib.init(
-            provider_uri=provider_uri_map, dataset_cache=None, expression_cache=None
-        )
+        qlib.init(provider_uri=provider_uri_map, dataset_cache=None, expression_cache=None)
 
     def _train_model(self, model, dataset):
         with R.start(experiment_name=self.exp_name):
@@ -326,9 +324,9 @@ class NestedDecisionExecutionWorkflow:
 
             acc_dict = {}
             for freq in ["30minute", "5minute", "1day"]:
-                acc_dict[freq] = rec.load_object(
-                    f"portfolio_analysis/report_normal_{freq}.pkl"
-                )[check_key]
+                acc_dict[freq] = rec.load_object(f"portfolio_analysis/report_normal_{freq}.pkl")[
+                    check_key
+                ]
             acc_df = pd.DataFrame(acc_dict)
             acc_resam = acc_df.resample("1d").last().dropna()
             assert (acc_resam["30minute"] == acc_resam["1day"]).all()

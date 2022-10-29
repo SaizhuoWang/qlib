@@ -125,18 +125,14 @@ class ALSTM(Model):
             dropout=self.dropout,
         )
         self.logger.info("model:\n{:}".format(self.ALSTM_model))
-        self.logger.info(
-            "model size: {:.4f} MB".format(count_parameters(self.ALSTM_model))
-        )
+        self.logger.info("model size: {:.4f} MB".format(count_parameters(self.ALSTM_model)))
 
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(self.ALSTM_model.parameters(), lr=self.lr)
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.ALSTM_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         self.fitted = False
         self.ALSTM_model.to(self.device)
@@ -222,9 +218,7 @@ class ALSTM(Model):
             "valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
         )
         if dl_train.empty or dl_valid.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
 
         dl_train.config(fillna_type="ffill+bfill")  # process nan brought by dataloader
         dl_valid.config(fillna_type="ffill+bfill")  # process nan brought by dataloader
@@ -303,9 +297,7 @@ class ALSTM(Model):
             segment, col_set=["feature", "label"], data_key=DataHandlerLP.DK_I
         )
         dl_test.config(fillna_type="ffill+bfill")
-        test_loader = DataLoader(
-            dl_test, batch_size=self.batch_size, num_workers=self.n_jobs
-        )
+        test_loader = DataLoader(dl_test, batch_size=self.batch_size, num_workers=self.n_jobs)
         self.ALSTM_model.eval()
         preds = []
 
@@ -322,9 +314,7 @@ class ALSTM(Model):
 
 
 class ALSTMModel(nn.Module):
-    def __init__(
-        self, d_feat=6, hidden_size=64, num_layers=2, dropout=0.0, rnn_type="GRU"
-    ):
+    def __init__(self, d_feat=6, hidden_size=64, num_layers=2, dropout=0.0, rnn_type="GRU"):
         super().__init__()
         self.hid_size = hidden_size
         self.input_size = d_feat
@@ -365,9 +355,7 @@ class ALSTMModel(nn.Module):
         self.att_net.add_module("att_softmax", nn.Softmax(dim=1))
 
     def forward(self, inputs):
-        rnn_out, _ = self.rnn(
-            self.net(inputs)
-        )  # [batch, seq_len, num_directions * hidden_size]
+        rnn_out, _ = self.rnn(self.net(inputs))  # [batch, seq_len, num_directions * hidden_size]
         attention_score = self.att_net(rnn_out)  # [batch, seq_len, 1]
         out_att = torch.mul(rnn_out, attention_score)
         out_att = torch.sum(out_att, dim=1)

@@ -113,9 +113,7 @@ class LogCollector:
             # could be single-item number
             scalar = scalar.item()
         if not isinstance(scalar, (float, int)):
-            raise TypeError(
-                f"{scalar} is not and can not be converted into float or integer."
-            )
+            raise TypeError(f"{scalar} is not and can not be converted into float or integer.")
         scalar = float(scalar)
         self._add_metric(name, scalar, loglevel)
 
@@ -133,9 +131,7 @@ class LogCollector:
             raise TypeError(f"{array} is not one of ndarray, DataFrame and Series.")
         self._add_metric(name, array, loglevel)
 
-    def add_any(
-        self, name: str, obj: Any, loglevel: int | LogLevel = LogLevel.PERIODIC
-    ) -> None:
+    def add_any(self, name: str, obj: Any, loglevel: int | LogLevel = LogLevel.PERIODIC) -> None:
         """Log something with any type.
 
         As it's an "any" object, the only LogWriter accepting it is pickle.
@@ -149,10 +145,7 @@ class LogCollector:
         self._add_metric(name, obj, loglevel)
 
     def logs(self) -> Dict[str, np.ndarray]:
-        return {
-            key: np.asanyarray(value, dtype="object")
-            for key, value in self._logged.items()
-        }
+        return {key: np.asanyarray(value, dtype="object") for key, value in self._logged.items()}
 
 
 class LogWriter(Generic[ObsType, ActType]):
@@ -297,9 +290,7 @@ class LogWriter(Generic[ObsType, ActType]):
         values: Dict[str, Any] = {}
 
         for key, (loglevel, value) in info["log"].items():
-            if (
-                loglevel >= self.loglevel
-            ):  # FIXME: this is actually incorrect (see last FIXME)
+            if loglevel >= self.loglevel:  # FIXME: this is actually incorrect (see last FIXME)
                 values[key] = value
         self.episode_logs[env_id].append(values)
 
@@ -417,8 +408,7 @@ class LogBuffer(LogWriter):
     def collect_metrics(self) -> dict[str, float]:
         """Retrieve the aggregated metrics of the latest collect."""
         return {
-            name: value / self.episode_count
-            for name, value in self._aggregated_metrics.items()
+            name: value / self.episode_count for name, value in self._aggregated_metrics.items()
         }
 
 
@@ -498,17 +488,13 @@ class ConsoleWriter(LogWriter):
         if self.total_episodes is None:
             msg_prefix += "[Step {" + self.counter_format + "}]"
         else:
-            msg_prefix += (
-                "[{" + self.counter_format + "}/" + str(self.total_episodes) + "]"
-            )
+            msg_prefix += "[{" + self.counter_format + "}/" + str(self.total_episodes) + "]"
         msg_prefix = msg_prefix.format(self.episode_count)
 
         msg = ""
         for name, value in logs.items():
             # Double-space as delimiter
-            format_template = (
-                r"  {} {" + self.float_format + "} ({" + self.float_format + "})"
-            )
+            format_template = r"  {} {" + self.float_format + "} ({" + self.float_format + "})"
             msg += format_template.format(
                 name, value, self.metric_sums[name] / self.metric_counts[name]
             )
@@ -530,9 +516,7 @@ class CsvWriter(LogWriter):
 
     # FIXME: save & reload
 
-    def __init__(
-        self, output_dir: Path, loglevel: int | LogLevel = LogLevel.PERIODIC
-    ) -> None:
+    def __init__(self, output_dir: Path, loglevel: int | LogLevel = LogLevel.PERIODIC) -> None:
         super().__init__(loglevel)
         self.output_dir = output_dir
         self.output_dir.mkdir(exist_ok=True)

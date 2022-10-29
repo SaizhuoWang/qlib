@@ -71,9 +71,7 @@ class BaseStrategy:
     @property
     def trade_exchange(self) -> Exchange:
         """get trade exchange in a prioritized order"""
-        return getattr(self, "_trade_exchange", None) or self.common_infra.get(
-            "trade_exchange"
-        )
+        return getattr(self, "_trade_exchange", None) or self.common_infra.get("trade_exchange")
 
     def reset_level_infra(self, level_infra: LevelInfrastructure) -> None:
         if not hasattr(self, "level_infra"):
@@ -184,9 +182,7 @@ class BaseStrategy:
         """
         # default to reset the decision directly
         # NOTE: normally, user should do something to the strategy due to the change of outer decision
-        raise NotImplementedError(
-            f"Please implement the `alter_outer_trade_decision` method"
-        )
+        raise NotImplementedError(f"Please implement the `alter_outer_trade_decision` method")
 
     # helper methods: not necessary but for convenience
     def get_data_cal_avail_range(self, rtype: str = "full") -> Tuple[int, int]:
@@ -246,9 +242,7 @@ class RLStrategy(BaseStrategy, metaclass=ABCMeta):
         policy :
             RL policy for generate action
         """
-        super(RLStrategy, self).__init__(
-            outer_trade_decision, level_infra, common_infra, **kwargs
-        )
+        super(RLStrategy, self).__init__(outer_trade_decision, level_infra, common_infra, **kwargs)
         self.policy = policy
 
 
@@ -290,9 +284,7 @@ class RLIntStrategy(RLStrategy, metaclass=ABCMeta):
         )
 
     def generate_trade_decision(self, execute_result: list = None) -> BaseTradeDecision:
-        _interpret_state = self.state_interpreter.interpret(
-            execute_result=execute_result
-        )
+        _interpret_state = self.state_interpreter.interpret(execute_result=execute_result)
         _action = self.policy.step(_interpret_state)
         _trade_decision = self.action_interpreter.interpret(action=_action)
         return _trade_decision

@@ -124,9 +124,7 @@ def handler_mod(task: dict, rolling_gen):
         pass
 
 
-def trunc_segments(
-    ta: TimeAdjuster, segments: Dict[str, pd.Timestamp], days, test_key="test"
-):
+def trunc_segments(ta: TimeAdjuster, segments: Dict[str, pd.Timestamp], days, test_key="test"):
     """
     To avoid the leakage of future information, the segments should be truncated according to the test start_time
 
@@ -226,9 +224,7 @@ class RollingGen(TaskGen):
                 break
 
             prev_seg = segments
-            t = self.task_copy_func(
-                task
-            )  # deepcopy is necessary to avoid replace task inplace
+            t = self.task_copy_func(task)  # deepcopy is necessary to avoid replace task inplace
             self._update_task_segs(t, segments)
             yield t
 
@@ -290,9 +286,7 @@ class RollingGen(TaskGen):
 
         # First rolling
         # 1) prepare the end point
-        segments: dict = copy.deepcopy(
-            self.ta.align_seg(t["dataset"]["kwargs"]["segments"])
-        )
+        segments: dict = copy.deepcopy(self.ta.align_seg(t["dataset"]["kwargs"]["segments"]))
         test_end = transform_end_date(segments[self.test_key][1])
         # 2) and init test segments
         test_start_idx = self.ta.align_idx(segments[self.test_key][0])
@@ -357,9 +351,7 @@ class MultiHorizonGenBase(TaskGen):
 
             # adjust segment
             segments = self.ta.align_seg(t["dataset"]["kwargs"]["segments"])
-            trunc_segments(
-                self.ta, segments, days=hr + self.label_leak_n, test_key=self.test_key
-            )
+            trunc_segments(self.ta, segments, days=hr + self.label_leak_n, test_key=self.test_key)
             t["dataset"]["kwargs"]["segments"] = segments
             res.append(t)
         return res

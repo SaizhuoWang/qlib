@@ -160,9 +160,7 @@ class HighFreqProvider:
             with open(path[:-4] + "test.pkl", "wb") as f:
                 pkl.dump(testset, f)
             res = [data[i] for i in datasets]
-            print_log(
-                f"Data generated, time cost: {(time.time() - start_time):.2f}", __name__
-            )
+            print_log(f"Data generated, time cost: {(time.time() - start_time):.2f}", __name__)
         return res
 
     def _gen_data(self, config, datasets=["train", "valid", "test"]):
@@ -192,9 +190,7 @@ class HighFreqProvider:
             dataset.config(dump_all=True, recursive=True)
             dataset.to_pickle(path)
             res = dataset.prepare(datasets)
-            print_log(
-                f"Data generated, time cost: {(time.time() - start_time):.2f}", __name__
-            )
+            print_log(f"Data generated, time cost: {(time.time() - start_time):.2f}", __name__)
         return res
 
     def _gen_dataset(self, config):
@@ -218,9 +214,7 @@ class HighFreqProvider:
             dataset = init_instance_by_config(config)
             print_log(f"Dataset init, time cost: {time.time() - start:.2f}", __name__)
             dataset.prepare(["train", "valid", "test"])
-            print_log(
-                f"Dataset prepared, time cost: {time.time() - start:.2f}", __name__
-            )
+            print_log(f"Dataset prepared, time cost: {time.time() - start:.2f}", __name__)
             dataset.config(dump_all=True, recursive=True)
             dataset.to_pickle(path)
         return dataset
@@ -248,9 +242,9 @@ class HighFreqProvider:
         with open(path + "tmp_dataset.pkl", "rb") as f:
             new_dataset = pkl.load(f)
 
-        time_list = D.calendar(
-            start_time=self.start_time, end_time=self.end_time, freq="1min"
-        )[::240]
+        time_list = D.calendar(start_time=self.start_time, end_time=self.end_time, freq="1min")[
+            ::240
+        ]
 
         def generate_dataset(times):
             if os.path.isfile(path + times.strftime("%Y-%m-%d") + ".pkl"):

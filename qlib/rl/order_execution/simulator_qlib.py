@@ -56,9 +56,7 @@ class DecomposedStrategy(BaseStrategy):
     def post_exe_step(self, execute_result: list) -> None:
         self.execute_result = execute_result
 
-    def reset(
-        self, outer_trade_decision: TradeDecisionWO = None, **kwargs: Any
-    ) -> None:
+    def reset(self, outer_trade_decision: TradeDecisionWO = None, **kwargs: Any) -> None:
         super().reset(outer_trade_decision=outer_trade_decision, **kwargs)
         if outer_trade_decision is not None:
             order_list = outer_trade_decision.order_list
@@ -128,9 +126,7 @@ class StateMaintainer:
         self._tick_index = tick_index
         self._twap_price = twap_price
 
-        metric_keys = list(
-            SAOEMetrics.__annotations__.keys()
-        )  # pylint: disable=no-member
+        metric_keys = list(SAOEMetrics.__annotations__.keys())  # pylint: disable=no-member
         self.history_exec = pd.DataFrame(columns=metric_keys).set_index("datetime")
         self.history_steps = pd.DataFrame(columns=metric_keys).set_index("datetime")
         self.metrics: Optional[SAOEMetrics] = None
@@ -163,14 +159,8 @@ class StateMaintainer:
                 ),
             )
 
-            trade_value = (
-                all_indicators[FINEST_GRANULARITY].iloc[-num_step:]["value"].values
-            )
-            deal_amount = (
-                all_indicators[FINEST_GRANULARITY]
-                .iloc[-num_step:]["deal_amount"]
-                .values
-            )
+            trade_value = all_indicators[FINEST_GRANULARITY].iloc[-num_step:]["value"].values
+            deal_amount = all_indicators[FINEST_GRANULARITY].iloc[-num_step:]["deal_amount"].values
             market_price = trade_value / deal_amount
 
             datetime_list = all_indicators[FINEST_GRANULARITY].index[-num_step:]
@@ -259,9 +249,7 @@ class StateMaintainer:
         if np.abs(np.sum(exec_vol)) < EPS:
             exec_avg_price = 0.0
         else:
-            exec_avg_price = cast(
-                float, np.average(market_price, weights=exec_vol)
-            )  # could be nan
+            exec_avg_price = cast(float, np.average(market_price, weights=exec_vol))  # could be nan
             if hasattr(exec_avg_price, "item"):  # could be numpy scalar
                 exec_avg_price = exec_avg_price.item()  # type: ignore
 
@@ -318,9 +306,7 @@ class SingleAssetOrderExecutionQlib(Simulator[Order, SAOEState, float]):
 
         self._order = order
         self._order_date = pd.Timestamp(order.start_time.date())
-        self._trade_range = TradeRangeByTime(
-            order.start_time.time(), order.end_time.time()
-        )
+        self._trade_range = TradeRangeByTime(order.start_time.time(), order.end_time.time())
         self._qlib_config = qlib_config
         self._inner_executor_fn = inner_executor_fn
         self._exchange_config = exchange_config
@@ -352,9 +338,7 @@ class SingleAssetOrderExecutionQlib(Simulator[Order, SAOEState, float]):
         # TODO: We can leverage interfaces like (https://tinyurl.com/y8f8fhv4) to create trading environment.
         # TODO: By aligning the interface to create environments with Qlib, it will be easier to share the config and
         # TODO: code between backtesting and training.
-        self._inner_executor = self._inner_executor_fn(
-            self._time_per_step, common_infra
-        )
+        self._inner_executor = self._inner_executor_fn(self._time_per_step, common_infra)
         self._executor = NestedExecutor(
             time_per_step=COARSEST_GRANULARITY,
             inner_executor=self._inner_executor,
@@ -364,9 +348,7 @@ class SingleAssetOrderExecutionQlib(Simulator[Order, SAOEState, float]):
         )
 
         exchange = self._inner_executor.trade_exchange
-        self._ticks_index = pd.DatetimeIndex(
-            [e[1] for e in list(exchange.quote_df.index)]
-        )
+        self._ticks_index = pd.DatetimeIndex([e[1] for e in list(exchange.quote_df.index)])
         self._ticks_for_order = get_ticks_slice(
             self._ticks_index,
             self._order.start_time,
@@ -383,9 +365,7 @@ class SingleAssetOrderExecutionQlib(Simulator[Order, SAOEState, float]):
 
         self.twap_price = self._backtest_data.get_deal_price().mean()
 
-        top_strategy = SingleOrderStrategy(
-            common_infra, order, self._trade_range, instrument
-        )
+        top_strategy = SingleOrderStrategy(common_infra, order, self._trade_range, instrument)
         self._executor.reset(
             start_time=pd.Timestamp(self._order_date),
             end_time=pd.Timestamp(self._order_date),

@@ -74,9 +74,7 @@ class FullHistoryStateInterpreter(StateInterpreter[SAOEState, FullHistoryObs]):
         Number of dimensions in data.
     """
 
-    def __init__(
-        self, data_dir: Path, max_step: int, data_ticks: int, data_dim: int
-    ) -> None:
+    def __init__(self, data_dir: Path, max_step: int, data_ticks: int, data_dim: int) -> None:
         self.data_dir = data_dir
         self.max_step = max_step
         self.data_ticks = data_ticks
@@ -106,9 +104,7 @@ class FullHistoryStateInterpreter(StateInterpreter[SAOEState, FullHistoryObs]):
             FullHistoryObs,
             canonicalize(
                 {
-                    "data_processed": self._mask_future_info(
-                        processed.today, state.cur_time
-                    ),
+                    "data_processed": self._mask_future_info(processed.today, state.cur_time),
                     "data_processed_prev": processed.yesterday,
                     "acquiring": state.order.direction == state.order.BUY,
                     "cur_tick": min(
@@ -127,9 +123,7 @@ class FullHistoryStateInterpreter(StateInterpreter[SAOEState, FullHistoryObs]):
     @property
     def observation_space(self) -> spaces.Dict:
         space = {
-            "data_processed": spaces.Box(
-                -np.inf, np.inf, shape=(self.data_ticks, self.data_dim)
-            ),
+            "data_processed": spaces.Box(-np.inf, np.inf, shape=(self.data_ticks, self.data_dim)),
             "data_processed_prev": spaces.Box(
                 -np.inf, np.inf, shape=(self.data_ticks, self.data_dim)
             ),
@@ -137,9 +131,7 @@ class FullHistoryStateInterpreter(StateInterpreter[SAOEState, FullHistoryObs]):
             "cur_tick": spaces.Box(0, self.data_ticks - 1, shape=(), dtype=np.int32),
             "cur_step": spaces.Box(0, self.max_step - 1, shape=(), dtype=np.int32),
             # TODO: support arbitrary length index
-            "num_step": spaces.Box(
-                self.max_step, self.max_step, shape=(), dtype=np.int32
-            ),
+            "num_step": spaces.Box(self.max_step, self.max_step, shape=(), dtype=np.int32),
             "target": spaces.Box(-EPS, np.inf, shape=()),
             "position": spaces.Box(-EPS, np.inf, shape=()),
             "position_history": spaces.Box(-EPS, np.inf, shape=(self.max_step,)),
@@ -176,9 +168,7 @@ class CurrentStepStateInterpreter(StateInterpreter[SAOEState, CurrentStateObs]):
         space = {
             "acquiring": spaces.Discrete(2),
             "cur_step": spaces.Box(0, self.max_step - 1, shape=(), dtype=np.int32),
-            "num_step": spaces.Box(
-                self.max_step, self.max_step, shape=(), dtype=np.int32
-            ),
+            "num_step": spaces.Box(self.max_step, self.max_step, shape=(), dtype=np.int32),
             "target": spaces.Box(-EPS, np.inf, shape=()),
             "position": spaces.Box(-EPS, np.inf, shape=()),
         }
@@ -238,10 +228,6 @@ class TwapRelativeActionInterpreter(ActionInterpreter[SAOEState, float, float]):
 
     def interpret(self, state: SAOEState, action: float) -> float:
         assert self.env is not None
-        estimated_total_steps = math.ceil(
-            len(state.ticks_for_order) / state.ticks_per_step
-        )
-        twap_volume = state.position / (
-            estimated_total_steps - self.env.status["cur_step"]
-        )
+        estimated_total_steps = math.ceil(len(state.ticks_for_order) / state.ticks_per_step)
+        twap_volume = state.position / (estimated_total_steps - self.env.status["cur_step"])
         return min(state.position, twap_volume * action)

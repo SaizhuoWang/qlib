@@ -105,9 +105,7 @@ class HighFreqHandler(DataHandlerLP):
             template_gzero.format(
                 template_paused.format(
                     "If(IsNull({0}), 0, {0})".format(
-                        "Ref({0}, 240)/Ref(DayLast(Mean({0}, 7200)), 240)".format(
-                            "$volume"
-                        )
+                        "Ref({0}, 240)/Ref(DayLast(Mean({0}, 7200)), 240)".format("$volume")
                     )
                 )
             )
@@ -254,9 +252,7 @@ class HighFreqOrderHandler(DataHandlerLP):
             feature_ops = template_paused.format(
                 template_fillnan.format(
                     template_norm.format(
-                        template_if.format(
-                            "$close", template_ifinf.format("$close", price_field)
-                        ),
+                        template_if.format("$close", template_ifinf.format("$close", price_field)),
                         template_fillnan.format("$close"),
                     )
                 )
@@ -294,9 +290,7 @@ class HighFreqOrderHandler(DataHandlerLP):
                     template_paused.format(
                         "If(IsInf({0}), 0, {0})".format(
                             "If(IsNull({0}), 0, {0})".format(
-                                "{0}/Ref(DayLast(Mean({0}, 7200)), 240)".format(
-                                    volume_field
-                                )
+                                "{0}/Ref(DayLast(Mean({0}, 7200)), 240)".format(volume_field)
                             )
                         )
                     )
@@ -422,34 +416,22 @@ class HighFreqBacktestOrderHandler(DataHandler):
         fields += [template_paused.format("If(IsNull({0}), 0, {0})".format("$askV"))]
         names += ["$askV0"]
 
-        fields += [
-            template_paused.format(
-                "If(IsNull({0}), 0, {0})".format("($bid + $ask) / 2")
-            )
-        ]
+        fields += [template_paused.format("If(IsNull({0}), 0, {0})".format("($bid + $ask) / 2"))]
         names += ["$median0"]
 
         fields += [template_paused.format("If(IsNull({0}), 0, {0})".format("$factor"))]
         names += ["$factor0"]
 
-        fields += [
-            template_paused.format("If(IsNull({0}), 0, {0})".format("$downlimitmarket"))
-        ]
+        fields += [template_paused.format("If(IsNull({0}), 0, {0})".format("$downlimitmarket"))]
         names += ["$downlimitmarket0"]
 
-        fields += [
-            template_paused.format("If(IsNull({0}), 0, {0})".format("$uplimitmarket"))
-        ]
+        fields += [template_paused.format("If(IsNull({0}), 0, {0})".format("$uplimitmarket"))]
         names += ["$uplimitmarket0"]
 
-        fields += [
-            template_paused.format("If(IsNull({0}), 0, {0})".format("$highmarket"))
-        ]
+        fields += [template_paused.format("If(IsNull({0}), 0, {0})".format("$highmarket"))]
         names += ["$highmarket0"]
 
-        fields += [
-            template_paused.format("If(IsNull({0}), 0, {0})".format("$lowmarket"))
-        ]
+        fields += [template_paused.format("If(IsNull({0}), 0, {0})".format("$lowmarket"))]
         names += ["$lowmarket0"]
 
         return fields, names

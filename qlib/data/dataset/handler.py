@@ -79,9 +79,7 @@ class DataHandler(Serializable):
         """
 
         # Setup data loader
-        assert (
-            data_loader is not None
-        )  # to make start_time end_time could have None default value
+        assert data_loader is not None  # to make start_time end_time could have None default value
         self.logger = get_module_logger(self.__class__.__name__)
         # what data source to load data
         self.data_loader = init_instance_by_config(
@@ -252,17 +250,13 @@ class DataHandler(Serializable):
                 # FIXME: fetching by time first will be more friendly to `proc_func`
                 # Copy in case of `proc_func` changing the data inplace....
                 data_df = proc_func(
-                    fetch_df_by_index(
-                        data_df, selector, level, fetch_orig=self.fetch_orig
-                    ).copy()
+                    fetch_df_by_index(data_df, selector, level, fetch_orig=self.fetch_orig).copy()
                 )
                 data_df = fetch_df_by_col(data_df, col_set)
             else:
                 # Fetch column  first will be more friendly to SepDataFrame
                 data_df = fetch_df_by_col(data_df, col_set)
-                data_df = fetch_df_by_index(
-                    data_df, selector, level, fetch_orig=self.fetch_orig
-                )
+                data_df = fetch_df_by_index(data_df, selector, level, fetch_orig=self.fetch_orig)
         elif isinstance(data_storage, BaseHandlerStorage):
             if not data_storage.is_proc_func_supported():
                 if proc_func is not None:
@@ -314,9 +308,7 @@ class DataHandler(Serializable):
         df = fetch_df_by_col(df, col_set)
         return df.columns.to_list()
 
-    def get_range_selector(
-        self, cur_date: Union[pd.Timestamp, str], periods: int
-    ) -> slice:
+    def get_range_selector(self, cur_date: Union[pd.Timestamp, str], periods: int) -> slice:
         """
         get range selector by number of periods
 
@@ -569,9 +561,7 @@ class DataHandlerLP(DataHandler):
         # shared data processors
         # 1) assign
         _shared_df = self._data
-        if not self._is_proc_readonly(
-            self.shared_processors
-        ):  # avoid modifying the original data
+        if not self._is_proc_readonly(self.shared_processors):  # avoid modifying the original data
             _shared_df = _shared_df.copy()
         # 2) process
         _shared_df = self._run_proc_l(
@@ -581,9 +571,7 @@ class DataHandlerLP(DataHandler):
         # data for inference
         # 1) assign
         _infer_df = _shared_df
-        if not self._is_proc_readonly(
-            self.infer_processors
-        ):  # avoid modifying the original data
+        if not self._is_proc_readonly(self.infer_processors):  # avoid modifying the original data
             _infer_df = _infer_df.copy()
         # 2) process
         _infer_df = self._run_proc_l(
@@ -601,9 +589,7 @@ class DataHandlerLP(DataHandler):
             _learn_df = _infer_df
         else:
             raise NotImplementedError(f"This type of input is not supported")
-        if not self._is_proc_readonly(
-            self.learn_processors
-        ):  # avoid modifying the original  data
+        if not self._is_proc_readonly(self.learn_processors):  # avoid modifying the original  data
             _learn_df = _learn_df.copy()
         # 2) process
         _learn_df = self._run_proc_l(
@@ -630,9 +616,7 @@ class DataHandlerLP(DataHandler):
                 processor.config(**processor_kwargs)
 
     # init type
-    IT_FIT_SEQ = (
-        "fit_seq"  # the input of `fit` will be the output of the previous processor
-    )
+    IT_FIT_SEQ = "fit_seq"  # the input of `fit` will be the output of the previous processor
     IT_FIT_IND = "fit_ind"  # the input of `fit` will be the original df
     IT_LS = "load_state"  # The state of the object has been load by pickle
 
@@ -643,9 +627,7 @@ class DataHandlerLP(DataHandler):
 
         return hashlib.md5(config_str.encode("utf-8")).hexdigest()[0:8]
 
-    def setup_data(
-        self, init_type: str = IT_FIT_SEQ, enable_cache: bool = True, **kwargs
-    ):
+    def setup_data(self, init_type: str = IT_FIT_SEQ, enable_cache: bool = True, **kwargs):
         """
         Set up the data in case of running initialization for multiple time
 
@@ -672,27 +654,17 @@ class DataHandlerLP(DataHandler):
             if os.path.isdir(cache_dir):
                 self.logger.info(f"{cache_dir} exists. Trying to load from it")
                 try:
-                    self._data = pickle.load(
-                        open(os.path.join(cache_dir, "_data.pkl"), "rb")
-                    )
-                    self._infer = pickle.load(
-                        open(os.path.join(cache_dir, "_infer.pkl"), "rb")
-                    )
-                    self._learn = pickle.load(
-                        open(os.path.join(cache_dir, "_learn.pkl"), "rb")
-                    )
-                    self.logger.info(
-                        f"Successfully loaded cached data from {cache_dir}"
-                    )
+                    self._data = pickle.load(open(os.path.join(cache_dir, "_data.pkl"), "rb"))
+                    self._infer = pickle.load(open(os.path.join(cache_dir, "_infer.pkl"), "rb"))
+                    self._learn = pickle.load(open(os.path.join(cache_dir, "_learn.pkl"), "rb"))
+                    self.logger.info(f"Successfully loaded cached data from {cache_dir}")
                     return
                 except:
                     self.logger.info(
                         f"{cache_dir} is not a valid cache directory, returning to setup from scratch"
                     )
             else:
-                self.logger.info(
-                    f"{cache_dir} does not exist. Returning to setup from scratch"
-                )
+                self.logger.info(f"{cache_dir} does not exist. Returning to setup from scratch")
 
         # init raw data
         super().setup_data(**kwargs)
@@ -716,17 +688,11 @@ class DataHandlerLP(DataHandler):
             os.makedirs(cache_dir, exist_ok=True)
             with filelock.FileLock(os.path.join(cache_dir, "lock")):
                 if not os.path.exists(os.path.join(cache_dir, "_data.pkl")):
-                    pickle.dump(
-                        self._data, open(os.path.join(cache_dir, "_data.pkl"), "wb")
-                    )
+                    pickle.dump(self._data, open(os.path.join(cache_dir, "_data.pkl"), "wb"))
                 if not os.path.exists(os.path.join(cache_dir, "_infer.pkl")):
-                    pickle.dump(
-                        self._infer, open(os.path.join(cache_dir, "_infer.pkl"), "wb")
-                    )
+                    pickle.dump(self._infer, open(os.path.join(cache_dir, "_infer.pkl"), "wb"))
                 if not os.path.exists(os.path.join(cache_dir, "_learn.pkl")):
-                    pickle.dump(
-                        self._learn, open(os.path.join(cache_dir, "_learn.pkl"), "wb")
-                    )
+                    pickle.dump(self._learn, open(os.path.join(cache_dir, "_learn.pkl"), "wb"))
                 if not os.path.exists(os.path.join(cache_dir, "config.json")):
                     json.dump(
                         self.config_dict,

@@ -24,9 +24,7 @@ class ScoreFileModel(Model):
         self.pred = pred_test
 
     def get_data_with_date(self, date, **kwargs):
-        score = self.pred.loc(axis=0)[
-            :, date
-        ]  # (stock_id, trade_date) multi_index, score in pdate
+        score = self.pred.loc(axis=0)[:, date]  # (stock_id, trade_date) multi_index, score in pdate
         score_series = score.reset_index(level="datetime", drop=True)[
             "score"
         ]  # pd.Series ; index:stock_id, data: score
@@ -38,9 +36,7 @@ class ScoreFileModel(Model):
     def score(self, x_test, **kwargs):
         return
 
-    def fit(
-        self, x_train, y_train, x_valid, y_valid, w_train=None, w_valid=None, **kwargs
-    ):
+    def fit(self, x_train, y_train, x_valid, y_valid, w_train=None, w_valid=None, **kwargs):
         return
 
     def save(self, fname, **kwargs):

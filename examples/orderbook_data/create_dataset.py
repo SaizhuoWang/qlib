@@ -119,9 +119,7 @@ def add_one_stock_daily_data(filepath, type, exchange_place, arc, date):
     if str.lower(type) == "orderqueue":
         ## extract ab1~ab50
         df["ab"] = [
-            ",".join(
-                [str(int(row["ab" + str(i + 1)])) for i in range(0, row["ab_items"])]
-            )
+            ",".join([str(int(row["ab" + str(i + 1)])) for i in range(0, row["ab_items"])])
             for timestamp, row in df.iterrows()
         ]
         df = df.drop(columns=["ab" + str(i) for i in range(1, 51)])
@@ -149,9 +147,7 @@ def add_one_stock_daily_data_wrapper(filepath, type, exchange_place, index, date
     try:
         if index % 100 == 0:
             print("index = {}, filepath = {}".format(index, filepath))
-        error_index_list = add_one_stock_daily_data(
-            filepath, type, exchange_place, arc, date
-        )
+        error_index_list = add_one_stock_daily_data(filepath, type, exchange_place, arc, date)
         if error_index_list is not None and len(error_index_list) > 0:
             f = open(
                 os.path.join(
@@ -160,20 +156,14 @@ def add_one_stock_daily_data_wrapper(filepath, type, exchange_place, index, date
                 ),
                 "a+",
             )
-            f.write(
-                "{}, {}, {}\n".format(
-                    filepath, error_index_list, exchange_place + "_" + code
-                )
-            )
+            f.write("{}, {}, {}\n".format(filepath, error_index_list, exchange_place + "_" + code))
             f.close()
 
     except Exception as e:
         info = traceback.format_exc()
         print("error:" + str(e))
         f = open(
-            os.path.join(
-                LOG_FILE_PATH, "temp_fail_{0}_{1}_{2}.txt".format(pid, date, type)
-            ),
+            os.path.join(LOG_FILE_PATH, "temp_fail_{0}_{1}_{2}.txt".format(pid, date, type)),
             "a+",
         )
         f.write("fail:" + str(filepath) + "\n" + str(e) + "\n" + str(info) + "\n")
@@ -191,9 +181,7 @@ def add_data(tick_date, doc_type, stock_name_dict):
         return
     try:
         begin_time = time.time()
-        os.system(
-            f"cp {DATABASE_PATH}/{tick_date + '_{}.tar.gz'.format(doc_type)} {DATA_PATH}/"
-        )
+        os.system(f"cp {DATABASE_PATH}/{tick_date + '_{}.tar.gz'.format(doc_type)} {DATA_PATH}/")
 
         os.system(
             f"tar -xvzf {DATA_PATH}/{tick_date + '_{}.tar.gz'.format(doc_type)} -C {DATA_PATH}/ {tick_date + '_' + doc_type}/SH"
@@ -210,12 +198,8 @@ def add_data(tick_date, doc_type, stock_name_dict):
 
         print("tick_date={}".format(tick_date))
 
-        temp_data_path_sh = os.path.join(
-            DATA_PATH, tick_date + "_" + doc_type, "SH", tick_date
-        )
-        temp_data_path_sz = os.path.join(
-            DATA_PATH, tick_date + "_" + doc_type, "SZ", tick_date
-        )
+        temp_data_path_sh = os.path.join(DATA_PATH, tick_date + "_" + doc_type, "SH", tick_date)
+        temp_data_path_sz = os.path.join(DATA_PATH, tick_date + "_" + doc_type, "SZ", tick_date)
         is_files_exist = {
             "sh": os.path.exists(temp_data_path_sh),
             "sz": os.path.exists(temp_data_path_sz),
@@ -238,13 +222,7 @@ def add_data(tick_date, doc_type, stock_name_dict):
         sz_file_nums = len(sz_files) if is_files_exist["sz"] else 0
         sh_files = (
             (
-                set(
-                    [
-                        i.split(".csv")[0]
-                        for i in os.listdir(temp_data_path_sh)
-                        if i[0] == "6"
-                    ]
-                )
+                set([i.split(".csv")[0] for i in os.listdir(temp_data_path_sh) if i[0] == "6"])
                 & set(stock_name_dict["SH"])
             )
             if is_files_exist["sh"]
@@ -253,13 +231,8 @@ def add_data(tick_date, doc_type, stock_name_dict):
         sh_file_nums = len(sh_files) if is_files_exist["sh"] else 0
         print("sz_file_nums:{}, sh_file_nums:{}".format(sz_file_nums, sh_file_nums))
 
-        f = (DATA_INFO_PATH / "data_info_log_{}_{}".format(doc_type, tick_date)).open(
-            "w+"
-        )
-        f.write(
-            "sz:{}, sh:{}, date:{}:".format(sz_file_nums, sh_file_nums, tick_date)
-            + "\n"
-        )
+        f = (DATA_INFO_PATH / "data_info_log_{}_{}".format(doc_type, tick_date)).open("w+")
+        f.write("sz:{}, sh:{}, date:{}:".format(sz_file_nums, sh_file_nums, tick_date) + "\n")
         f.close()
 
         if sh_file_nums > 0:
@@ -290,10 +263,9 @@ def add_data(tick_date, doc_type, stock_name_dict):
         os.system(f"rm -f {DATA_PATH}/{tick_date + '_{}.tar.gz'.format(doc_type)}")
         os.system(f"rm -rf {DATA_PATH}/{tick_date + '_' + doc_type}")
         total_time = time.time() - begin_time
-        f = (
-            DATA_FINISH_INFO_PATH
-            / "data_info_finish_log_{}_{}".format(doc_type, tick_date)
-        ).open("w+")
+        f = (DATA_FINISH_INFO_PATH / "data_info_finish_log_{}_{}".format(doc_type, tick_date)).open(
+            "w+"
+        )
         f.write(
             "finish: date:{}, consume_time:{}, end_time: {}".format(
                 tick_date, total_time, time.time()
@@ -363,16 +335,8 @@ class DSCreator:
             stock_name_list = [lines.split("\t")[0] for lines in f.readlines()]
             f.close()
             stock_name_dict = {
-                "SH": [
-                    stock_name[2:]
-                    for stock_name in stock_name_list
-                    if "SH" in stock_name
-                ],
-                "SZ": [
-                    stock_name[2:]
-                    for stock_name in stock_name_list
-                    if "SZ" in stock_name
-                ],
+                "SH": [stock_name[2:] for stock_name in stock_name_list if "SH" in stock_name],
+                "SZ": [stock_name[2:] for stock_name in stock_name_list if "SZ" in stock_name],
             }
 
             lib_name = get_library_name(doc_type)

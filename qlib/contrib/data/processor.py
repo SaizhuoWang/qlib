@@ -60,18 +60,12 @@ class ConfigSectionProcessor(Processor):
         # Features
         cols = df_focus.columns[df_focus.columns.str.contains("^KLEN|^KLOW|^KUP")]
         df_focus[cols] = (
-            df_focus[cols]
-            .apply(lambda x: x**0.25)
-            .groupby(level="datetime")
-            .apply(_feature_norm)
+            df_focus[cols].apply(lambda x: x**0.25).groupby(level="datetime").apply(_feature_norm)
         )
 
         cols = df_focus.columns[df_focus.columns.str.contains("^KLOW2|^KUP2")]
         df_focus[cols] = (
-            df_focus[cols]
-            .apply(lambda x: x**0.5)
-            .groupby(level="datetime")
-            .apply(_feature_norm)
+            df_focus[cols].apply(lambda x: x**0.5).groupby(level="datetime").apply(_feature_norm)
         )
 
         _cols = [
@@ -98,22 +92,15 @@ class ConfigSectionProcessor(Processor):
         ]
         pat = "|".join(["^" + x for x in _cols])
         cols = df_focus.columns[
-            df_focus.columns.str.contains(pat)
-            & (~df_focus.columns.isin(["HIGH0", "LOW0"]))
+            df_focus.columns.str.contains(pat) & (~df_focus.columns.isin(["HIGH0", "LOW0"]))
         ]
         df_focus[cols] = df_focus[cols].groupby(level="datetime").apply(_feature_norm)
 
-        cols = df_focus.columns[
-            df_focus.columns.str.contains("^STD|^VOLUME|^VMA|^VSTD")
-        ]
-        df_focus[cols] = (
-            df_focus[cols].apply(np.log).groupby(level="datetime").apply(_feature_norm)
-        )
+        cols = df_focus.columns[df_focus.columns.str.contains("^STD|^VOLUME|^VMA|^VSTD")]
+        df_focus[cols] = df_focus[cols].apply(np.log).groupby(level="datetime").apply(_feature_norm)
 
         cols = df_focus.columns[df_focus.columns.str.contains("^RSQR")]
-        df_focus[cols] = (
-            df_focus[cols].fillna(0).groupby(level="datetime").apply(_feature_norm)
-        )
+        df_focus[cols] = df_focus[cols].fillna(0).groupby(level="datetime").apply(_feature_norm)
 
         cols = df_focus.columns[df_focus.columns.str.contains("^MAX|^HIGH0")]
         df_focus[cols] = (
@@ -132,16 +119,11 @@ class ConfigSectionProcessor(Processor):
         )
 
         cols = df_focus.columns[df_focus.columns.str.contains("^CORR|^CORD")]
-        df_focus[cols] = (
-            df_focus[cols].apply(np.exp).groupby(level="datetime").apply(_feature_norm)
-        )
+        df_focus[cols] = df_focus[cols].apply(np.exp).groupby(level="datetime").apply(_feature_norm)
 
         cols = df_focus.columns[df_focus.columns.str.contains("^WVMA")]
         df_focus[cols] = (
-            df_focus[cols]
-            .apply(np.log1p)
-            .groupby(level="datetime")
-            .apply(_feature_norm)
+            df_focus[cols].apply(np.log1p).groupby(level="datetime").apply(_feature_norm)
         )
 
         df[selected_cols] = df_focus.values

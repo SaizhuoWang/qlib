@@ -233,9 +233,7 @@ def resam_ts_data(
     if isinstance(feature.index, pd.MultiIndex):
         if callable(method):
             method_func = method
-            return feature.groupby(level="instrument").apply(
-                method_func, **method_kwargs
-            )
+            return feature.groupby(level="instrument").apply(method_func, **method_kwargs)
         elif isinstance(method, str):
             return getattr(feature.groupby(level="instrument"), method)(**method_kwargs)
     else:
@@ -263,11 +261,7 @@ def get_valid_value(series, last=True):
     Nan | float
         the first/last valid value
     """
-    return (
-        series.fillna(method="ffill").iloc[-1]
-        if last
-        else series.fillna(method="bfill").iloc[0]
-    )
+    return series.fillna(method="ffill").iloc[-1] if last else series.fillna(method="bfill").iloc[0]
 
 
 def _ts_data_valid(ts_feature, last=False):
@@ -277,9 +271,7 @@ def _ts_data_valid(ts_feature, last=False):
     elif isinstance(ts_feature, pd.Series):
         return get_valid_value(ts_feature, last=last)
     else:
-        raise TypeError(
-            f"ts_feature should be pd.DataFrame/Series, not {type(ts_feature)}"
-        )
+        raise TypeError(f"ts_feature should be pd.DataFrame/Series, not {type(ts_feature)}")
 
 
 ts_data_last = partial(_ts_data_valid, last=True)

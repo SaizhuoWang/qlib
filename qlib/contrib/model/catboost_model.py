@@ -42,17 +42,13 @@ class CatBoostModel(Model, FeatureInt):
             data_key=DataHandlerLP.DK_L,
         )
         if df_train.empty or df_valid.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
         x_train, y_train = df_train["feature"], df_train["label"]
         x_valid, y_valid = df_valid["feature"], df_valid["label"]
 
         # CatBoost needs 1D array as its label
         if y_train.values.ndim == 2 and y_train.values.shape[1] == 1:
-            y_train_1d, y_valid_1d = np.squeeze(y_train.values), np.squeeze(
-                y_valid.values
-            )
+            y_train_1d, y_valid_1d = np.squeeze(y_train.values), np.squeeze(y_valid.values)
         else:
             raise ValueError("CatBoost doesn't support multi-label training")
 
@@ -85,9 +81,7 @@ class CatBoostModel(Model, FeatureInt):
     def predict(self, dataset: DatasetH, segment: Union[Text, slice] = "test"):
         if self.model is None:
             raise ValueError("model is not fitted yet!")
-        x_test = dataset.prepare(
-            segment, col_set="feature", data_key=DataHandlerLP.DK_I
-        )
+        x_test = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
         return pd.Series(self.model.predict(x_test.values), index=x_test.index)
 
     def get_feature_importance(self, *args, **kwargs) -> pd.Series:

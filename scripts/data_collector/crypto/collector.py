@@ -106,9 +106,7 @@ class CryptoCollector(BaseCollector):
 
     def init_datetime(self):
         if self.interval == self.INTERVAL_1min:
-            self.start_datetime = max(
-                self.start_datetime, self.DEFAULT_START_DATETIME_1MIN
-            )
+            self.start_datetime = max(self.start_datetime, self.DEFAULT_START_DATETIME_1MIN)
         elif self.interval == self.INTERVAL_1d:
             pass
         else:
@@ -136,13 +134,10 @@ class CryptoCollector(BaseCollector):
         error_msg = f"{symbol}-{interval}-{start}-{end}"
         try:
             cg = CoinGeckoAPI()
-            data = cg.get_coin_market_chart_by_id(
-                id=symbol, vs_currency="usd", days="max"
-            )
+            data = cg.get_coin_market_chart_by_id(id=symbol, vs_currency="usd", days="max")
             _resp = pd.DataFrame(columns=["date"] + list(data.keys()))
             _resp["date"] = [
-                dt.fromtimestamp(mktime(time.localtime(x[0] / 1000)))
-                for x in data["prices"]
+                dt.fromtimestamp(mktime(time.localtime(x[0] / 1000))) for x in data["prices"]
             ]
             for key in data.keys():
                 _resp[key] = [x[1] for x in data[key]]
@@ -218,9 +213,7 @@ class CryptoNormalize(BaseNormalize):
             df = df.reindex(
                 pd.DataFrame(index=calendar_list)
                 .loc[
-                    pd.Timestamp(df.index.min())
-                    .date() : pd.Timestamp(df.index.max())
-                    .date()
+                    pd.Timestamp(df.index.min()).date() : pd.Timestamp(df.index.max()).date()
                     + pd.Timedelta(hours=23, minutes=59)
                 ]
                 .index
@@ -243,9 +236,7 @@ class CryptoNormalize1d(CryptoNormalize):
 
 
 class Run(BaseRun):
-    def __init__(
-        self, source_dir=None, normalize_dir=None, max_workers=1, interval="1d"
-    ):
+    def __init__(self, source_dir=None, normalize_dir=None, max_workers=1, interval="1d"):
         """
 
         Parameters
@@ -311,9 +302,7 @@ class Run(BaseRun):
             max_collector_count, delay, start, end, check_data_length, limit_nums
         )
 
-    def normalize_data(
-        self, date_field_name: str = "date", symbol_field_name: str = "symbol"
-    ):
+    def normalize_data(self, date_field_name: str = "date", symbol_field_name: str = "symbol"):
         """normalize data
 
         Parameters

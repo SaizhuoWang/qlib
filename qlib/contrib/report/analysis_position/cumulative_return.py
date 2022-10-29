@@ -35,9 +35,7 @@ def _get_cum_return_data_with_position(
         end_date=end_date,
     ).copy()
 
-    _cumulative_return_df["label"] = (
-        _cumulative_return_df["label"] - _cumulative_return_df["bench"]
-    )
+    _cumulative_return_df["label"] = _cumulative_return_df["label"] - _cumulative_return_df["bench"]
     _cumulative_return_df = _cumulative_return_df.dropna()
     df_gp = _cumulative_return_df.groupby(level="datetime")
     result_list = []
@@ -116,9 +114,7 @@ def _get_figure_with_position(
         sub_graph_data = [
             (
                 "cum_{}".format(_t_name),
-                dict(
-                    row=1, col=1, graph_kwargs={"mode": "lines+markers", "xaxis": "x3"}
-                ),
+                dict(row=1, col=1, graph_kwargs={"mode": "lines+markers", "xaxis": "x3"}),
             ),
             (
                 "{}_weight".format(
@@ -271,9 +267,7 @@ def cumulative_return_graph(
     position = copy.deepcopy(position)
     report_normal = report_normal.copy()
     label_data.columns = ["label"]
-    _figures = _get_figure_with_position(
-        position, report_normal, label_data, start_date, end_date
-    )
+    _figures = _get_figure_with_position(position, report_normal, label_data, start_date, end_date)
     if show_notebook:
         BaseGraph.show_graph_in_notebook(_figures)
     else:

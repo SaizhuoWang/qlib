@@ -26,9 +26,7 @@ class MultiSegRecord(RecordTemp):
         super().__init__(recorder=recorder)
         if not isinstance(dataset, qlib_dataset.DatasetH):
             raise ValueError(
-                "The type of dataset is not DatasetH instead of {:}".format(
-                    type(dataset)
-                )
+                "The type of dataset is not DatasetH instead of {:}".format(type(dataset))
             )
         self.model = model
         self.dataset = dataset

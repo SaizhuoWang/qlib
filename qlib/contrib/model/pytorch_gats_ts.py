@@ -27,10 +27,7 @@ class DailyBatchSampler(Sampler):
         self.data_source = data_source
         # calculate number of samples in each batch
         self.daily_count = (
-            pd.Series(index=self.data_source.get_index())
-            .groupby("datetime")
-            .size()
-            .values
+            pd.Series(index=self.data_source.get_index()).groupby("datetime").size().values
         )
         self.daily_index = np.roll(
             np.cumsum(self.daily_count), 1
@@ -152,18 +149,14 @@ class GATs(Model):
             base_model=self.base_model,
         )
         self.logger.info("model:\n{:}".format(self.GAT_model))
-        self.logger.info(
-            "model size: {:.4f} MB".format(count_parameters(self.GAT_model))
-        )
+        self.logger.info("model size: {:.4f} MB".format(count_parameters(self.GAT_model)))
 
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(self.GAT_model.parameters(), lr=self.lr)
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.GAT_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         self.fitted = False
         self.GAT_model.to(self.device)
@@ -260,9 +253,7 @@ class GATs(Model):
             "valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
         )
         if dl_train.empty or dl_valid.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
 
         dl_train.config(fillna_type="ffill+bfill")  # process nan brought by dataloader
         dl_valid.config(fillna_type="ffill+bfill")  # process nan brought by dataloader
@@ -304,9 +295,7 @@ class GATs(Model):
 
         if self.model_path is not None:
             self.logger.info("Loading pretrained model...")
-            pretrained_model.load_state_dict(
-                torch.load(self.model_path, map_location=self.device)
-            )
+            pretrained_model.load_state_dict(torch.load(self.model_path, map_location=self.device))
 
         model_dict = self.GAT_model.state_dict()
         pretrained_dict = {
@@ -355,9 +344,7 @@ class GATs(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        dl_test = dataset.prepare(
-            "test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I
-        )
+        dl_test = dataset.prepare("test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I)
         dl_test.config(fillna_type="ffill+bfill")
         sampler_test = DailyBatchSampler(dl_test)
         test_loader = DataLoader(dl_test, sampler=sampler_test, num_workers=self.n_jobs)
@@ -378,9 +365,7 @@ class GATs(Model):
 
 
 class GATModel(nn.Module):
-    def __init__(
-        self, d_feat=6, hidden_size=64, num_layers=2, dropout=0.0, base_model="GRU"
-    ):
+    def __init__(self, d_feat=6, hidden_size=64, num_layers=2, dropout=0.0, base_model="GRU"):
         super().__init__()
 
         if base_model == "GRU":

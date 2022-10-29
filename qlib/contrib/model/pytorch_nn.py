@@ -148,9 +148,7 @@ class DNNModelPytorch(Model):
             self.dnn_model = init_model
 
         self.logger.info("model:\n{:}".format(self.dnn_model))
-        self.logger.info(
-            "model size: {:.4f} MB".format(count_parameters(self.dnn_model))
-        )
+        self.logger.info("model size: {:.4f} MB".format(count_parameters(self.dnn_model)))
 
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(
@@ -161,9 +159,7 @@ class DNNModelPytorch(Model):
                 self.dnn_model.parameters(), lr=self.lr, weight_decay=self.weight_decay
             )
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         if scheduler == "default":
             # Reduce learning rate when loss has stopped decrease
@@ -308,9 +304,7 @@ class DNNModelPytorch(Model):
                         if self.eval_train_metric:
                             metric_train = (
                                 self.get_metric(
-                                    self._nn_predict(
-                                        all_t["x"]["train"], return_cpu=False
-                                    ),
+                                    self._nn_predict(all_t["x"]["train"], return_cpu=False),
                                     all_t["y"]["train"].reshape(-1),
                                     all_df["y"]["train"].index,
                                 )
@@ -354,9 +348,7 @@ class DNNModelPytorch(Model):
 
         if has_valid:
             # restore the optimal parameters after training
-            self.dnn_model.load_state_dict(
-                torch.load(save_path, map_location=self.device)
-            )
+            self.dnn_model.load_state_dict(torch.load(save_path, map_location=self.device))
         if self.use_gpu:
             torch.cuda.empty_cache()
 
@@ -407,9 +399,7 @@ class DNNModelPytorch(Model):
     def predict(self, dataset: DatasetH, segment: Union[Text, slice] = "test"):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
-        x_test_pd = dataset.prepare(
-            segment, col_set="feature", data_key=DataHandlerLP.DK_I
-        )
+        x_test_pd = dataset.prepare(segment, col_set="feature", data_key=DataHandlerLP.DK_I)
         preds = self._nn_predict(x_test_pd)
         return pd.Series(preds.reshape(-1), index=x_test_pd.index)
 
@@ -423,15 +413,11 @@ class DNNModelPytorch(Model):
         with unpack_archive_with_buffer(buffer) as model_dir:
             # Get model name
             _model_name = os.path.splitext(
-                list(
-                    filter(lambda x: x.startswith("model.bin"), os.listdir(model_dir))
-                )[0]
+                list(filter(lambda x: x.startswith("model.bin"), os.listdir(model_dir)))[0]
             )[0]
             _model_path = os.path.join(model_dir, _model_name)
             # Load model
-            self.dnn_model.load_state_dict(
-                torch.load(_model_path, map_location=self.device)
-            )
+            self.dnn_model.load_state_dict(torch.load(_model_path, map_location=self.device))
         self.fitted = True
 
 
@@ -485,9 +471,7 @@ class Net(nn.Module):
     def _weight_init(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                nn.init.kaiming_normal_(
-                    m.weight, a=0.1, mode="fan_in", nonlinearity="leaky_relu"
-                )
+                nn.init.kaiming_normal_(m.weight, a=0.1, mode="fan_in", nonlinearity="leaky_relu")
 
     def forward(self, x):
         cur_output = x

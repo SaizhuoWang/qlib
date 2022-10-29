@@ -155,9 +155,7 @@ class PortfolioOptimizer(BaseOptimizer):
         w /= w.sum()
         return w
 
-    def _optimize_gmv(
-        self, S: np.ndarray, w0: Optional[np.ndarray] = None
-    ) -> np.ndarray:
+    def _optimize_gmv(self, S: np.ndarray, w0: Optional[np.ndarray] = None) -> np.ndarray:
         """optimize global minimum variance portfolio
 
         This method solves the following optimization problem
@@ -165,9 +163,7 @@ class PortfolioOptimizer(BaseOptimizer):
             s.t. w >= 0, sum(w) == 1
         where `S` is the covariance matrix.
         """
-        return self._solve(
-            len(S), self._get_objective_gmv(S), *self._get_constrains(w0)
-        )
+        return self._solve(len(S), self._get_objective_gmv(S), *self._get_constrains(w0))
 
     def _optimize_mvo(
         self,
@@ -183,13 +179,9 @@ class PortfolioOptimizer(BaseOptimizer):
         where `S` is the covariance matrix, `u` is the expected returns,
         and `lamb` is the risk aversion parameter.
         """
-        return self._solve(
-            len(S), self._get_objective_mvo(S, r), *self._get_constrains(w0)
-        )
+        return self._solve(len(S), self._get_objective_mvo(S, r), *self._get_constrains(w0))
 
-    def _optimize_rp(
-        self, S: np.ndarray, w0: Optional[np.ndarray] = None
-    ) -> np.ndarray:
+    def _optimize_rp(self, S: np.ndarray, w0: Optional[np.ndarray] = None) -> np.ndarray:
         """optimize risk parity portfolio
 
         This method solves the following optimization problem
@@ -263,9 +255,7 @@ class PortfolioOptimizer(BaseOptimizer):
 
         return bounds, cons
 
-    def _solve(
-        self, n: int, obj: Callable, bounds: so.Bounds, cons: List
-    ) -> np.ndarray:
+    def _solve(self, n: int, obj: Callable, bounds: so.Bounds, cons: List) -> np.ndarray:
         """solve optimization
 
         Args:
@@ -285,9 +275,7 @@ class PortfolioOptimizer(BaseOptimizer):
 
         # solve
         x0 = np.ones(n) / n  # init results
-        sol = so.minimize(
-            wrapped_obj, x0, bounds=bounds, constraints=cons, tol=self.tol
-        )
+        sol = so.minimize(wrapped_obj, x0, bounds=bounds, constraints=cons, tol=self.tol)
         if not sol.success:
             warnings.warn(f"optimization not success ({sol.status})")
 

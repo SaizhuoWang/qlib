@@ -76,9 +76,7 @@ class PortfolioMetrics:
         self.init_bench(freq=freq, benchmark_config=benchmark_config)
 
     def init_vars(self) -> None:
-        self.accounts: dict = (
-            OrderedDict()
-        )  # account position value for each trade time
+        self.accounts: dict = OrderedDict()  # account position value for each trade time
         self.returns: dict = OrderedDict()  # daily return rate for each trade time
         self.total_turnovers: dict = OrderedDict()  # total turnover for each trade time
         self.turnovers: dict = OrderedDict()  # turnover for each trade time
@@ -96,9 +94,7 @@ class PortfolioMetrics:
         self.bench = self._cal_benchmark(self.benchmark_config, self.freq)
 
     @staticmethod
-    def _cal_benchmark(
-        benchmark_config: Optional[dict], freq: str
-    ) -> Optional[pd.Series]:
+    def _cal_benchmark(benchmark_config: Optional[dict], freq: str) -> Optional[pd.Series]:
         if benchmark_config is None:
             return None
         benchmark = benchmark_config.get("benchmark", CSI300_BENCH)
@@ -194,9 +190,7 @@ class PortfolioMetrics:
                 "Both trade_end_time and bench_value is None, benchmark is not usable."
             )
         elif bench_value is None:
-            bench_value = self._sample_benchmark(
-                self.bench, trade_start_time, trade_end_time
-            )
+            bench_value = self._sample_benchmark(self.bench, trade_start_time, trade_end_time)
 
         # update pm data
         self.accounts[trade_start_time] = account_value
@@ -287,9 +281,7 @@ class Indicator:
 
     """
 
-    def __init__(
-        self, order_indicator_cls: Type[BaseOrderIndicator] = NumpyOrderIndicator
-    ) -> None:
+    def __init__(self, order_indicator_cls: Type[BaseOrderIndicator] = NumpyOrderIndicator) -> None:
         self.order_indicator_cls = order_indicator_cls
 
         # order indicator is metrics for a single order for a specific step
@@ -312,9 +304,7 @@ class Indicator:
         self.order_indicator_his[trade_start_time] = self.get_order_indicator()
         self.trade_indicator_his[trade_start_time] = self.get_trade_indicator()
 
-    def _update_order_trade_info(
-        self, trade_info: List[Tuple[Order, float, float, float]]
-    ) -> None:
+    def _update_order_trade_info(self, trade_info: List[Tuple[Order, float, float, float]]) -> None:
         amount = dict()
         deal_amount = dict()
         trade_price = dict()
@@ -352,15 +342,11 @@ class Indicator:
 
         self.order_indicator.transfer(func, "ffr")
 
-    def update_order_indicators(
-        self, trade_info: List[Tuple[Order, float, float, float]]
-    ) -> None:
+    def update_order_indicators(self, trade_info: List[Tuple[Order, float, float, float]]) -> None:
         self._update_order_trade_info(trade_info=trade_info)
         self._update_order_fulfill_rate()
 
-    def _agg_order_trade_info(
-        self, inner_order_indicators: List[BaseOrderIndicator]
-    ) -> None:
+    def _agg_order_trade_info(self, inner_order_indicators: List[BaseOrderIndicator]) -> None:
         # calculate total trade amount with each inner order indicator.
         def trade_amount_func(deal_amount, trade_price):
             return deal_amount * trade_price
@@ -547,9 +533,7 @@ class Indicator:
             self.order_indicator.assign("base_volume", base_volume.to_dict())
             self.order_indicator.assign(
                 "base_price",
-                (
-                    (bp_all_multi_data * bv_all_multi_data).sum(axis=1) / base_volume
-                ).to_dict(),
+                ((bp_all_multi_data * bv_all_multi_data).sum(axis=1) / base_volume).to_dict(),
             )
 
     def _agg_order_price_advantage(self) -> None:
@@ -584,9 +568,7 @@ class Indicator:
         )  # TODO
         self._agg_order_price_advantage()
 
-    def _cal_trade_fulfill_rate(
-        self, method: str = "mean"
-    ) -> Optional[BaseSingleMetric]:
+    def _cal_trade_fulfill_rate(self, method: str = "mean") -> Optional[BaseSingleMetric]:
         if method == "mean":
             return self.order_indicator.transfer(
                 lambda ffr: ffr.mean(),
@@ -604,20 +586,16 @@ class Indicator:
         else:
             raise ValueError(f"method {method} is not supported!")
 
-    def _cal_trade_price_advantage(
-        self, method: str = "mean"
-    ) -> Optional[BaseSingleMetric]:
+    def _cal_trade_price_advantage(self, method: str = "mean") -> Optional[BaseSingleMetric]:
         if method == "mean":
             return self.order_indicator.transfer(lambda pa: pa.mean())
         elif method == "amount_weighted":
             return self.order_indicator.transfer(
-                lambda pa, deal_amount: (pa * deal_amount.abs()).sum()
-                / (deal_amount.abs().sum()),
+                lambda pa, deal_amount: (pa * deal_amount.abs()).sum() / (deal_amount.abs().sum()),
             )
         elif method == "value_weighted":
             return self.order_indicator.transfer(
-                lambda pa, trade_value: (pa * trade_value.abs()).sum()
-                / (trade_value.abs().sum()),
+                lambda pa, trade_value: (pa * trade_value.abs()).sum() / (trade_value.abs().sum()),
             )
         else:
             raise ValueError(f"method {method} is not supported!")
@@ -655,9 +633,7 @@ class Indicator:
         show_indicator = indicator_config.get("show_indicator", False)
         ffr_config = indicator_config.get("ffr_config", {})
         pa_config = indicator_config.get("pa_config", {})
-        fulfill_rate = self._cal_trade_fulfill_rate(
-            method=ffr_config.get("weight_method", "mean")
-        )
+        fulfill_rate = self._cal_trade_fulfill_rate(method=ffr_config.get("weight_method", "mean"))
         price_advantage = self._cal_trade_price_advantage(
             method=pa_config.get("weight_method", "mean")
         )

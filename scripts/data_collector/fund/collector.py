@@ -76,9 +76,7 @@ class FundCollector(BaseCollector):
 
     def init_datetime(self):
         if self.interval == self.INTERVAL_1min:
-            self.start_datetime = max(
-                self.start_datetime, self.DEFAULT_START_DATETIME_1MIN
-            )
+            self.start_datetime = max(self.start_datetime, self.DEFAULT_START_DATETIME_1MIN)
         elif self.interval == self.INTERVAL_1d:
             pass
         else:
@@ -113,9 +111,7 @@ class FundCollector(BaseCollector):
                 startDate=start,
                 endDate=end,
             )
-            resp = requests.get(
-                url, headers={"referer": "http://fund.eastmoney.com/110022.html"}
-            )
+            resp = requests.get(url, headers={"referer": "http://fund.eastmoney.com/110022.html"})
 
             if resp.status_code != 200:
                 raise ValueError("request error")
@@ -198,9 +194,7 @@ class FundNormalize(BaseNormalize):
             df = df.reindex(
                 pd.DataFrame(index=calendar_list)
                 .loc[
-                    pd.Timestamp(df.index.min())
-                    .date() : pd.Timestamp(df.index.max())
-                    .date()
+                    pd.Timestamp(df.index.min()).date() : pd.Timestamp(df.index.max()).date()
                     + pd.Timedelta(hours=23, minutes=59)
                 ]
                 .index
@@ -308,9 +302,7 @@ class Run(BaseRun):
             max_collector_count, delay, start, end, check_data_length, limit_nums
         )
 
-    def normalize_data(
-        self, date_field_name: str = "date", symbol_field_name: str = "symbol"
-    ):
+    def normalize_data(self, date_field_name: str = "date", symbol_field_name: str = "symbol"):
         """normalize data
 
         Parameters

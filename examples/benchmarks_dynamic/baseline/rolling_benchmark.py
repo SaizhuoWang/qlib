@@ -43,9 +43,7 @@ class RollingBenchmark:
                 / "workflow_config_lightgbm_Alpha158.yaml"
             )
             # dump the processed data on to disk for later loading to speed up the processing
-            h_path = DIRNAME / "lightgbm_alpha158_handler_horizon{}.pkl".format(
-                self.horizon
-            )
+            h_path = DIRNAME / "lightgbm_alpha158_handler_horizon{}.pkl".format(self.horizon)
         elif self.model_type == "linear":
             conf_path = (
                 DIRNAME.parent.parent
@@ -53,9 +51,7 @@ class RollingBenchmark:
                 / "Linear"
                 / "workflow_config_linear_Alpha158.yaml"
             )
-            h_path = DIRNAME / "linear_alpha158_handler_horizon{}.pkl".format(
-                self.horizon
-            )
+            h_path = DIRNAME / "linear_alpha158_handler_horizon{}.pkl".format(self.horizon)
         else:
             raise AssertionError("Model type is not supported!")
         with conf_path.open("r") as f:
@@ -113,9 +109,7 @@ class RollingBenchmark:
             for rt_cls in SigAnaRecord, PortAnaRecord:
                 rt = rt_cls(recorder=rec, skip_existing=True)
                 rt.generate()
-        print(
-            f"Your evaluation results can be found in the experiment named `{self.COMB_EXP}`."
-        )
+        print(f"Your evaluation results can be found in the experiment named `{self.COMB_EXP}`.")
 
     def run_all(self):
         # the results will be  save in mlruns.

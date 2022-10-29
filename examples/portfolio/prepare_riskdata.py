@@ -41,9 +41,7 @@ def prepare_data(riskdata_root="./riskdata", T=240, start_time="2016-01-01"):
         ret.clip(ret.quantile(0.025), ret.quantile(0.975), axis=1, inplace=True)
 
         # run risk model
-        F, cov_b, var_u = riskmodel.predict(
-            ret, is_price=False, return_decomposed_components=True
-        )
+        F, cov_b, var_u = riskmodel.predict(ret, is_price=False, return_decomposed_components=True)
 
         # save risk data
         root = riskdata_root + "/" + date.strftime("%Y%m%d")

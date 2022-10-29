@@ -211,14 +211,10 @@ class RollingStrategy(OnlineStrategy):
         if len(rec_list) == 0:
             return rec_list, None
         max_test = max(
-            rec.load_object("task")["dataset"]["kwargs"]["segments"]["test"]
-            for rec in rec_list
+            rec.load_object("task")["dataset"]["kwargs"]["segments"]["test"] for rec in rec_list
         )
         latest_rec = []
         for rec in rec_list:
-            if (
-                rec.load_object("task")["dataset"]["kwargs"]["segments"]["test"]
-                == max_test
-            ):
+            if rec.load_object("task")["dataset"]["kwargs"]["segments"]["test"] == max_test:
                 latest_rec.append(rec)
         return latest_rec, max_test

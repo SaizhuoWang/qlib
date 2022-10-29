@@ -39,9 +39,7 @@ def generate_qlib_calendar(date_list: List[str], freq: str) -> List[str]:
         return date_list
     elif freq == "1min":
         date_list = generate_minutes_calendar_from_daily(date_list, freq=freq).tolist()
-        return list(
-            map(lambda x: pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S"), date_list)
-        )
+        return list(map(lambda x: pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S"), date_list))
     else:
         raise ValueError(f"Unsupported freq: {freq}")
 

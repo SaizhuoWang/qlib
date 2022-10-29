@@ -64,11 +64,7 @@ def cal_mean_std(results) -> dict:
                 if len(results[fn][metric]) > 1
                 else results[fn][metric][0]
             )
-            std = (
-                statistics.stdev(results[fn][metric])
-                if len(results[fn][metric]) > 1
-                else 0
-            )
+            std = statistics.stdev(results[fn][metric]) if len(results[fn][metric]) > 1 else 0
             mean_std[fn][metric] = [mean, std]
     return mean_std
 
@@ -83,9 +79,7 @@ def create_env():
     python_path = env_path / "bin" / "python"  # TODO: FIX ME!
     sys.stderr.write("\n")
     # get anaconda activate path
-    conda_activate = (
-        Path(os.environ["CONDA_PREFIX"]) / "bin" / "activate"
-    )  # TODO: FIX ME!
+    conda_activate = Path(os.environ["CONDA_PREFIX"]) / "bin" / "activate"  # TODO: FIX ME!
     return temp_dir, env_path, python_path, conda_activate
 
 
@@ -430,8 +424,7 @@ class ModelRunner:
         # move results folder
         shutil.move(
             exp_folder_name,
-            exp_folder_name
-            + f"_{dataset}_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}",
+            exp_folder_name + f"_{dataset}_{datetime.now().strftime('%Y-%m-%d_%H:%M:%S')}",
         )
         shutil.move(
             "table.md",

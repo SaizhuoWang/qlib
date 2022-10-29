@@ -147,9 +147,7 @@ def read_period_data(
     # find the first index of linked revisions
     if last_period_index is None:
         with open(index_path, "rb") as fi:
-            (first_year,) = struct.unpack(
-                PERIOD_DTYPE, fi.read(struct.calcsize(PERIOD_DTYPE))
-            )
+            (first_year,) = struct.unpack(PERIOD_DTYPE, fi.read(struct.calcsize(PERIOD_DTYPE)))
             all_periods = np.fromfile(fi, dtype=INDEX_DTYPE)
         offset = get_period_offset(first_year, period, quarterly)
         _next = all_periods[offset]
@@ -317,9 +315,7 @@ def get_module_by_module_path(module_path: Union[str, ModuleType]):
                 "",
                 re.sub("[^0-9a-zA-Z_]", "", module_path[:-3].replace("/", "_")),
             )
-            module_spec = importlib.util.spec_from_file_location(
-                module_name, module_path
-            )
+            module_spec = importlib.util.spec_from_file_location(module_name, module_path)
             module = importlib.util.module_from_spec(module_spec)
             sys.modules[module_name] = module
             module_spec.loader.exec_module(module)
@@ -396,15 +392,11 @@ def get_callable_kwargs(
     return _callable, kwargs
 
 
-get_cls_kwargs = (
-    get_callable_kwargs  # NOTE: this is for compatibility for the previous version
-)
+get_cls_kwargs = get_callable_kwargs  # NOTE: this is for compatibility for the previous version
 
 
 def init_instance_by_config(
-    config: Union[
-        str, dict, object, Path
-    ],  # TODO: use a user-defined type to replace this Union.
+    config: Union[str, dict, object, Path],  # TODO: use a user-defined type to replace this Union.
     default_module=None,
     accept_types: Union[type, Tuple[type]] = (),
     try_kwargs: Dict = {},
@@ -582,9 +574,7 @@ def is_tradable_date(cur_date):
     """
     from ..data import D  # pylint: disable=C0415
 
-    return str(cur_date.date()) == str(
-        D.calendar(start_time=cur_date, future=True)[0].date()
-    )
+    return str(cur_date.date()) == str(D.calendar(start_time=cur_date, future=True)[0].date())
 
 
 def get_date_range(trading_date, left_shift=0, right_shift=0, future=False):
@@ -984,9 +974,7 @@ def fill_placeholder(config: dict, config_extend: dict):
                 else:
                     m = re.match(r"<(?P<name_path>[^<>]+)>", now_item[key])
                     if m is not None:
-                        now_item[key] = get_item_from_obj(
-                            config, m.groupdict()["name_path"]
-                        )
+                        now_item[key] = get_item_from_obj(config, m.groupdict()["name_path"])
     return config
 
 

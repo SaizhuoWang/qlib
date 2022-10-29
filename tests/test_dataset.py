@@ -55,9 +55,7 @@ class TestDataset(TestAutoData):
                 "test": ("2017-01-01", "2020-08-01"),
             },
         )
-        tsds_train = tsdh.prepare(
-            "train", data_key=DataHandlerLP.DK_L
-        )  # Test the correctness
+        tsds_train = tsdh.prepare("train", data_key=DataHandlerLP.DK_L)  # Test the correctness
         tsds = tsdh.prepare("valid", data_key=DataHandlerLP.DK_L)
 
         t = time.time()

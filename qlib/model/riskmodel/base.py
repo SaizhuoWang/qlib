@@ -71,9 +71,7 @@ class RiskModel(BaseModel):
         else:
             if isinstance(X.index, pd.MultiIndex):
                 if isinstance(X, pd.DataFrame):
-                    X = X.iloc[:, 0].unstack(
-                        level="instrument"
-                    )  # always use the first column
+                    X = X.iloc[:, 0].unstack(level="instrument")  # always use the first column
                 else:
                     X = X.unstack(level="instrument")
             else:
@@ -96,8 +94,7 @@ class RiskModel(BaseModel):
         # return decomposed components if needed
         if return_decomposed_components:
             assert (
-                "return_decomposed_components"
-                in inspect.getfullargspec(self._predict).args
+                "return_decomposed_components" in inspect.getfullargspec(self._predict).args
             ), "This risk model does not support return decomposed components of the covariance matrix "
 
             F, cov_b, var_u = self._predict(

@@ -139,9 +139,7 @@ class MemCache:
         """
 
         size_limit = (
-            C.mem_cache_size_limit
-            if mem_cache_size_limit is None
-            else mem_cache_size_limit
+            C.mem_cache_size_limit if mem_cache_size_limit is None else mem_cache_size_limit
         )
         limit_type = C.mem_cache_limit_type if limit_type is None else limit_type
 
@@ -231,9 +229,7 @@ class CacheUtils:
                     raise KeyError("Unknown meta keyword") from key_e
                 pickle.dump(d, f, protocol=C.dump_protocol_version)
         except Exception as e:
-            get_module_logger("CacheUtils").warning(
-                f"visit {cache_path} cache error: {e}"
-            )
+            get_module_logger("CacheUtils").warning(f"visit {cache_path} cache error: {e}")
 
     @staticmethod
     def acquire(lock, lock_name):
@@ -282,9 +278,7 @@ class CacheUtils:
     @staticmethod
     @contextlib.contextmanager
     def writer_lock(redis_t, lock_name):
-        current_cache_wlock = redis_lock.Lock(
-            redis_t, f"{lock_name}-wlock", id=CacheUtils.LOCK_ID
-        )
+        current_cache_wlock = redis_lock.Lock(redis_t, f"{lock_name}-wlock", id=CacheUtils.LOCK_ID)
         CacheUtils.acquire(current_cache_wlock, lock_name)
         try:
             yield
@@ -345,27 +339,21 @@ class ExpressionCache(BaseProviderCache):
         try:
             return self._expression(instrument, field, start_time, end_time, freq)
         except NotImplementedError:
-            return self.provider.expression(
-                instrument, field, start_time, end_time, freq
-            )
+            return self.provider.expression(instrument, field, start_time, end_time, freq)
 
     def _uri(self, instrument, field, start_time, end_time, freq):
         """Get expression cache file uri.
 
         Override this method to define how to get expression cache file uri corresponding to users' own cache mechanism.
         """
-        raise NotImplementedError(
-            "Implement this function to match your own cache mechanism"
-        )
+        raise NotImplementedError("Implement this function to match your own cache mechanism")
 
     def _expression(self, instrument, field, start_time, end_time, freq):
         """Get expression data using cache.
 
         Override this method to define how to get expression data corresponding to users' own cache mechanism.
         """
-        raise NotImplementedError(
-            "Implement this method if you want to use expression cache"
-        )
+        raise NotImplementedError("Implement this method if you want to use expression cache")
 
     def update(self, cache_uri: Union[str, Path], freq: str = "day"):
         """Update expression cache to latest calendar.
@@ -453,9 +441,7 @@ class DatasetCache(BaseProviderCache):
 
         Override this method to define how to get dataset cache file uri corresponding to users' own cache mechanism.
         """
-        raise NotImplementedError(
-            "Implement this function to match your own cache mechanism"
-        )
+        raise NotImplementedError("Implement this function to match your own cache mechanism")
 
     def _dataset(
         self,
@@ -471,9 +457,7 @@ class DatasetCache(BaseProviderCache):
 
         Override this method to define how to get feature dataset corresponding to users' own cache mechanism.
         """
-        raise NotImplementedError(
-            "Implement this method if you want to use dataset feature cache"
-        )
+        raise NotImplementedError("Implement this method if you want to use dataset feature cache")
 
     def _dataset_uri(
         self,
@@ -550,18 +534,14 @@ class DiskExpressionCache(ExpressionCache):
         self.remote = kwargs.get("remote", False)
 
     def get_cache_dir(self, freq: str = None) -> Path:
-        return super(DiskExpressionCache, self).get_cache_dir(
-            C.features_cache_dir_name, freq
-        )
+        return super(DiskExpressionCache, self).get_cache_dir(C.features_cache_dir_name, freq)
 
     def _uri(self, instrument, field, start_time, end_time, freq):
         field = remove_fields_space(field)
         instrument = str(instrument).lower()
         return hash_args(instrument, field, freq)
 
-    def _expression(
-        self, instrument, field, start_time=None, end_time=None, freq="day"
-    ):
+    def _expression(self, instrument, field, start_time=None, end_time=None, freq="day"):
         _cache_uri = self._uri(
             instrument=instrument,
             field=field,
@@ -576,9 +556,7 @@ class DiskExpressionCache(ExpressionCache):
 
         _calendar = Cal.calendar(freq=freq)
 
-        _, _, start_index, end_index = Cal.locate_index(
-            start_time, end_time, freq, future=False
-        )
+        _, _, start_index, end_index = Cal.locate_index(start_time, end_time, freq, future=False)
 
         if self.check_cache_exists(cache_path, suffix_list=[".meta"]):
             """
@@ -633,9 +611,7 @@ class DiskExpressionCache(ExpressionCache):
                     return series
             else:
                 # If the expression is a raw feature(such as $close, $open)
-                return self.provider.expression(
-                    instrument, field, start_time, end_time, freq
-                )
+                return self.provider.expression(instrument, field, start_time, end_time, freq)
 
     def gen_expression_cache(
         self, expression_data, cache_path, instrument, field, freq, last_update
@@ -669,15 +645,11 @@ class DiskExpressionCache(ExpressionCache):
         cp_cache_uri = self.get_cache_dir(freq).joinpath(sid).joinpath(cache_uri)
         meta_path = cp_cache_uri.with_suffix(".meta")
         if not self.check_cache_exists(cp_cache_uri, suffix_list=[".meta"]):
-            self.logger.info(
-                f"The cache {cp_cache_uri} has corrupted. It will be removed"
-            )
+            self.logger.info(f"The cache {cp_cache_uri} has corrupted. It will be removed")
             self.clear_cache(cp_cache_uri)
             return 2
 
-        with CacheUtils.writer_lock(
-            self.r, f"{str(C.dpm.get_data_uri())}:expression-{cache_uri}"
-        ):
+        with CacheUtils.writer_lock(self.r, f"{str(C.dpm.get_data_uri())}:expression-{cache_uri}"):
             with meta_path.open("rb") as f:
                 d = pickle.load(f)
             instrument = d["info"]["instrument"]
@@ -690,9 +662,7 @@ class DiskExpressionCache(ExpressionCache):
 
             whole_calendar = Cal.calendar(start_time=None, end_time=None, freq=freq)
             # calendar since last updated.
-            new_calendar = Cal.calendar(
-                start_time=last_update_time, end_time=None, freq=freq
-            )
+            new_calendar = Cal.calendar(start_time=last_update_time, end_time=None, freq=freq)
 
             # get append data
             if len(new_calendar) <= 1:
@@ -762,14 +732,10 @@ class DiskDatasetCache(DatasetCache):
         )
 
     def get_cache_dir(self, freq: str = None) -> Path:
-        return super(DiskDatasetCache, self).get_cache_dir(
-            C.dataset_cache_dir_name, freq
-        )
+        return super(DiskDatasetCache, self).get_cache_dir(C.dataset_cache_dir_name, freq)
 
     @classmethod
-    def read_data_from_cache(
-        cls, cache_path: Union[str, Path], start_time, end_time, fields
-    ):
+    def read_data_from_cache(cls, cache_path: Union[str, Path], start_time, end_time, fields):
         """read_cache_from
 
         This function can read data from the disk cache dataset
@@ -851,9 +817,7 @@ class DiskDatasetCache(DatasetCache):
                     self.r, f"{str(C.dpm.get_data_uri(freq))}:dataset-{_cache_uri}"
                 ):
                     CacheUtils.visit(cache_path)
-                    features = self.read_data_from_cache(
-                        cache_path, start_time, end_time, fields
-                    )
+                    features = self.read_data_from_cache(cache_path, start_time, end_time, fields)
             elif disk_cache == 2:
                 gen_flag = True
         else:
@@ -890,9 +854,7 @@ class DiskDatasetCache(DatasetCache):
             # The client will load the cache data by itself.
             from .data import LocalDatasetProvider  # pylint: disable=C0415
 
-            LocalDatasetProvider.multi_cache_walker(
-                instruments, fields, start_time, end_time, freq
-            )
+            LocalDatasetProvider.multi_cache_walker(instruments, fields, start_time, end_time, freq)
             return ""
         # FIXME: The cache after resample, when read again and intercepted with end_time, results in incomplete data date
         if inst_processors:
@@ -1071,12 +1033,8 @@ class DiskDatasetCache(DatasetCache):
 
         # write cache data
         with pd.HDFStore(str(cache_path.with_suffix(".data"))) as store:
-            cache_to_orig_map = dict(
-                zip(remove_fields_space(features.columns), features.columns)
-            )
-            orig_to_cache_map = dict(
-                zip(features.columns, remove_fields_space(features.columns))
-            )
+            cache_to_orig_map = dict(zip(remove_fields_space(features.columns), features.columns))
+            orig_to_cache_map = dict(zip(features.columns, remove_fields_space(features.columns)))
             cache_features = features[list(cache_to_orig_map.values())].rename(
                 columns=orig_to_cache_map
             )
@@ -1098,9 +1056,7 @@ class DiskDatasetCache(DatasetCache):
         }
         with cache_path.with_suffix(".meta").open("wb") as f:
             pickle.dump(meta, f, protocol=C.dump_protocol_version)
-        cache_path.with_suffix(".meta").chmod(
-            stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH
-        )
+        cache_path.with_suffix(".meta").chmod(stat.S_IRWXU | stat.S_IRGRP | stat.S_IROTH)
         # write index file
         im = DiskDatasetCache.IndexManager(cache_path)
         index_data = im.build_index_from_data(features)
@@ -1117,16 +1073,12 @@ class DiskDatasetCache(DatasetCache):
         cp_cache_uri = self.get_cache_dir(freq).joinpath(cache_uri)
         meta_path = cp_cache_uri.with_suffix(".meta")
         if not self.check_cache_exists(cp_cache_uri):
-            self.logger.info(
-                f"The cache {cp_cache_uri} has corrupted. It will be removed"
-            )
+            self.logger.info(f"The cache {cp_cache_uri} has corrupted. It will be removed")
             self.clear_cache(cp_cache_uri)
             return 2
 
         im = DiskDatasetCache.IndexManager(cp_cache_uri)
-        with CacheUtils.writer_lock(
-            self.r, f"{str(C.dpm.get_data_uri())}:dataset-{cache_uri}"
-        ):
+        with CacheUtils.writer_lock(self.r, f"{str(C.dpm.get_data_uri())}:dataset-{cache_uri}"):
             with meta_path.open("rb") as f:
                 d = pickle.load(f)
             instruments = d["info"]["instruments"]
@@ -1148,9 +1100,7 @@ class DiskDatasetCache(DatasetCache):
 
             whole_calendar = Cal.calendar(start_time=None, end_time=None, freq=freq)
             # The calendar since last updated
-            new_calendar = Cal.calendar(
-                start_time=last_update_time, end_time=None, freq=freq
-            )
+            new_calendar = Cal.calendar(start_time=last_update_time, end_time=None, freq=freq)
 
             # get append data
             if len(new_calendar) <= 1:
@@ -1237,9 +1187,7 @@ class SimpleDatasetCache(DatasetCache):
     def __init__(self, provider):
         super(SimpleDatasetCache, self).__init__(provider)
         try:
-            self.local_cache_path: Path = (
-                Path(C["local_cache_path"]).expanduser().resolve()
-            )
+            self.local_cache_path: Path = Path(C["local_cache_path"]).expanduser().resolve()
         except (KeyError, TypeError):
             self.logger.error(
                 "Assign a local_cache_path in config if you want to use this cache mechanism"
@@ -1285,9 +1233,7 @@ class SimpleDatasetCache(DatasetCache):
     ):
         if disk_cache == 0:
             # In this case, data_set cache is configured but will not be used.
-            return self.provider.dataset(
-                instruments, fields, start_time, end_time, freq
-            )
+            return self.provider.dataset(instruments, fields, start_time, end_time, freq)
         self.local_cache_path.mkdir(exist_ok=True, parents=True)
         cache_file = self.local_cache_path.joinpath(
             self._uri(
@@ -1398,9 +1344,7 @@ class DatasetURICache(DatasetCache):
         )
         value, expire = MemCacheExpire.get_cache(H["f"], feature_uri)
         mnt_feature_uri = (
-            C.dpm.get_data_uri(freq)
-            .joinpath(C.dataset_cache_dir_name)
-            .joinpath(feature_uri)
+            C.dpm.get_data_uri(freq).joinpath(C.dataset_cache_dir_name).joinpath(feature_uri)
         )
         if value is None or expire or not mnt_feature_uri.exists():
             df, uri = self.provider.dataset(

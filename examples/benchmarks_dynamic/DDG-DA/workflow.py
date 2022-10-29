@@ -39,9 +39,7 @@ class DDGDA:
         # the horizon must match the meaning in the base task template
         self.horizon = 20
         self.meta_exp_name = "DDG-DA"
-        self.sim_task_model = (
-            sim_task_model  # The model to capture the distribution of data.
-        )
+        self.sim_task_model = sim_task_model  # The model to capture the distribution of data.
         self.forecast_model = forecast_model  # downstream forecasting models' type
 
     def get_feature_importance(self):
@@ -58,9 +56,7 @@ class DDGDA:
 
         # Because the model use numpy instead of dataframe for training lightgbm
         # So the we must use following extra steps to get the right feature importance
-        df = dataset.prepare(
-            segments=slice(None), col_set="feature", data_key=DataHandlerLP.DK_R
-        )
+        df = dataset.prepare(segments=slice(None), col_set="feature", data_key=DataHandlerLP.DK_R)
         cols = df.columns
         fi_named = {cols[int(k.split("_")[1])]: imp for k, imp in fi.to_dict().items()}
 

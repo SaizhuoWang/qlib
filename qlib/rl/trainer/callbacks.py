@@ -237,17 +237,12 @@ class Checkpoint(Callback):
         self._last_checkpoint_time: float | None = None
 
     def on_fit_end(self, trainer: Trainer, vessel: TrainingVesselBase) -> None:
-        if self.save_on_fit_end and (
-            trainer.current_iter != self._last_checkpoint_iter
-        ):
+        if self.save_on_fit_end and (trainer.current_iter != self._last_checkpoint_iter):
             self._save_checkpoint(trainer)
 
     def on_iter_end(self, trainer: Trainer, vessel: TrainingVesselBase) -> None:
         should_save_ckpt = False
-        if (
-            self.every_n_iters is not None
-            and (trainer.current_iter + 1) % self.every_n_iters == 0
-        ):
+        if self.every_n_iters is not None and (trainer.current_iter + 1) % self.every_n_iters == 0:
             should_save_ckpt = True
         if self.time_interval is not None and (
             self._last_checkpoint_time is None

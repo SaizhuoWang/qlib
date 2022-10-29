@@ -24,12 +24,8 @@ except ImportError:
     )
     raise
 except ValueError:
-    print(
-        "!!!!!!!! A error occurs when importing operators implemented based on Cython.!!!!!!!!"
-    )
-    print(
-        "!!!!!!!! They will be disabled. Please Upgrade your numpy to enable them     !!!!!!!!"
-    )
+    print("!!!!!!!! A error occurs when importing operators implemented based on Cython.!!!!!!!!")
+    print("!!!!!!!! They will be disabled. Please Upgrade your numpy to enable them     !!!!!!!!")
     # We catch this error because some platform can't upgrade there package (e.g. Kaggle)
     # https://www.kaggle.com/general/293387
     # https://www.kaggle.com/product-feedback/98562
@@ -210,9 +206,7 @@ class Mask(NpElemOperator):
         self.instrument = instrument
 
     def __str__(self):
-        return "{}({},{})".format(
-            type(self).__name__, self.feature, self.instrument.lower()
-        )
+        return "{}({},{})".format(type(self).__name__, self.feature, self.instrument.lower())
 
     def _load_internal(self, instrument, start_index, end_index, *args):
         return self.feature.load(self.instrument, start_index, end_index, *args)
@@ -262,9 +256,7 @@ class PairOperator(ExpressionOps):
         self.feature_right = feature_right
 
     def __str__(self):
-        return "{}({},{})".format(
-            type(self).__name__, self.feature_left, self.feature_right
-        )
+        return "{}({},{})".format(type(self).__name__, self.feature_left, self.feature_right)
 
     def get_longest_back_rolling(self):
         if isinstance(self.feature_left, (Expression,)):
@@ -322,15 +314,11 @@ class NpPairOperator(PairOperator):
             ]
         ), "at least one of two inputs is Expression instance"
         if isinstance(self.feature_left, (Expression,)):
-            series_left = self.feature_left.load(
-                instrument, start_index, end_index, *args
-            )
+            series_left = self.feature_left.load(instrument, start_index, end_index, *args)
         else:
             series_left = self.feature_left  # numeric value
         if isinstance(self.feature_right, (Expression,)):
-            series_right = self.feature_right.load(
-                instrument, start_index, end_index, *args
-            )
+            series_right = self.feature_right.load(instrument, start_index, end_index, *args)
         else:
             series_right = self.feature_right
         check_length = isinstance(series_left, (np.ndarray, pd.Series)) and isinstance(
@@ -678,22 +666,16 @@ class If(ExpressionOps):
         self.feature_right = feature_right
 
     def __str__(self):
-        return "If({},{},{})".format(
-            self.condition, self.feature_left, self.feature_right
-        )
+        return "If({},{},{})".format(self.condition, self.feature_left, self.feature_right)
 
     def _load_internal(self, instrument, start_index, end_index, *args):
         series_cond = self.condition.load(instrument, start_index, end_index, *args)
         if isinstance(self.feature_left, (Expression,)):
-            series_left = self.feature_left.load(
-                instrument, start_index, end_index, *args
-            )
+            series_left = self.feature_left.load(instrument, start_index, end_index, *args)
         else:
             series_left = self.feature_left
         if isinstance(self.feature_right, (Expression,)):
-            series_right = self.feature_right.load(
-                instrument, start_index, end_index, *args
-            )
+            series_right = self.feature_right.load(instrument, start_index, end_index, *args)
         else:
             series_right = self.feature_right
         series = pd.Series(
@@ -957,9 +939,7 @@ class Skew(Rolling):
 
     def __init__(self, feature, N):
         if N != 0 and N < 3:
-            raise ValueError(
-                "The rolling window size of Skewness operation should >= 3"
-            )
+            raise ValueError("The rolling window size of Skewness operation should >= 3")
         super(Skew, self).__init__(feature, N, "skew")
 
 
@@ -981,9 +961,7 @@ class Kurt(Rolling):
 
     def __init__(self, feature, N):
         if N != 0 and N < 4:
-            raise ValueError(
-                "The rolling window size of Kurtosis operation should >= 5"
-            )
+            raise ValueError("The rolling window size of Kurtosis operation should >= 5")
         super(Kurt, self).__init__(feature, N, "kurt")
 
 
@@ -1029,13 +1007,9 @@ class IdxMax(Rolling):
     def _load_internal(self, instrument, start_index, end_index, *args):
         series = self.feature.load(instrument, start_index, end_index, *args)
         if self.N == 0:
-            series = series.expanding(min_periods=1).apply(
-                lambda x: x.argmax() + 1, raw=True
-            )
+            series = series.expanding(min_periods=1).apply(lambda x: x.argmax() + 1, raw=True)
         else:
-            series = series.rolling(self.N, min_periods=1).apply(
-                lambda x: x.argmax() + 1, raw=True
-            )
+            series = series.rolling(self.N, min_periods=1).apply(lambda x: x.argmax() + 1, raw=True)
         return series
 
 
@@ -1081,13 +1055,9 @@ class IdxMin(Rolling):
     def _load_internal(self, instrument, start_index, end_index, *args):
         series = self.feature.load(instrument, start_index, end_index, *args)
         if self.N == 0:
-            series = series.expanding(min_periods=1).apply(
-                lambda x: x.argmin() + 1, raw=True
-            )
+            series = series.expanding(min_periods=1).apply(lambda x: x.argmin() + 1, raw=True)
         else:
-            series = series.rolling(self.N, min_periods=1).apply(
-                lambda x: x.argmin() + 1, raw=True
-            )
+            series = series.rolling(self.N, min_periods=1).apply(lambda x: x.argmin() + 1, raw=True)
         return series
 
 
@@ -1112,9 +1082,7 @@ class Quantile(Rolling):
         self.qscore = qscore
 
     def __str__(self):
-        return "{}({},{},{})".format(
-            type(self).__name__, self.feature, self.N, self.qscore
-        )
+        return "{}({},{},{})".format(type(self).__name__, self.feature, self.N, self.qscore)
 
     def _load_internal(self, instrument, start_index, end_index, *args):
         series = self.feature.load(instrument, start_index, end_index, *args)
@@ -1327,9 +1295,7 @@ class Rsquare(Rolling):
         if self.N == 0:
             series = pd.Series(expanding_rsquare(_series.values), index=_series.index)
         else:
-            series = pd.Series(
-                rolling_rsquare(_series.values, self.N), index=_series.index
-            )
+            series = pd.Series(rolling_rsquare(_series.values, self.N), index=_series.index)
             series.loc[
                 np.isclose(_series.rolling(self.N, min_periods=1).std(), 0, atol=2e-05)
             ] = np.nan
@@ -1395,9 +1361,7 @@ class WMA(Rolling):
         if self.N == 0:
             series = series.expanding(min_periods=1).apply(weighted_mean, raw=True)
         else:
-            series = series.rolling(self.N, min_periods=1).apply(
-                weighted_mean, raw=True
-            )
+            series = series.rolling(self.N, min_periods=1).apply(weighted_mean, raw=True)
         return series
 
 
@@ -1475,26 +1439,18 @@ class PairRolling(ExpressionOps):
         ), "at least one of two inputs is Expression instance"
 
         if isinstance(self.feature_left, Expression):
-            series_left = self.feature_left.load(
-                instrument, start_index, end_index, *args
-            )
+            series_left = self.feature_left.load(instrument, start_index, end_index, *args)
         else:
             series_left = self.feature_left  # numeric value
         if isinstance(self.feature_right, Expression):
-            series_right = self.feature_right.load(
-                instrument, start_index, end_index, *args
-            )
+            series_right = self.feature_right.load(instrument, start_index, end_index, *args)
         else:
             series_right = self.feature_right
 
         if self.N == 0:
-            series = getattr(series_left.expanding(min_periods=1), self.func)(
-                series_right
-            )
+            series = getattr(series_left.expanding(min_periods=1), self.func)(series_right)
         else:
-            series = getattr(series_left.rolling(self.N, min_periods=1), self.func)(
-                series_right
-            )
+            series = getattr(series_left.rolling(self.N, min_periods=1), self.func)(series_right)
         return series
 
     def get_longest_back_rolling(self):
@@ -1551,20 +1507,14 @@ class Corr(PairRolling):
         super(Corr, self).__init__(feature_left, feature_right, N, "corr")
 
     def _load_internal(self, instrument, start_index, end_index, *args):
-        res: pd.Series = super(Corr, self)._load_internal(
-            instrument, start_index, end_index, *args
-        )
+        res: pd.Series = super(Corr, self)._load_internal(instrument, start_index, end_index, *args)
 
         # NOTE: Load uses MemCache, so calling load again will not cause performance degradation
         series_left = self.feature_left.load(instrument, start_index, end_index, *args)
-        series_right = self.feature_right.load(
-            instrument, start_index, end_index, *args
-        )
+        series_right = self.feature_right.load(instrument, start_index, end_index, *args)
         res.loc[
             np.isclose(series_left.rolling(self.N, min_periods=1).std(), 0, atol=2e-05)
-            | np.isclose(
-                series_right.rolling(self.N, min_periods=1).std(), 0, atol=2e-05
-            )
+            | np.isclose(series_right.rolling(self.N, min_periods=1).std(), 0, atol=2e-05)
         ] = np.nan
         return res
 
@@ -1717,9 +1667,7 @@ class OpsWrapper:
 
             if not issubclass(_ops_class, (Expression,)):
                 raise TypeError(
-                    "operator must be subclass of ExpressionOps, not {}".format(
-                        _ops_class
-                    )
+                    "operator must be subclass of ExpressionOps, not {}".format(_ops_class)
                 )
 
             if _ops_class.__name__ in self._ops:

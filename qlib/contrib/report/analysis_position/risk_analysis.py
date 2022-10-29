@@ -34,9 +34,7 @@ def _get_risk_analysis_data_with_report(
             report_normal_df["return"] - report_normal_df["bench"]
         )
         analysis["excess_return_with_cost"] = risk_analysis(
-            report_normal_df["return"]
-            - report_normal_df["bench"]
-            - report_normal_df["cost"]
+            report_normal_df["return"] - report_normal_df["bench"] - report_normal_df["cost"]
         )
     analysis_df = pd.concat(analysis)  # type: pd.DataFrame
     analysis_df["date"] = date
@@ -108,9 +106,7 @@ def _get_monthly_analysis_with_feature(
     _monthly_df_gp = monthly_df.reset_index().groupby(["level_1"])
 
     _name_df = _monthly_df_gp.get_group(feature).set_index(["level_0", "level_1"])
-    _temp_df = _name_df.pivot_table(
-        index="date", values=["risk"], columns=_name_df.index
-    )
+    _temp_df = _name_df.pivot_table(index="date", values=["risk"], columns=_name_df.index)
     _temp_df.columns = map(lambda x: "_".join(x[-1]), _temp_df.columns)
     _temp_df.index = _temp_df.index.strftime("%Y-%m")
 

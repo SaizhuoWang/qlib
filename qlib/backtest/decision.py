@@ -273,34 +273,28 @@ class TradeRangeByTime(TradeRange):
             e.g. "14:30"
         """
         self.start_time = (
-            pd.Timestamp(start_time).time()
-            if isinstance(start_time, str)
-            else start_time
+            pd.Timestamp(start_time).time() if isinstance(start_time, str) else start_time
         )
-        self.end_time = (
-            pd.Timestamp(end_time).time() if isinstance(end_time, str) else end_time
-        )
+        self.end_time = pd.Timestamp(end_time).time() if isinstance(end_time, str) else end_time
         assert self.start_time < self.end_time
 
     def __call__(self, trade_calendar: TradeCalendarManager) -> Tuple[int, int]:
         if trade_calendar is None:
-            raise NotImplementedError(
-                "trade_calendar is necessary for getting TradeRangeByTime."
-            )
+            raise NotImplementedError("trade_calendar is necessary for getting TradeRangeByTime.")
 
         start_date = trade_calendar.start_time.date()
-        val_start, val_end = concat_date_time(
-            start_date, self.start_time
-        ), concat_date_time(start_date, self.end_time)
+        val_start, val_end = concat_date_time(start_date, self.start_time), concat_date_time(
+            start_date, self.end_time
+        )
         return trade_calendar.get_range_idx(val_start, val_end)
 
     def clip_time_range(
         self, start_time: pd.Timestamp, end_time: pd.Timestamp
     ) -> Tuple[pd.Timestamp, pd.Timestamp]:
         start_date = start_time.date()
-        val_start, val_end = concat_date_time(
-            start_date, self.start_time
-        ), concat_date_time(start_date, self.end_time)
+        val_start, val_end = concat_date_time(start_date, self.start_time), concat_date_time(
+            start_date, self.end_time
+        )
         # NOTE: `end_date` should not be used. Because the `end_date` is for slicing. It may be in the next day
         # Assumption: start_time and end_time is for intra-day trading. So it is OK for only using start_date
         return max(val_start, start_time), min(val_end, end_time)
@@ -369,9 +363,7 @@ class BaseTradeDecision(Generic[DecisionType]):
         """
         raise NotImplementedError(f"This type of input is not supported")
 
-    def update(
-        self, trade_calendar: TradeCalendarManager
-    ) -> Optional[BaseTradeDecision]:
+    def update(self, trade_calendar: TradeCalendarManager) -> Optional[BaseTradeDecision]:
         """
         Be called at the **start** of each step.
 
@@ -449,9 +441,7 @@ class BaseTradeDecision(Generic[DecisionType]):
                 return kwargs["default_value"]
             else:
                 # Default to get full index
-                raise NotImplementedError(
-                    f"The decision didn't provide an index range"
-                ) from e
+                raise NotImplementedError(f"The decision didn't provide an index range") from e
 
         # clip index
         if getattr(self, "total_step", None) is not None:
@@ -463,9 +453,7 @@ class BaseTradeDecision(Generic[DecisionType]):
                 logger.warning(
                     f"[{_start_idx},{_end_idx}] go beyond the total_step({self.total_step}), it will be clipped.",
                 )
-                _start_idx, _end_idx = max(0, _start_idx), min(
-                    self.total_step - 1, _end_idx
-                )
+                _start_idx, _end_idx = max(0, _start_idx), min(self.total_step - 1, _end_idx)
         return _start_idx, _end_idx
 
     def get_data_cal_range_limit(
@@ -510,9 +498,7 @@ class BaseTradeDecision(Generic[DecisionType]):
         day_start = pd.Timestamp(self.start_time.date())
         day_end = epsilon_change(day_start + pd.Timedelta(days=1))
         freq = self.strategy.trade_exchange.freq
-        _, _, day_start_idx, day_end_idx = Cal.locate_index(
-            day_start, day_end, freq=freq
-        )
+        _, _, day_start_idx, day_end_idx = Cal.locate_index(day_start, day_end, freq=freq)
         if self.trade_range is None:
             if raise_error:
                 raise NotImplementedError(f"There is no trade_range in this case")
@@ -520,9 +506,7 @@ class BaseTradeDecision(Generic[DecisionType]):
                 return 0, day_end_idx - day_start_idx
         else:
             if rtype == "full":
-                val_start, val_end = self.trade_range.clip_time_range(
-                    day_start, day_end
-                )
+                val_start, val_end = self.trade_range.clip_time_range(day_start, day_end)
             elif rtype == "step":
                 val_start, val_end = self.trade_range.clip_time_range(
                     self.start_time, self.end_time

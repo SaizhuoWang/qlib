@@ -47,9 +47,7 @@ class HyperparamOptManager:
       hyperparam_folder: Where to save optimisation outputs.
     """
 
-    def __init__(
-        self, param_ranges, fixed_params, model_folder, override_w_fixed_params=True
-    ):
+    def __init__(self, param_ranges, fixed_params, model_folder, override_w_fixed_params=True):
         """Instantiates model.
 
         Args:
@@ -139,15 +137,11 @@ class HyperparamOptManager:
 
         if invalid_fields:
             raise ValueError(
-                "Invalid Fields Found {} - Valid ones are {}".format(
-                    invalid_fields, valid_fields
-                )
+                "Invalid Fields Found {} - Valid ones are {}".format(invalid_fields, valid_fields)
             )
         if missing_fields:
             raise ValueError(
-                "Missing Fields Found {} - Valid ones are {}".format(
-                    missing_fields, valid_fields
-                )
+                "Missing Fields Found {} - Valid ones are {}".format(missing_fields, valid_fields)
             )
 
     def _get_name(self, params):
@@ -178,9 +172,7 @@ class HyperparamOptManager:
         def _get_next():
             """Returns next hyperparameter set per try."""
 
-            parameters = {
-                k: np.random.choice(self.param_ranges[k]) for k in param_range_keys
-            }
+            parameters = {k: np.random.choice(self.param_ranges[k]) for k in param_range_keys}
 
             # Adds fixed params
             for k in self.fixed_params:
@@ -289,11 +281,7 @@ class DistributedHyperparamOptManager(HyperparamOptManager):
                 )
             )
 
-        print(
-            "*** Creating hyperparameter manager for worker {} ***".format(
-                worker_number
-            )
-        )
+        print("*** Creating hyperparameter manager for worker {} ***".format(worker_number))
 
         hyperparam_folder = os.path.join(root_model_folder, str(worker_number))
         super().__init__(
@@ -445,10 +433,7 @@ class DistributedHyperparamOptManager(HyperparamOptManager):
         max_worker_num = int(np.ceil(n / batch_size))
 
         worker_idx = np.concatenate(
-            [
-                np.tile(i + 1, self.num_iterations_per_worker)
-                for i in range(max_worker_num)
-            ]
+            [np.tile(i + 1, self.num_iterations_per_worker) for i in range(max_worker_num)]
         )
 
         output["worker"] = worker_idx[: len(output)]

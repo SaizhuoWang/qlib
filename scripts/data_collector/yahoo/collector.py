@@ -94,9 +94,7 @@ class YahooCollector(BaseCollector):
 
     def init_datetime(self):
         if self.interval == self.INTERVAL_1min:
-            self.start_datetime = max(
-                self.start_datetime, self.DEFAULT_START_DATETIME_1MIN
-            )
+            self.start_datetime = max(self.start_datetime, self.DEFAULT_START_DATETIME_1MIN)
         elif self.interval == self.INTERVAL_1d:
             pass
         else:
@@ -120,9 +118,7 @@ class YahooCollector(BaseCollector):
         raise NotImplementedError("rewrite get_timezone")
 
     @staticmethod
-    def get_data_from_remote(
-        symbol, interval, start, end, show_1min_logging: bool = False
-    ):
+    def get_data_from_remote(symbol, interval, start, end, show_1min_logging: bool = False):
         error_msg = f"{symbol}-{interval}-{start}-{end}"
 
         def _show_logging_func():
@@ -242,9 +238,7 @@ class YahooCollectorCN1d(YahooCollectorCN):
                     map(
                         lambda x: x.split(","),
                         requests.get(
-                            INDEX_BENCH_URL.format(
-                                index_code=_index_code, begin=_begin, end=_end
-                            )
+                            INDEX_BENCH_URL.format(index_code=_index_code, begin=_begin, end=_end)
                         ).json()["data"]["klines"],
                     )
                 )
@@ -421,9 +415,7 @@ class YahooNormalize(BaseNormalize):
             df = df.reindex(
                 pd.DataFrame(index=calendar_list)
                 .loc[
-                    pd.Timestamp(df.index.min())
-                    .date() : pd.Timestamp(df.index.max())
-                    .date()
+                    pd.Timestamp(df.index.min()).date() : pd.Timestamp(df.index.max()).date()
                     + pd.Timedelta(hours=23, minutes=59)
                 ]
                 .index
@@ -685,12 +677,10 @@ class YahooNormalize1min(YahooNormalize, ABC):
         df = df.sort_values(self._date_field_name)
         symbol = df.iloc[0][self._symbol_field_name]
         # get 1d data from yahoo
-        _start = pd.Timestamp(df[self._date_field_name].min()).strftime(
+        _start = pd.Timestamp(df[self._date_field_name].min()).strftime(self.DAILY_FORMAT)
+        _end = (pd.Timestamp(df[self._date_field_name].max()) + pd.Timedelta(days=1)).strftime(
             self.DAILY_FORMAT
         )
-        _end = (
-            pd.Timestamp(df[self._date_field_name].max()) + pd.Timedelta(days=1)
-        ).strftime(self.DAILY_FORMAT)
         data_1d: pd.DataFrame = self.get_1d_data(symbol, _start, _end)
         data_1d = data_1d.copy()
         if data_1d is None or data_1d.empty:
@@ -701,9 +691,7 @@ class YahooNormalize1min(YahooNormalize, ABC):
             # NOTE: volume is np.nan or volume <= 0, paused = 1
             # FIXME: find a more accurate data source
             data_1d["paused"] = 0
-            data_1d.loc[
-                (data_1d["volume"].isna()) | (data_1d["volume"] <= 0), "paused"
-            ] = 1
+            data_1d.loc[(data_1d["volume"].isna()) | (data_1d["volume"] <= 0), "paused"] = 1
             data_1d = data_1d.set_index(self._date_field_name)
 
             # add factor from 1d data
@@ -713,9 +701,7 @@ class YahooNormalize1min(YahooNormalize, ABC):
             #   - data_1d.close: `data_1d.adjclose / (close for the first trading day that is not np.nan)`
             def _calc_factor(df_1d: pd.DataFrame):
                 try:
-                    _date = pd.Timestamp(
-                        pd.Timestamp(df_1d[self._date_field_name].iloc[0]).date()
-                    )
+                    _date = pd.Timestamp(pd.Timestamp(df_1d[self._date_field_name].iloc[0]).date())
                     df_1d["factor"] = (
                         data_1d.loc[_date]["close"]
                         / df_1d.loc[df_1d["close"].last_valid_index()]["close"]
@@ -734,9 +720,7 @@ class YahooNormalize1min(YahooNormalize, ABC):
                 df = df.reindex(
                     self.generate_1min_from_daily(
                         pd.to_datetime(
-                            data_1d.reset_index()[
-                                self._date_field_name
-                            ].drop_duplicates()
+                            data_1d.reset_index()[self._date_field_name].drop_duplicates()
                         )
                     )
                 )
@@ -760,9 +744,7 @@ class YahooNormalize1min(YahooNormalize, ABC):
     def calc_paused_num(self, df: pd.DataFrame):
         _symbol = df.iloc[0][self._symbol_field_name]
         df = df.copy()
-        df["_tmp_date"] = df[self._date_field_name].apply(
-            lambda x: pd.Timestamp(x).date()
-        )
+        df["_tmp_date"] = df[self._date_field_name].apply(lambda x: pd.Timestamp(x).date())
         # remove data that starts and ends with `np.nan` all day
         all_data = []
         # Record the number of consecutive trading days where the whole day is nan, to remove the last trading day where the whole day is nan
@@ -782,10 +764,7 @@ class YahooNormalize1min(YahooNormalize, ABC):
                 self._date_field_name,
                 self._symbol_field_name,
             }
-            if (
-                _df.loc[:, check_fields].isna().values.all()
-                or (_df["volume"] == 0).all()
-            ):
+            if _df.loc[:, check_fields].isna().values.all() or (_df["volume"] == 0).all():
                 all_nan_nums += 1
                 not_nan_nums = 0
                 _df["paused"] = 1
@@ -838,9 +817,7 @@ class YahooNormalize1minOffline(YahooNormalize1min):
             symbol field name, default is symbol
         """
         self.qlib_data_1d_dir = qlib_data_1d_dir
-        super(YahooNormalize1minOffline, self).__init__(
-            date_field_name, symbol_field_name
-        )
+        super(YahooNormalize1minOffline, self).__init__(date_field_name, symbol_field_name)
         self._all_1d_data = self._get_all_1d_data()
 
     def _get_1d_calendar_list(self) -> Iterable[pd.Timestamp]:
@@ -959,9 +936,7 @@ class YahooNormalizeCN1min(YahooNormalizeCN, YahooNormalize1minOffline):
         if "." not in symbol:
             _exchange = symbol[:2]
             _exchange = (
-                ("ss" if _exchange.islower() else "SS")
-                if _exchange.lower() == "sh"
-                else _exchange
+                ("ss" if _exchange.islower() else "SS") if _exchange.lower() == "sh" else _exchange
             )
             symbol = symbol[2:] + "." + _exchange
         return symbol
@@ -1108,10 +1083,7 @@ class Run(BaseRun):
             $ python collector.py normalize_data --qlib_data_1d_dir ~/.qlib/qlib_data/cn_data --source_dir ~/.qlib/stock_data/source_cn_1min --normalize_dir ~/.qlib/stock_data/normalize_cn_1min --region CN --interval 1min
         """
         if self.interval.lower() == "1min":
-            if (
-                qlib_data_1d_dir is None
-                or not Path(qlib_data_1d_dir).expanduser().exists()
-            ):
+            if qlib_data_1d_dir is None or not Path(qlib_data_1d_dir).expanduser().exists():
                 raise ValueError(
                     "If normalize 1min, the qlib_data_1d_dir parameter must be set: --qlib_data_1d_dir <user qlib 1d data >, Reference: https://github.com/microsoft/qlib/tree/main/scripts/data_collector/yahoo#automatic-update-of-daily-frequency-datafrom-yahoo-finance"
                 )
@@ -1257,14 +1229,10 @@ class Run(BaseRun):
         # start/end date
         if trading_date is None:
             trading_date = datetime.datetime.now().strftime("%Y-%m-%d")
-            logger.warning(
-                f"trading_date is None, use the current date: {trading_date}"
-            )
+            logger.warning(f"trading_date is None, use the current date: {trading_date}")
 
         if end_date is None:
-            end_date = (pd.Timestamp(trading_date) + pd.Timedelta(days=1)).strftime(
-                "%Y-%m-%d"
-            )
+            end_date = (pd.Timestamp(trading_date) + pd.Timedelta(days=1)).strftime("%Y-%m-%d")
 
         # download qlib 1d data
         qlib_data_1d_dir = str(Path(qlib_data_1d_dir).expanduser().resolve())
@@ -1307,9 +1275,7 @@ class Run(BaseRun):
             )
             return
         index_list = (
-            ["CSI100", "CSI300"]
-            if _region == "cn"
-            else ["SP500", "NASDAQ100", "DJIA", "SP400"]
+            ["CSI100", "CSI300"] if _region == "cn" else ["SP500", "NASDAQ100", "DJIA", "SP400"]
         )
         get_instruments = getattr(
             importlib.import_module(f"data_collector.{_region}_index.collector"),

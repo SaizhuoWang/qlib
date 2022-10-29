@@ -81,9 +81,7 @@ class QlibRecorder:
         try:
             yield run
         except Exception as e:
-            self.end_exp(
-                Recorder.STATUS_FA
-            )  # end the experiment if something went wrong
+            self.end_exp(Recorder.STATUS_FA)  # end the experiment if something went wrong
             raise e
         self.end_exp(Recorder.STATUS_FI)
 
@@ -477,9 +475,7 @@ class QlibRecorder:
         """
         self.get_exp().delete_recorder(recorder_id, recorder_name)
 
-    def save_objects(
-        self, local_path=None, artifact_path=None, **kwargs: Dict[Text, Any]
-    ):
+    def save_objects(self, local_path=None, artifact_path=None, **kwargs: Dict[Text, Any]):
         """
         Method for saving objects as artifacts in the experiment to the uri. It supports either saving
         from a local file/directory, or directly saving objects. User can use valid python's keywords arguments
@@ -532,9 +528,7 @@ class QlibRecorder:
             raise ValueError(
                 "You can choose only one of `local_path`(save the files in a path) or `kwargs`(pass in the objects directly)"
             )
-        self.get_exp().get_recorder(start=True).save_objects(
-            local_path, artifact_path, **kwargs
-        )
+        self.get_exp().get_recorder(start=True).save_objects(local_path, artifact_path, **kwargs)
 
     def load_object(self, name: Text):
         """

@@ -164,9 +164,9 @@ class MetaModelDS(MetaTaskModel):
         if len(meta_tasks_l[1]):
             R.log_params(
                 **dict(
-                    proxy_test_begin=meta_tasks_l[1][0].task["dataset"]["kwargs"][
-                        "segments"
-                    ]["test"]
+                    proxy_test_begin=meta_tasks_l[1][0].task["dataset"]["kwargs"]["segments"][
+                        "test"
+                    ]
                 )
             )  # debug: record when the test phase starts
 
@@ -181,9 +181,7 @@ class MetaModelDS(MetaTaskModel):
 
         # run weight with no weight
         for phase, task_list in zip(phases, meta_tasks_l):
-            self.run_epoch(
-                f"{phase}_noweight", task_list, 0, opt, {}, ignore_weight=True
-            )
+            self.run_epoch(f"{phase}_noweight", task_list, 0, opt, {}, ignore_weight=True)
             self.run_epoch(f"{phase}_init", task_list, 0, opt, {})
 
         # run training
@@ -198,9 +196,7 @@ class MetaModelDS(MetaTaskModel):
         meta_ipt = task.get_meta_input()
         weights = self.tn.twm(meta_ipt["time_perf"])
 
-        weight_s = pd.Series(
-            weights.detach().cpu().numpy(), index=task.meta_info.columns
-        )
+        weight_s = pd.Series(weights.detach().cpu().numpy(), index=task.meta_info.columns)
         task = copy.copy(task.task)  # NOTE: this is a shallow copy.
         task["reweighter"] = TimeReweighter(weight_s)
         return task

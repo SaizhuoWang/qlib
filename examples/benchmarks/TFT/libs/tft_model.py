@@ -94,9 +94,7 @@ def apply_mlp(
             tf.keras.layers.Dense(output_size, activation=output_activation)
         )(hidden)
     else:
-        hidden = tf.keras.layers.Dense(hidden_size, activation=hidden_activation)(
-            inputs
-        )
+        hidden = tf.keras.layers.Dense(hidden_size, activation=hidden_activation)(inputs)
         return tf.keras.layers.Dense(output_size, activation=output_activation)(hidden)
 
 
@@ -128,9 +126,7 @@ def apply_gating_layer(
             tf.keras.layers.Dense(hidden_layer_size, activation="sigmoid")
         )(x)
     else:
-        activation_layer = tf.keras.layers.Dense(
-            hidden_layer_size, activation=activation
-        )(x)
+        activation_layer = tf.keras.layers.Dense(hidden_layer_size, activation=activation)(x)
         gated_layer = tf.keras.layers.Dense(hidden_layer_size, activation="sigmoid")(x)
 
     return tf.keras.layers.Multiply()([activation_layer, gated_layer]), gated_layer
@@ -431,9 +427,7 @@ class TemporalFusionTransformer:
         self._input_obs_loc = json.loads(str(params["input_obs_loc"]))
         self._static_input_loc = json.loads(str(params["static_input_loc"]))
         self._known_regular_input_idx = json.loads(str(params["known_regular_inputs"]))
-        self._known_categorical_input_idx = json.loads(
-            str(params["known_categorical_inputs"])
-        )
+        self._known_categorical_input_idx = json.loads(str(params["known_categorical_inputs"]))
 
         self.column_definition = params["column_definition"]
 
@@ -501,9 +495,7 @@ class TemporalFusionTransformer:
         num_categorical_variables = len(self.category_counts)
         num_regular_variables = self.input_size - num_categorical_variables
 
-        embedding_sizes = [
-            self.hidden_layer_size for i, size in enumerate(self.category_counts)
-        ]
+        embedding_sizes = [self.hidden_layer_size for i, size in enumerate(self.category_counts)]
 
         embeddings = []
         for i in range(num_categorical_variables):
@@ -527,16 +519,13 @@ class TemporalFusionTransformer:
         )
 
         embedded_inputs = [
-            embeddings[i](categorical_inputs[Ellipsis, i])
-            for i in range(num_categorical_variables)
+            embeddings[i](categorical_inputs[Ellipsis, i]) for i in range(num_categorical_variables)
         ]
 
         # Static inputs
         if self._static_input_loc:
             static_inputs = [
-                tf.keras.layers.Dense(self.hidden_layer_size)(
-                    regular_inputs[:, 0, i : i + 1]
-                )
+                tf.keras.layers.Dense(self.hidden_layer_size)(regular_inputs[:, 0, i : i + 1])
                 for i in range(num_regular_variables)
                 if i in self._static_input_loc
             ] + [
@@ -551,9 +540,7 @@ class TemporalFusionTransformer:
 
         def convert_real_to_embedding(x):
             """Applies linear transformation for time-varying inputs."""
-            return tf.keras.layers.TimeDistributed(
-                tf.keras.layers.Dense(self.hidden_layer_size)
-            )(x)
+            return tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.hidden_layer_size))(x)
 
         # Targets
         obs_inputs = tf.keras.backend.stack(
@@ -581,9 +568,7 @@ class TemporalFusionTransformer:
                 unknown_inputs.append(e)
 
         if unknown_inputs + wired_embeddings:
-            unknown_inputs = tf.keras.backend.stack(
-                unknown_inputs + wired_embeddings, axis=-1
-            )
+            unknown_inputs = tf.keras.backend.stack(unknown_inputs + wired_embeddings, axis=-1)
         else:
             unknown_inputs = None
 
@@ -625,9 +610,7 @@ class TemporalFusionTransformer:
         """
 
         if num_samples > 0:
-            TFTDataCache.update(
-                self._batch_sampled_data(data, max_samples=num_samples), cache_key
-            )
+            TFTDataCache.update(self._batch_sampled_data(data, max_samples=num_samples), cache_key)
         else:
             TFTDataCache.update(self._batch_data(data), cache_key)
 
@@ -645,9 +628,7 @@ class TemporalFusionTransformer:
         """
 
         if max_samples < 1:
-            raise ValueError(
-                "Illegal number of samples specified! samples={}".format(max_samples)
-            )
+            raise ValueError("Illegal number of samples specified! samples={}".format(max_samples))
 
         id_col = self._get_single_col_by_type(InputTypes.ID)
         time_col = self._get_single_col_by_type(InputTypes.TIME)
@@ -676,9 +657,7 @@ class TemporalFusionTransformer:
             print("Extracting {} samples...".format(max_samples))
             ranges = [
                 valid_sampling_locations[i]
-                for i in np.random.choice(
-                    len(valid_sampling_locations), max_samples, replace=False
-                )
+                for i in np.random.choice(len(valid_sampling_locations), max_samples, replace=False)
             ]
         else:
             print(
@@ -701,9 +680,7 @@ class TemporalFusionTransformer:
             if (i + 1 % 1000) == 0:
                 print(i + 1, "of", max_samples, "samples done...")
             identifier, start_idx = tup
-            sliced = split_data_map[identifier].iloc[
-                start_idx - self.time_steps : start_idx
-            ]
+            sliced = split_data_map[identifier].iloc[start_idx - self.time_steps : start_idx]
             inputs[i, :, :] = sliced[input_cols]
             outputs[i, :, :] = sliced[[target_col]]
             time[i, :, 0] = sliced[time_col]
@@ -776,9 +753,7 @@ class TemporalFusionTransformer:
         # Combine all data
         for k in data_map:
             # Wendi: Avoid returning None when the length is not enough
-            data_map[k] = np.concatenate(
-                [i for i in data_map[k] if i is not None], axis=0
-            )
+            data_map[k] = np.concatenate([i for i in data_map[k] if i is not None], axis=0)
 
         # Shorten target so we only get decoder steps
         data_map["outputs"] = data_map["outputs"][:, self.num_encoder_steps :, :]
@@ -880,9 +855,7 @@ class TemporalFusionTransformer:
 
             transformed_embedding = concat(trans_emb_list, axis=1)
 
-            combined = tf.keras.layers.Multiply()(
-                [sparse_weights, transformed_embedding]
-            )
+            combined = tf.keras.layers.Multiply()([sparse_weights, transformed_embedding])
 
             static_vec = K.sum(combined, axis=1)
 
@@ -930,9 +903,7 @@ class TemporalFusionTransformer:
 
             flatten = K.reshape(embedding, [-1, time_steps, embedding_dim * num_inputs])
 
-            expanded_static_context = K.expand_dims(
-                static_context_variable_selection, axis=1
-            )
+            expanded_static_context = K.expand_dims(static_context_variable_selection, axis=1)
 
             # Variable selection weights
             mlp_outputs, static_gate = gated_residual_network(
@@ -961,16 +932,12 @@ class TemporalFusionTransformer:
 
             transformed_embedding = stack(trans_emb_list, axis=-1)
 
-            combined = tf.keras.layers.Multiply()(
-                [sparse_weights, transformed_embedding]
-            )
+            combined = tf.keras.layers.Multiply()([sparse_weights, transformed_embedding])
             temporal_ctx = K.sum(combined, axis=-1)
 
             return temporal_ctx, sparse_weights, static_gate
 
-        historical_features, historical_flags, _ = lstm_combine_and_mask(
-            historical_inputs
-        )
+        historical_features, historical_flags, _ = lstm_combine_and_mask(historical_inputs)
         future_features, future_flags, _ = lstm_combine_and_mask(future_inputs)
 
         # LSTM layer
@@ -1051,9 +1018,7 @@ class TemporalFusionTransformer:
         )
 
         # Final skip connection
-        decoder, _ = apply_gating_layer(
-            decoder, self.hidden_layer_size, activation=None
-        )
+        decoder, _ = apply_gating_layer(decoder, self.hidden_layer_size, activation=None)
         transformer_layer = add_and_norm([decoder, temporal_feature_layer])
 
         # Attention components for explainability
@@ -1091,9 +1056,7 @@ class TemporalFusionTransformer:
 
             self._attention_components = attention_components
 
-            adam = tf.keras.optimizers.Adam(
-                lr=self.learning_rate, clipnorm=self.max_gradient_norm
-            )
+            adam = tf.keras.optimizers.Adam(lr=self.learning_rate, clipnorm=self.max_gradient_norm)
 
             model = tf.keras.Model(inputs=all_inputs, outputs=outputs)
 
@@ -1138,9 +1101,7 @@ class TemporalFusionTransformer:
 
             quantile_loss = QuantileLossCalculator(valid_quantiles).quantile_loss
 
-            model.compile(
-                loss=quantile_loss, optimizer=adam, sample_weight_mode="temporal"
-            )
+            model.compile(loss=quantile_loss, optimizer=adam, sample_weight_mode="temporal")
 
             self._input_placeholder = all_inputs
 
@@ -1290,10 +1251,7 @@ class TemporalFusionTransformer:
 
             flat_prediction = pd.DataFrame(
                 prediction[:, :, 0],
-                columns=[
-                    "t+{}".format(i)
-                    for i in range(self.time_steps - self.num_encoder_steps)
-                ],
+                columns=["t+{}".format(i) for i in range(self.time_steps - self.num_encoder_steps)],
             )
             cols = list(flat_prediction.columns)
             flat_prediction["forecast_time"] = time[:, self.num_encoder_steps - 1, 0]
@@ -1353,14 +1311,11 @@ class TemporalFusionTransformer:
 
         # Split up inputs into batches
         batched_inputs = [
-            inputs[i * batch_size : (i + 1) * batch_size, Ellipsis]
-            for i in range(num_batches)
+            inputs[i * batch_size : (i + 1) * batch_size, Ellipsis] for i in range(num_batches)
         ]
 
         # Get attention weights, while avoiding large memory increases
-        attention_by_batch = [
-            get_batch_attention_weights(batch) for batch in batched_inputs
-        ]
+        attention_by_batch = [get_batch_attention_weights(batch) for batch in batched_inputs]
         attention_weights = {}
         for k in self._attention_components:
             attention_weights[k] = []

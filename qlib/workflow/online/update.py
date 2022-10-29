@@ -172,9 +172,7 @@ class DSBasedUpdater(RecordUpdater, metaclass=ABCMeta):
         if from_date is None:
             # dropna is for being compatible to some data with future information(e.g. label)
             # The recent label data should be updated together
-            self.last_end = (
-                self.old_data.dropna().index.get_level_values("datetime").max()
-            )
+            self.last_end = self.old_data.dropna().index.get_level_values("datetime").max()
         else:
             self.last_end = get_date_by_shift(from_date, -1, align="right")
 

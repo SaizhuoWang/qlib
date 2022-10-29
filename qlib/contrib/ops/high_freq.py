@@ -32,9 +32,7 @@ def get_calendar_day(freq="1min", future=False):
     if flag in H["c"]:
         _calendar = H["c"][flag]
     else:
-        _calendar = np.array(
-            list(map(lambda x: x.date(), Cal.load_calendar(freq, future)))
-        )
+        _calendar = np.array(list(map(lambda x: x.date(), Cal.load_calendar(freq, future))))
         H["c"][flag] = _calendar
     return _calendar
 
@@ -45,9 +43,7 @@ def get_calendar_minute(freq="day", future=False):
     if flag in H["c"]:
         _calendar = H["c"][flag]
     else:
-        _calendar = np.array(
-            list(map(lambda x: x.minute // 30, Cal.load_calendar(freq, future)))
-        )
+        _calendar = np.array(list(map(lambda x: x.minute // 30, Cal.load_calendar(freq, future))))
         H["c"][flag] = _calendar
     return _calendar
 
@@ -198,12 +194,8 @@ class Select(PairOperator):
     """
 
     def _load_internal(self, instrument, start_index, end_index, freq):
-        series_condition = self.feature_left.load(
-            instrument, start_index, end_index, freq
-        )
-        series_feature = self.feature_right.load(
-            instrument, start_index, end_index, freq
-        )
+        series_condition = self.feature_left.load(instrument, start_index, end_index, freq)
+        series_feature = self.feature_right.load(instrument, start_index, end_index, freq)
         return series_feature.loc[series_condition]
 
 

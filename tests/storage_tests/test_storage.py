@@ -23,9 +23,7 @@ QLIB_DIR.mkdir(exist_ok=True, parents=True)
 class TestStorage(TestAutoData):
     def test_calendar_storage(self):
 
-        calendar = CalendarStorage(
-            freq="day", future=False, provider_uri=self.provider_uri
-        )
+        calendar = CalendarStorage(freq="day", future=False, provider_uri=self.provider_uri)
         assert isinstance(
             calendar[:], Iterable
         ), f"{calendar.__class__.__name__}.__getitem__(s: slice) is not Iterable"
@@ -81,9 +79,7 @@ class TestStorage(TestAutoData):
 
         """
 
-        instrument = InstrumentStorage(
-            market="csi300", provider_uri=self.provider_uri, freq="day"
-        )
+        instrument = InstrumentStorage(market="csi300", provider_uri=self.provider_uri, freq="day")
 
         for inst, spans in instrument.data.items():
             assert isinstance(inst, str) and isinstance(
@@ -96,9 +92,7 @@ class TestStorage(TestAutoData):
 
         print(f"instrument['SH600000']: {instrument['SH600000']}")
 
-        instrument = InstrumentStorage(
-            market="csi300", provider_uri="not_found", freq="day"
-        )
+        instrument = InstrumentStorage(market="csi300", provider_uri="not_found", freq="day")
         with self.assertRaises(ValueError):
             print(instrument.data)
 

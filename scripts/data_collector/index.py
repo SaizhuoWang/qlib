@@ -52,13 +52,9 @@ class IndexBase:
         self.index_name = index_name
         if qlib_dir is None:
             qlib_dir = Path(__file__).resolve().parent.joinpath("qlib_data")
-        self.instruments_dir = (
-            Path(qlib_dir).expanduser().resolve().joinpath("instruments")
-        )
+        self.instruments_dir = Path(qlib_dir).expanduser().resolve().joinpath("instruments")
         self.instruments_dir.mkdir(exist_ok=True, parents=True)
-        self.cache_dir = (
-            Path(f"~/.cache/qlib/index/{self.index_name}").expanduser().resolve()
-        )
+        self.cache_dir = Path(f"~/.cache/qlib/index/{self.index_name}").expanduser().resolve()
         self.cache_dir.mkdir(exist_ok=True, parents=True)
         self._request_retry = request_retry
         self._retry_sleep = retry_sleep
@@ -153,9 +149,7 @@ class IndexBase:
             header=None,
         )
 
-    def get_changes_with_history_companies(
-        self, history_companies: pd.DataFrame
-    ) -> pd.DataFrame:
+    def get_changes_with_history_companies(self, history_companies: pd.DataFrame) -> pd.DataFrame:
         """get changes with history companies
 
         Parameters
@@ -202,9 +196,7 @@ class IndexBase:
                         pd.DataFrame(
                             [
                                 [
-                                    get_trading_date_by_shift(
-                                        self.calendar_list, _trading_date, 1
-                                    ),
+                                    get_trading_date_by_shift(self.calendar_list, _trading_date, 1),
                                     _code,
                                     self.ADD,
                                 ]
@@ -217,9 +209,7 @@ class IndexBase:
                         pd.DataFrame(
                             [
                                 [
-                                    get_trading_date_by_shift(
-                                        self.calendar_list, _trading_date, 0
-                                    ),
+                                    get_trading_date_by_shift(self.calendar_list, _trading_date, 0),
                                     _code,
                                     self.REMOVE,
                                 ]
@@ -252,9 +242,7 @@ class IndexBase:
         new_df = new_df.copy()
         logger.info("parse history companies by changes......")
         for _row in tqdm(
-            changers_df.sort_values(self.DATE_FIELD_NAME, ascending=False).itertuples(
-                index=False
-            )
+            changers_df.sort_values(self.DATE_FIELD_NAME, ascending=False).itertuples(index=False)
         ):
             if _row.type == self.ADD:
                 min_end_date = new_df.loc[

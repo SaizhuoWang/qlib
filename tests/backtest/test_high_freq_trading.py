@@ -10,9 +10,7 @@ from qlib.backtest.position import Position
 from qlib.tests import TestAutoData
 
 
-@unittest.skip(
-    "This test takes a lot of time due to the large size of high-frequency data"
-)
+@unittest.skip("This test takes a lot of time due to the large size of high-frequency data")
 class TestHFBacktest(TestAutoData):
     @classmethod
     def setUpClass(cls) -> None:

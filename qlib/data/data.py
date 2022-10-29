@@ -197,9 +197,7 @@ class InstrumentProvider(abc.ABC):
     """
 
     @staticmethod
-    def instruments(
-        market: Union[List, str] = "all", filter_pipe: Union[List, None] = None
-    ):
+    def instruments(market: Union[List, str] = "all", filter_pipe: Union[List, None] = None):
         """Get the general config dictionary for a base market adding several dynamic filters.
 
         Parameters
@@ -284,9 +282,7 @@ class InstrumentProvider(abc.ABC):
             "Subclass of InstrumentProvider must implement `list_instruments` method"
         )
 
-    def _uri(
-        self, instruments, start_time=None, end_time=None, freq="day", as_list=False
-    ):
+    def _uri(self, instruments, start_time=None, end_time=None, freq="day", as_list=False):
         return hash_args(instruments, start_time, end_time, freq, as_list)
 
     # instruments type
@@ -333,9 +329,7 @@ class FeatureProvider(abc.ABC):
         pd.Series
             data of a certain feature
         """
-        raise NotImplementedError(
-            "Subclass of FeatureProvider must implement `feature` method"
-        )
+        raise NotImplementedError("Subclass of FeatureProvider must implement `feature` method")
 
 
 class PITProvider(abc.ABC):
@@ -488,9 +482,7 @@ class DatasetProvider(abc.ABC):
         pd.DataFrame
             a pandas dataframe with <instrument, datetime> index.
         """
-        raise NotImplementedError(
-            "Subclass of DatasetProvider must implement `Dataset` method"
-        )
+        raise NotImplementedError("Subclass of DatasetProvider must implement `Dataset` method")
 
     def _uri(
         self,
@@ -608,9 +600,7 @@ class DatasetProvider(abc.ABC):
                 )
             )
         if logger is not None:
-            logger.info(
-                f"start to calculate {len(task_l)} tasks with {workers} workers"
-            )
+            logger.info(f"start to calculate {len(task_l)} tasks with {workers} workers")
         data = dict(
             zip(
                 inst_l,
@@ -622,9 +612,7 @@ class DatasetProvider(abc.ABC):
             )
         )
         if logger is not None:
-            logger.info(
-                f"finish calculating {len(task_l)} tasks with {workers} workers"
-            )
+            logger.info(f"finish calculating {len(task_l)} tasks with {workers} workers")
 
         new_data = dict()
         for inst in sorted(data.keys()):
@@ -637,9 +625,7 @@ class DatasetProvider(abc.ABC):
             data = DiskDatasetCache.cache_to_origin_data(data, column_names)
         else:
             data = pd.DataFrame(
-                index=pd.MultiIndex.from_arrays(
-                    [[], []], names=("instrument", "datetime")
-                ),
+                index=pd.MultiIndex.from_arrays([[], []], names=("instrument", "datetime")),
                 columns=column_names,
                 dtype=np.float32,
             )
@@ -688,9 +674,7 @@ class DatasetProvider(abc.ABC):
 
         for _processor in inst_processors:
             if _processor:
-                _processor_obj = init_instance_by_config(
-                    _processor, accept_types=InstProcessor
-                )
+                _processor_obj = init_instance_by_config(_processor, accept_types=InstProcessor)
                 data = _processor_obj(data, instrument=inst)
         return data
 
@@ -786,12 +770,8 @@ class LocalInstrumentProvider(InstrumentProvider, ProviderBackendMixin):
         for filter_config in filter_pipe:
             from . import filter as F  # pylint: disable=C0415
 
-            filter_t = getattr(F, filter_config["filter_type"]).from_config(
-                filter_config
-            )
-            _instruments_filtered = filter_t(
-                _instruments_filtered, start_time, end_time, freq
-            )
+            filter_t = getattr(F, filter_config["filter_type"]).from_config(filter_config)
+            _instruments_filtered = filter_t(_instruments_filtered, start_time, end_time, freq)
         # as list
         if as_list:
             return list(_instruments_filtered)
@@ -822,9 +802,7 @@ class LocalPITProvider(PITProvider):
     # TODO: Add PIT backend file storage
     # NOTE: This class is not multi-threading-safe!!!!
 
-    def period_feature(
-        self, instrument, field, start_index, end_index, cur_time, period=None
-    ):
+    def period_feature(self, instrument, field, start_index, end_index, cur_time, period=None):
         if not isinstance(cur_time, pd.Timestamp):
             raise ValueError(
                 f"Expected pd.Timestamp for `cur_time`, got '{cur_time}'. Advices: you can't query PIT data directly(e.g. '$$roewa_q'), you must use `P` operator to convert data to each day (e.g. 'P($$roewa_q)')"
@@ -858,12 +836,8 @@ class LocalPITProvider(PITProvider):
         if not field.endswith("_q") and not field.endswith("_a"):
             raise ValueError("period field must ends with '_q' or '_a'")
         quarterly = field.endswith("_q")
-        index_path = (
-            C.dpm.get_data_uri() / "financial" / instrument.lower() / f"{field}.index"
-        )
-        data_path = (
-            C.dpm.get_data_uri() / "financial" / instrument.lower() / f"{field}.data"
-        )
+        index_path = C.dpm.get_data_uri() / "financial" / instrument.lower() / f"{field}.index"
+        data_path = C.dpm.get_data_uri() / "financial" / instrument.lower() / f"{field}.data"
         if not (index_path.exists() and data_path.exists()):
             raise FileNotFoundError("No file is found. Raise exception and  ")
         # NOTE: The most significant performance loss is here.
@@ -876,9 +850,7 @@ class LocalPITProvider(PITProvider):
         data = np.fromfile(data_path, dtype=DATA_RECORDS)
 
         # find all revision periods before `cur_time`
-        cur_time_int = (
-            int(cur_time.year) * 10000 + int(cur_time.month) * 100 + int(cur_time.day)
-        )
+        cur_time_int = int(cur_time.year) * 10000 + int(cur_time.month) * 100 + int(cur_time.day)
         loc = np.searchsorted(data["date"], cur_time_int, side="right")
         if loc <= 0:
             return pd.Series()
@@ -893,8 +865,7 @@ class LocalPITProvider(PITProvider):
                 period_list = [period]
         else:
             period_list = period_list[
-                max(0, len(period_list) + start_index - 1) : len(period_list)
-                + end_index
+                max(0, len(period_list) + start_index - 1) : len(period_list) + end_index
             ]
         value = np.full((len(period_list),), np.nan, dtype=VALUE_DTYPE)
         for i, p in enumerate(period_list):
@@ -1010,9 +981,7 @@ class LocalDatasetProvider(DatasetProvider):
             cal = Cal.calendar(start_time, end_time, freq)
             if len(cal) == 0:
                 return pd.DataFrame(
-                    index=pd.MultiIndex.from_arrays(
-                        [[], []], names=("instrument", "datetime")
-                    ),
+                    index=pd.MultiIndex.from_arrays([[], []], names=("instrument", "datetime")),
                     columns=column_names,
                 )
             start_time = cal[0]
@@ -1030,9 +999,7 @@ class LocalDatasetProvider(DatasetProvider):
         return data
 
     @staticmethod
-    def multi_cache_walker(
-        instruments, fields, start_time=None, end_time=None, freq="day"
-    ):
+    def multi_cache_walker(instruments, fields, start_time=None, end_time=None, freq="day"):
         """
         This method is used to prepare the expression cache for the client.
         Then the client will load the data from expression cache by itself.
@@ -1047,11 +1014,7 @@ class LocalDatasetProvider(DatasetProvider):
         end_time = cal[-1]
         workers = max(min(C.kernels, len(instruments_d)), 1)
 
-        ParallelExt(
-            n_jobs=workers,
-            backend=C.joblib_backend,
-            maxtasksperchild=C.maxtasksperchild,
-        )(
+        ParallelExt(n_jobs=workers, backend=C.joblib_backend, maxtasksperchild=C.maxtasksperchild,)(
             delayed(LocalDatasetProvider.cache_walker)(
                 inst, start_time, end_time, freq, column_names
             )
@@ -1092,9 +1055,7 @@ class ClientCalendarProvider(CalendarProvider):
                 "future": future,
             },
             msg_queue=self.queue,
-            msg_proc_func=lambda response_content: [
-                pd.Timestamp(c) for c in response_content
-            ],
+            msg_proc_func=lambda response_content: [pd.Timestamp(c) for c in response_content],
         )
         result = self.queue.get(timeout=C["timeout"])
         return result
@@ -1204,9 +1165,7 @@ class ClientDatasetProvider(DatasetProvider):
                 cal = Cal.calendar(start_time, end_time, freq)
                 if len(cal) == 0:
                     return pd.DataFrame(
-                        index=pd.MultiIndex.from_arrays(
-                            [[], []], names=("instrument", "datetime")
-                        ),
+                        index=pd.MultiIndex.from_arrays([[], []], names=("instrument", "datetime")),
                         columns=column_names,
                     )
                 start_time = cal[0]
@@ -1269,9 +1228,7 @@ class ClientDatasetProvider(DatasetProvider):
                     return df, feature_uri
                 return df
             except AttributeError as attribute_e:
-                raise IOError(
-                    "Unable to fetch instruments from remote server!"
-                ) from attribute_e
+                raise IOError("Unable to fetch instruments from remote server!") from attribute_e
 
 
 class BaseProvider:
@@ -1285,9 +1242,7 @@ class BaseProvider:
     def calendar(self, start_time=None, end_time=None, freq="day", future=False):
         return Cal.calendar(start_time, end_time, freq, future=future)
 
-    def instruments(
-        self, market="all", filter_pipe=None, start_time=None, end_time=None
-    ):
+    def instruments(self, market="all", filter_pipe=None, start_time=None, end_time=None):
         if start_time is not None or end_time is not None:
             get_module_logger("Provider").warning(
                 "The instruments corresponds to a stock pool. "
@@ -1359,9 +1314,7 @@ class LocalProvider(BaseProvider):
         elif type == "feature":
             return DatasetD._uri(**kwargs)
 
-    def features_uri(
-        self, instruments, fields, start_time, end_time, freq, disk_cache=1
-    ):
+    def features_uri(self, instruments, fields, start_time, end_time, freq, disk_cache=1):
         """features_uri
 
         Return the uri of the generated cache of features/dataset
@@ -1373,9 +1326,7 @@ class LocalProvider(BaseProvider):
         :param end_time:
         :param freq:
         """
-        return DatasetD._dataset_uri(
-            instruments, fields, start_time, end_time, freq, disk_cache
-        )
+        return DatasetD._dataset_uri(instruments, fields, start_time, end_time, freq, disk_cache)
 
 
 class ClientProvider(BaseProvider):
@@ -1475,19 +1426,13 @@ def register_all_wrappers(C):
         # This provider is unnecessary in client provider
         _eprovider = init_instance_by_config(C.expression_provider, module)
         if getattr(C, "expression_cache", None) is not None:
-            _eprovider = init_instance_by_config(
-                C.expression_cache, module, provider=_eprovider
-            )
+            _eprovider = init_instance_by_config(C.expression_cache, module, provider=_eprovider)
         register_wrapper(ExpressionD, _eprovider, "qlib.data")
-        logger.debug(
-            f"registering ExpressionD {C.expression_provider}-{C.expression_cache}"
-        )
+        logger.debug(f"registering ExpressionD {C.expression_provider}-{C.expression_cache}")
 
     _dprovider = init_instance_by_config(C.dataset_provider, module)
     if getattr(C, "dataset_cache", None) is not None:
-        _dprovider = init_instance_by_config(
-            C.dataset_cache, module, provider=_dprovider
-        )
+        _dprovider = init_instance_by_config(C.dataset_cache, module, provider=_dprovider)
     register_wrapper(DatasetD, _dprovider, "qlib.data")
     logger.debug(f"registering DatasetD {C.dataset_provider}-{C.dataset_cache}")
 

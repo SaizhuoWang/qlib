@@ -182,25 +182,18 @@ class SingleAssetOrderExecution(Simulator[Order, SAOEState, float]):
         self.ticks_index = self.backtest_data.get_time_index()
 
         # Get time index available for trading
-        self.ticks_for_order = self._get_ticks_slice(
-            self.order.start_time, self.order.end_time
-        )
+        self.ticks_for_order = self._get_ticks_slice(self.order.start_time, self.order.end_time)
 
         self.cur_time = self.ticks_for_order[0]
         # NOTE: astype(float) is necessary in some systems.
         # this will align the precision with `.to_numpy()` in `_split_exec_vol`
         self.twap_price = float(
-            self.backtest_data.get_deal_price()
-            .loc[self.ticks_for_order]
-            .astype(float)
-            .mean()
+            self.backtest_data.get_deal_price().loc[self.ticks_for_order].astype(float).mean()
         )
 
         self.position = order.amount
 
-        metric_keys = list(
-            SAOEMetrics.__annotations__.keys()
-        )  # pylint: disable=no-member
+        metric_keys = list(SAOEMetrics.__annotations__.keys())  # pylint: disable=no-member
         # NOTE: can empty dataframe contain index?
         self.history_exec = pd.DataFrame(columns=metric_keys).set_index("datetime")
         self.history_steps = pd.DataFrame(columns=metric_keys).set_index("datetime")
@@ -255,9 +248,7 @@ class SingleAssetOrderExecution(Simulator[Order, SAOEState, float]):
                 trade_value=self.market_price * exec_vol,
                 position=ticks_position,
                 ffr=exec_vol / self.order.amount,
-                pa=price_advantage(
-                    self.market_price, self.twap_price, self.order.direction
-                ),
+                pa=price_advantage(self.market_price, self.twap_price, self.order.direction),
             ),
         )
 
@@ -275,9 +266,7 @@ class SingleAssetOrderExecution(Simulator[Order, SAOEState, float]):
                 self.env.logger.add_any(
                     "history_steps", self.history_steps, loglevel=LogLevel.DEBUG
                 )
-                self.env.logger.add_any(
-                    "history_exec", self.history_exec, loglevel=LogLevel.DEBUG
-                )
+                self.env.logger.add_any("history_exec", self.history_exec, loglevel=LogLevel.DEBUG)
 
             self.metrics = self._metrics_collect(
                 self.ticks_index[0],  # start time
@@ -331,10 +320,7 @@ class SingleAssetOrderExecution(Simulator[Order, SAOEState, float]):
         # as long as ticks_per_step is a multiple of something, each step won't cross morning and afternoon.
         next_loc = next_loc - next_loc % self.ticks_per_step
 
-        if (
-            next_loc < len(self.ticks_index)
-            and self.ticks_index[next_loc] < self.order.end_time
-        ):
+        if next_loc < len(self.ticks_index) and self.ticks_index[next_loc] < self.order.end_time:
             return self.ticks_index[next_loc]
         else:
             return self.order.end_time
@@ -352,28 +338,20 @@ class SingleAssetOrderExecution(Simulator[Order, SAOEState, float]):
 
         # get the backtest data for next interval
         self.market_vol = (
-            self.backtest_data.get_volume()
-            .loc[self.cur_time : next_time - ONE_SEC]
-            .to_numpy()
+            self.backtest_data.get_volume().loc[self.cur_time : next_time - ONE_SEC].to_numpy()
         )
         self.market_price = (
-            self.backtest_data.get_deal_price()
-            .loc[self.cur_time : next_time - ONE_SEC]
-            .to_numpy()
+            self.backtest_data.get_deal_price().loc[self.cur_time : next_time - ONE_SEC].to_numpy()
         )
 
         assert self.market_vol is not None and self.market_price is not None
 
         # split the volume equally into each minute
-        exec_vol = np.repeat(
-            exec_vol_sum / len(self.market_price), len(self.market_price)
-        )
+        exec_vol = np.repeat(exec_vol_sum / len(self.market_price), len(self.market_price))
 
         # apply the volume threshold
         market_vol_limit = (
-            self.vol_threshold * self.market_vol
-            if self.vol_threshold is not None
-            else np.inf
+            self.vol_threshold * self.market_vol if self.vol_threshold is not None else np.inf
         )
         exec_vol = np.minimum(exec_vol, market_vol_limit)  # type: ignore
 
@@ -397,9 +375,7 @@ class SingleAssetOrderExecution(Simulator[Order, SAOEState, float]):
         if np.abs(np.sum(exec_vol)) < EPS:
             exec_avg_price = 0.0
         else:
-            exec_avg_price = cast(
-                float, np.average(market_price, weights=exec_vol)
-            )  # could be nan
+            exec_avg_price = cast(float, np.average(market_price, weights=exec_vol))  # could be nan
             if hasattr(exec_avg_price, "item"):  # could be numpy scalar
                 exec_avg_price = exec_avg_price.item()  # type: ignore
 

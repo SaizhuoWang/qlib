@@ -108,9 +108,7 @@ class Trainer:
         else:
             self.loggers = []
 
-        self.loggers.append(
-            LogBuffer(self._metrics_callback, loglevel=self._min_loglevel())
-        )
+        self.loggers.append(LogBuffer(self._metrics_callback, loglevel=self._min_loglevel()))
 
         self.callbacks: list[Callback] = callbacks if callbacks is not None else []
         self.finite_env_type = finite_env_type
@@ -146,13 +144,9 @@ class Trainer:
         return {
             "vessel": self.vessel.state_dict(),
             "callbacks": {
-                name: callback.state_dict()
-                for name, callback in self.named_callbacks().items()
+                name: callback.state_dict() for name, callback in self.named_callbacks().items()
             },
-            "loggers": {
-                name: logger.state_dict()
-                for name, logger in self.named_loggers().items()
-            },
+            "loggers": {name: logger.state_dict() for name, logger in self.named_loggers().items()},
             "should_stop": self.should_stop,
             "current_iter": self.current_iter,
             "current_episode": self.current_episode,
@@ -268,9 +262,7 @@ class Trainer:
             self.vessel.test(vector_env)
         self._call_callback_hooks("on_test_end")
 
-    def venv_from_iterator(
-        self, iterator: Iterable[InitialStateType]
-    ) -> FiniteVectorEnv:
+    def venv_from_iterator(self, iterator: Iterable[InitialStateType]) -> FiniteVectorEnv:
         """Create a vectorized environment from iterator and the training vessel."""
 
         def env_factory():
@@ -305,9 +297,7 @@ class Trainer:
             self.loggers,
         )
 
-    def _metrics_callback(
-        self, on_episode: bool, on_collect: bool, log_buffer: LogBuffer
-    ) -> None:
+    def _metrics_callback(self, on_episode: bool, on_collect: bool, log_buffer: LogBuffer) -> None:
         if on_episode:
             # Update the global counter.
             self.current_episode = log_buffer.global_episode

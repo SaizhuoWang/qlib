@@ -144,9 +144,7 @@ def pred_autocorr(pred: pd.Series, lag=1, inst_col="instrument", date_col="datet
         )
     pred_ustk = pred.sort_index().unstack(inst_col)
     corr_s = {}
-    for (idx, cur), (_, prev) in zip(
-        pred_ustk.iterrows(), pred_ustk.shift(lag).iterrows()
-    ):
+    for (idx, cur), (_, prev) in zip(pred_ustk.iterrows(), pred_ustk.shift(lag).iterrows()):
         corr_s[idx] = cur.corr(prev)
     corr_s = pd.Series(corr_s).sort_index()
     return corr_s
@@ -190,9 +188,7 @@ def calc_ic(
     """
     df = pd.DataFrame({"pred": pred, "label": label})
     ic = df.groupby(date_col).apply(lambda df: df["pred"].corr(df["label"]))
-    ric = df.groupby(date_col).apply(
-        lambda df: df["pred"].corr(df["label"], method="spearman")
-    )
+    ric = df.groupby(date_col).apply(lambda df: df["pred"].corr(df["label"], method="spearman"))
     if dropna:
         return ic.dropna(), ric.dropna()
     else:

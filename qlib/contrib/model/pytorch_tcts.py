@@ -72,9 +72,7 @@ class TCTS(Model):
         self.batch_size = batch_size
         self.early_stop = early_stop
         self.loss = loss
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() else "cpu")
         self.use_gpu = torch.cuda.is_available()
         self.seed = seed
         self.input_dim = input_dim
@@ -231,9 +229,7 @@ class TCTS(Model):
             weight = self.weight_model(weight_feature)
             loc = torch.argmax(weight, 1)
             valid_loss = torch.mean((pred - label[:, abs(self.target_label)]) ** 2)
-            loss = torch.mean(
-                valid_loss * torch.log(weight[np.arange(weight.shape[0]), loc])
-            )
+            loss = torch.mean(valid_loss * torch.log(weight[np.arange(weight.shape[0]), loc]))
 
             self.weight_optimizer.zero_grad()
             loss.backward()
@@ -258,14 +254,10 @@ class TCTS(Model):
                 break
 
             feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
+                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
             )
             label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
+                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
             )
 
             pred = self.fore_model(feature)
@@ -286,9 +278,7 @@ class TCTS(Model):
             data_key=DataHandlerLP.DK_L,
         )
         if df_train.empty or df_valid.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
 
         x_train, y_train = df_train["feature"], df_train["label"]
         x_valid, y_valid = df_valid["feature"], df_valid["label"]
@@ -343,25 +333,15 @@ class TCTS(Model):
             output_dim=self.output_dim,
         )
         if self._fore_optimizer.lower() == "adam":
-            self.fore_optimizer = optim.Adam(
-                self.fore_model.parameters(), lr=self.fore_lr
-            )
+            self.fore_optimizer = optim.Adam(self.fore_model.parameters(), lr=self.fore_lr)
         elif self._fore_optimizer.lower() == "gd":
-            self.fore_optimizer = optim.SGD(
-                self.fore_model.parameters(), lr=self.fore_lr
-            )
+            self.fore_optimizer = optim.SGD(self.fore_model.parameters(), lr=self.fore_lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(self._fore_optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(self._fore_optimizer))
         if self._weight_optimizer.lower() == "adam":
-            self.weight_optimizer = optim.Adam(
-                self.weight_model.parameters(), lr=self.weight_lr
-            )
+            self.weight_optimizer = optim.Adam(self.weight_model.parameters(), lr=self.weight_lr)
         elif self._weight_optimizer.lower() == "gd":
-            self.weight_optimizer = optim.SGD(
-                self.weight_model.parameters(), lr=self.weight_lr
-            )
+            self.weight_optimizer = optim.SGD(self.weight_model.parameters(), lr=self.weight_lr)
         else:
             raise NotImplementedError(
                 "optimizer {} is not supported!".format(self._weight_optimizer)
@@ -409,9 +389,7 @@ class TCTS(Model):
         print("best loss:", best_loss, "@", best_epoch)
         best_param = torch.load(save_path + "_fore_model.bin", map_location=self.device)
         self.fore_model.load_state_dict(best_param)
-        best_param = torch.load(
-            save_path + "_weight_model.bin", map_location=self.device
-        )
+        best_param = torch.load(save_path + "_weight_model.bin", map_location=self.device)
         self.weight_model.load_state_dict(best_param)
         self.fitted = True
 
@@ -452,9 +430,7 @@ class TCTS(Model):
 
 
 class MLPModel(nn.Module):
-    def __init__(
-        self, d_feat, hidden_size=256, num_layers=3, dropout=0.0, output_dim=1
-    ):
+    def __init__(self, d_feat, hidden_size=256, num_layers=3, dropout=0.0, output_dim=1):
         super().__init__()
 
         self.mlp = nn.Sequential()

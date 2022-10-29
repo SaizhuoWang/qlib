@@ -25,9 +25,7 @@ def get_common_infra(
 ) -> CommonInfrastructure:
     # need to specify a range here for acceleration
     if cash_limit is None:
-        trade_account = Account(
-            init_cash=int(1e12), benchmark_config={}, pos_type="InfPosition"
-        )
+        trade_account = Account(init_cash=int(1e12), benchmark_config={}, pos_type="InfPosition")
     else:
         trade_account = Account(
             init_cash=cash_limit,
@@ -111,9 +109,7 @@ def get_portfolio_and_indicator(executor: BaseExecutor) -> Tuple[dict, dict]:
         key = "{}{}".format(*Freq.parse(_executor.time_per_step))
         all_indicators[
             key
-        ] = (
-            _executor.trade_account.get_trade_indicator().generate_trade_indicators_dataframe()
-        )
+        ] = _executor.trade_account.get_trade_indicator().generate_trade_indicators_dataframe()
         all_indicators[key + "_obj"] = _executor.trade_account.get_trade_indicator()
 
     return all_portfolio_metrics, all_indicators

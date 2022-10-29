@@ -92,9 +92,7 @@ class ModelSignal(SignalWCache):
 
 
 def create_signal_from(
-    obj: Union[
-        Signal, Tuple[BaseModel, Dataset], List, Dict, Text, pd.Series, pd.DataFrame
-    ],
+    obj: Union[Signal, Tuple[BaseModel, Dataset], List, Dict, Text, pd.Series, pd.DataFrame],
 ) -> Signal:
     """
     create signal from diverse information

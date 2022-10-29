@@ -126,9 +126,7 @@ class LSTM(Model):
         elif optimizer.lower() == "gd":
             self.train_optimizer = optim.SGD(self.LSTM_model.parameters(), lr=self.lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         self.fitted = False
         self.LSTM_model.to(self.device)
@@ -213,9 +211,7 @@ class LSTM(Model):
             "valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
         )
         if dl_train.empty or dl_valid.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
 
         dl_train.config(fillna_type="ffill+bfill")  # process nan brought by dataloader
         dl_valid.config(fillna_type="ffill+bfill")  # process nan brought by dataloader
@@ -290,13 +286,9 @@ class LSTM(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        dl_test = dataset.prepare(
-            "test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I
-        )
+        dl_test = dataset.prepare("test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I)
         dl_test.config(fillna_type="ffill+bfill")
-        test_loader = DataLoader(
-            dl_test, batch_size=self.batch_size, num_workers=self.n_jobs
-        )
+        test_loader = DataLoader(dl_test, batch_size=self.batch_size, num_workers=self.n_jobs)
         self.LSTM_model.eval()
         preds = []
 

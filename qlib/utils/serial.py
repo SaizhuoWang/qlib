@@ -26,7 +26,9 @@ class Serializable:
     - For examples, a learnable Datahandler just wants to save the parameters without data when dumping to disk
     """
 
-    pickle_backend = "pickle"  # another optional value is "dill" which can pickle more things of python.
+    pickle_backend = (
+        "pickle"  # another optional value is "dill" which can pickle more things of python.
+    )
     default_dump_all = False  # if dump all things
     config_attr = ["_include", "_exclude"]
     exclude_attr = []  # exclude_attr have lower priorities than `self._exclude`
@@ -35,9 +37,7 @@ class Serializable:
 
     def __init__(self):
         self._dump_all = self.default_dump_all
-        self._exclude = (
-            None  # this attribute have higher priorities than `exclude_attr`
-        )
+        self._exclude = None  # this attribute have higher priorities than `exclude_attr`
 
     def _is_kept(self, key):
         if key in self.config_attr:
@@ -155,9 +155,7 @@ class Serializable:
         if isinstance(object, cls):
             return object
         else:
-            raise TypeError(
-                f"The instance of {type(object)} is not a valid `{type(cls)}`!"
-            )
+            raise TypeError(f"The instance of {type(object)} is not a valid `{type(cls)}`!")
 
     @classmethod
     def get_backend(cls):

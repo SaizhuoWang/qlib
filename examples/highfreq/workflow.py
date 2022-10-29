@@ -37,9 +37,7 @@ class HighfreqWorkflow:
         "fit_start_time": start_time,
         "fit_end_time": train_end_time,
         "instruments": MARKET,
-        "infer_processors": [
-            {"class": "HighFreqNorm", "module_path": "highfreq_processor"}
-        ],
+        "infer_processors": [{"class": "HighFreqNorm", "module_path": "highfreq_processor"}],
     }
     DATA_HANDLER_CONFIG1 = {
         "start_time": start_time,

@@ -71,9 +71,7 @@ class LocalformerModel(Model):
             np.random.seed(self.seed)
             torch.manual_seed(self.seed)
 
-        self.model = Transformer(
-            d_feat, d_model, nhead, num_layers, dropout, self.device
-        )
+        self.model = Transformer(d_feat, d_model, nhead, num_layers, dropout, self.device)
         if optimizer.lower() == "adam":
             self.train_optimizer = optim.Adam(
                 self.model.parameters(), lr=self.lr, weight_decay=self.reg
@@ -83,9 +81,7 @@ class LocalformerModel(Model):
                 self.model.parameters(), lr=self.lr, weight_decay=self.reg
             )
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
         self.fitted = False
         self.model.to(self.device)
@@ -167,9 +163,7 @@ class LocalformerModel(Model):
             "valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
         )
         if dl_train.empty or dl_valid.empty:
-            raise ValueError(
-                "Empty data from dataset, please check your dataset config."
-            )
+            raise ValueError("Empty data from dataset, please check your dataset config.")
 
         dl_train.config(fillna_type="ffill+bfill")  # process nan brought by dataloader
         dl_valid.config(fillna_type="ffill+bfill")  # process nan brought by dataloader
@@ -235,13 +229,9 @@ class LocalformerModel(Model):
         if not self.fitted:
             raise ValueError("model is not fitted yet!")
 
-        dl_test = dataset.prepare(
-            "test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I
-        )
+        dl_test = dataset.prepare("test", col_set=["feature", "label"], data_key=DataHandlerLP.DK_I)
         dl_test.config(fillna_type="ffill+bfill")
-        test_loader = DataLoader(
-            dl_test, batch_size=self.batch_size, num_workers=self.n_jobs
-        )
+        test_loader = DataLoader(dl_test, batch_size=self.batch_size, num_workers=self.n_jobs)
         self.model.eval()
         preds = []
 
@@ -261,9 +251,7 @@ class PositionalEncoding(nn.Module):
         super(PositionalEncoding, self).__init__()
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-        div_term = torch.exp(
-            torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model)
-        )
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe.unsqueeze(0).transpose(0, 1)
@@ -302,9 +290,7 @@ class LocalformerEncoder(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(
-        self, d_feat=6, d_model=8, nhead=4, num_layers=2, dropout=0.5, device=None
-    ):
+    def __init__(self, d_feat=6, d_model=8, nhead=4, num_layers=2, dropout=0.5, device=None):
         super(Transformer, self).__init__()
         self.rnn = nn.GRU(
             input_size=d_model,

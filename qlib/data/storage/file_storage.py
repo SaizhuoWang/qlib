@@ -55,9 +55,7 @@ class FileStorageMixin:
                 lambda _freq: not _freq.endswith("_future"),
                 map(
                     lambda x: x.stem,
-                    self.dpm.get_data_uri(C.DEFAULT_FREQ)
-                    .joinpath("calendars")
-                    .glob("*.txt"),
+                    self.dpm.get_data_uri(C.DEFAULT_FREQ).joinpath("calendars").glob("*.txt"),
                 ),
             )
         else:
@@ -72,9 +70,7 @@ class FileStorageMixin:
             raise ValueError(
                 f"{self.storage_name}: {self.provider_uri} does not contain data for {self.freq}"
             )
-        return self.dpm.get_data_uri(self.freq).joinpath(
-            f"{self.storage_name}s", self.file_name
-        )
+        return self.dpm.get_data_uri(self.freq).joinpath(f"{self.storage_name}s", self.file_name)
 
     def check(self):
         """check self.uri
@@ -92,20 +88,14 @@ class FileCalendarStorage(FileStorageMixin, CalendarStorage):
         super(FileCalendarStorage, self).__init__(freq, future, **kwargs)
         self.future = future
         self._provider_uri = (
-            None
-            if provider_uri is None
-            else C.DataPathManager.format_provider_uri(provider_uri)
+            None if provider_uri is None else C.DataPathManager.format_provider_uri(provider_uri)
         )
         self.enable_read_cache = True  # TODO: make it configurable
         self.region = C["region"]
 
     @property
     def file_name(self) -> str:
-        return (
-            f"{self._freq_file}_future.txt"
-            if self.future
-            else f"{self._freq_file}.txt".lower()
-        )
+        return f"{self._freq_file}_future.txt" if self.future else f"{self._freq_file}.txt".lower()
 
     @property
     def _freq_file(self) -> str:
@@ -174,9 +164,7 @@ class FileCalendarStorage(FileStorageMixin, CalendarStorage):
         return _calendar
 
     def _get_storage_freq(self) -> List[str]:
-        return sorted(
-            set(map(lambda x: x.stem.split("_")[0], self.uri.parent.glob("*.txt")))
-        )
+        return sorted(set(map(lambda x: x.stem.split("_")[0], self.uri.parent.glob("*.txt"))))
 
     def extend(self, values: Iterable[CalVT]) -> None:
         self._write_calendar(values, mode="ab")
@@ -201,9 +189,7 @@ class FileCalendarStorage(FileStorageMixin, CalendarStorage):
         calendar = np.delete(calendar, index)
         self._write_calendar(values=calendar)
 
-    def __setitem__(
-        self, i: Union[int, slice], values: Union[CalVT, Iterable[CalVT]]
-    ) -> None:
+    def __setitem__(self, i: Union[int, slice], values: Union[CalVT, Iterable[CalVT]]) -> None:
         calendar = self._read_calendar()
         calendar[i] = values
         self._write_calendar(values=calendar)
@@ -232,9 +218,7 @@ class FileInstrumentStorage(FileStorageMixin, InstrumentStorage):
     def __init__(self, market: str, freq: str, provider_uri: dict = None, **kwargs):
         super(FileInstrumentStorage, self).__init__(market, freq, **kwargs)
         self._provider_uri = (
-            None
-            if provider_uri is None
-            else C.DataPathManager.format_provider_uri(provider_uri)
+            None if provider_uri is None else C.DataPathManager.format_provider_uri(provider_uri)
         )
         self.file_name = f"{market.lower()}.txt"
 
@@ -343,9 +327,7 @@ class FileFeatureStorage(FileStorageMixin, FeatureStorage):
     ):
         super(FileFeatureStorage, self).__init__(instrument, field, freq, **kwargs)
         self._provider_uri = (
-            None
-            if provider_uri is None
-            else C.DataPathManager.format_provider_uri(provider_uri)
+            None if provider_uri is None else C.DataPathManager.format_provider_uri(provider_uri)
         )
         self.file_name = f"{instrument.lower()}/{field.lower()}.{freq.lower()}.bin"
 
@@ -374,9 +356,9 @@ class FileFeatureStorage(FileStorageMixin, FeatureStorage):
                 # append
                 index = 0 if index is None else index
                 with self.uri.open("ab+") as fp:
-                    np.hstack(
-                        [[np.nan] * (index - self.end_index - 1), data_array]
-                    ).astype("<f").tofile(fp)
+                    np.hstack([[np.nan] * (index - self.end_index - 1), data_array]).astype(
+                        "<f"
+                    ).tofile(fp)
             else:
                 # rewrite
                 with self.uri.open("rb+") as fp:

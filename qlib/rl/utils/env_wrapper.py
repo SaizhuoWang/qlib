@@ -159,9 +159,7 @@ class EnvWrapper(
 
         try:
             if self.seed_iterator is None:
-                raise RuntimeError(
-                    "You can trying to get a state from a dead environment wrapper."
-                )
+                raise RuntimeError("You can trying to get a state from a dead environment wrapper.")
 
             # TODO: simulator/observation might need seed to prefetch something
             # as only seed has the ability to do the work beforehands
@@ -176,9 +174,7 @@ class EnvWrapper(
                 initial_state = None
                 self.simulator = cast(Callable[[], Simulator], self.simulator_fn)()
             else:
-                initial_state = next(
-                    cast(Iterator[InitialStateType], self.seed_iterator)
-                )
+                initial_state = next(cast(Iterator[InitialStateType], self.seed_iterator))
                 self.simulator = self.simulator_fn(initial_state)
 
             self.status = EnvWrapperStatus(

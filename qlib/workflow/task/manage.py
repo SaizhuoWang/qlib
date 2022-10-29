@@ -94,9 +94,7 @@ class TaskManager:
         task_pool: str
             the name of Collection in MongoDB
         """
-        self.task_pool: pymongo.collection.Collection = getattr(
-            get_mongodb(), task_pool
-        )
+        self.task_pool: pymongo.collection.Collection = getattr(get_mongodb(), task_pool)
         self.logger = get_module_logger(self.__class__.__name__)
         self.logger.info(f"task_pool:{task_pool}")
 
@@ -114,9 +112,7 @@ class TaskManager:
         for prefix in self.ENCODE_FIELDS_PREFIX:
             for k in list(task.keys()):
                 if k.startswith(prefix):
-                    task[k] = Binary(
-                        pickle.dumps(task[k], protocol=C.dump_protocol_version)
-                    )
+                    task[k] = Binary(pickle.dumps(task[k], protocol=C.dump_protocol_version))
         return task
 
     def _decode_task(self, task):
@@ -218,9 +214,7 @@ class TaskManager:
         insert_result = self.insert_task(task)
         return insert_result
 
-    def create_task(
-        self, task_def_l, dry_run=False, print_nt=False, logger=None
-    ) -> List[str]:
+    def create_task(self, task_def_l, dry_run=False, print_nt=False, logger=None) -> List[str]:
         """
         If the tasks in task_def_l are new, then insert new tasks into the task_pool, and record inserted_id.
         If a task is not new, then just query its _id.
@@ -319,9 +313,7 @@ class TaskManager:
             if task is not None:
                 self.logger.info("Returning task before raising error")
                 self.logger.info(f"The exception is:\n{traceback.format_exc()}")
-                self.return_task(
-                    task, status=status
-                )  # return task as the original status
+                self.return_task(task, status=status)  # return task as the original status
                 self.logger.info("Task returned")
             raise
 
@@ -561,9 +553,7 @@ def run_task(
             elif before_status == TaskManager.STATUS_PART_DONE:
                 param = task["res"]
             else:
-                raise ValueError(
-                    "The fetched task must be `STATUS_WAITING` or `STATUS_PART_DONE`!"
-                )
+                raise ValueError("The fetched task must be `STATUS_WAITING` or `STATUS_PART_DONE`!")
             kwargs["task_mongodb_id"] = task["_id"]
             if force_release:
                 with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:

@@ -35,9 +35,7 @@ class BaseDFilter(abc.ABC):
         config : dict
             dict of config parameters.
         """
-        raise NotImplementedError(
-            "Subclass of BaseDFilter must reimplement `from_config` method"
-        )
+        raise NotImplementedError("Subclass of BaseDFilter must reimplement `from_config` method")
 
     @abstractmethod
     def to_config(self):
@@ -48,9 +46,7 @@ class BaseDFilter(abc.ABC):
         dict
             return the dict of config parameters.
         """
-        raise NotImplementedError(
-            "Subclass of BaseDFilter must reimplement `to_config` method"
-        )
+        raise NotImplementedError("Subclass of BaseDFilter must reimplement `to_config` method")
 
 
 class SeriesDFilter(BaseDFilter):
@@ -149,9 +145,7 @@ class SeriesDFilter(BaseDFilter):
             the series of bool value indicating whether the date satisfies the filter condition and exists in target timestamp.
         """
         fstart, fend = list(filter_series.keys())[0], list(filter_series.keys())[-1]
-        filter_series = filter_series.astype(
-            "bool"
-        )  # Make sure the filter_series is boolean
+        filter_series = filter_series.astype("bool")  # Make sure the filter_series is boolean
         timestamp_series[fstart:fend] = timestamp_series[fstart:fend] & filter_series
         return timestamp_series
 
@@ -267,13 +261,9 @@ class SeriesDFilter(BaseDFilter):
                 _filter_series = _all_filter_series[inst]
             else:
                 if self.keep:
-                    _filter_series = pd.Series(
-                        {timestamp: True for timestamp in _filter_calendar}
-                    )
+                    _filter_series = pd.Series({timestamp: True for timestamp in _filter_calendar})
                 else:
-                    _filter_series = pd.Series(
-                        {timestamp: False for timestamp in _filter_calendar}
-                    )
+                    _filter_series = pd.Series({timestamp: False for timestamp in _filter_calendar})
             # Calculate bool value within the range of filter
             _timestamp_series = self._filterSeries(_timestamp_series, _filter_series)
             # Reform the map to (start_timestamp, end_timestamp) format
@@ -305,18 +295,12 @@ class NameDFilter(SeriesDFilter):
 
     def _getFilterSeries(self, instruments, fstart, fend):
         all_filter_series = {}
-        filter_calendar = Cal.calendar(
-            start_time=fstart, end_time=fend, freq=self.filter_freq
-        )
+        filter_calendar = Cal.calendar(start_time=fstart, end_time=fend, freq=self.filter_freq)
         for inst, timestamp in instruments.items():
             if re.match(self.name_rule_re, inst):
-                _filter_series = pd.Series(
-                    {timestamp: True for timestamp in filter_calendar}
-                )
+                _filter_series = pd.Series({timestamp: True for timestamp in filter_calendar})
             else:
-                _filter_series = pd.Series(
-                    {timestamp: False for timestamp in filter_calendar}
-                )
+                _filter_series = pd.Series({timestamp: False for timestamp in filter_calendar})
             all_filter_series[inst] = _filter_series
         return all_filter_series
 

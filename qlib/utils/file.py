@@ -25,9 +25,7 @@ def get_or_create_path(path: Optional[Text] = None, return_dir: bool = False):
     if path:
         if return_dir and not os.path.exists(path):
             os.makedirs(path)
-        elif (
-            not return_dir
-        ):  # return a file, thus we need to create its parent directory
+        elif not return_dir:  # return a file, thus we need to create its parent directory
             xpath = os.path.abspath(os.path.join(path, ".."))
             if not os.path.exists(xpath):
                 os.makedirs(xpath)
@@ -189,8 +187,6 @@ def get_io_object(file: Union[IO, str, Path], *args, **kwargs) -> IO:
         if isinstance(file, str):
             file = Path(file)
         if not isinstance(file, Path):
-            raise NotImplementedError(
-                f"This type[{type(file)}] of input is not supported"
-            )
+            raise NotImplementedError(f"This type[{type(file)}] of input is not supported")
         with file.open(*args, **kwargs) as f:
             yield f

@@ -79,9 +79,7 @@ class DataQueue(Generic[T]):
         self.producer_num_workers: int = producer_num_workers
 
         self._activated: bool = False
-        self._queue: multiprocessing.Queue = multiprocessing.Queue(
-            maxsize=queue_maxsize
-        )
+        self._queue: multiprocessing.Queue = multiprocessing.Queue(maxsize=queue_maxsize)
         self._done = multiprocessing.Value("i", 0)
 
     def __enter__(self) -> DataQueue:
@@ -112,9 +110,7 @@ class DataQueue(Generic[T]):
             time.sleep(1.0)
             if self._queue.empty():
                 break
-        _logger.debug(
-            f"Remaining items in queue collection done. Empty: {self._queue.empty()}"
-        )
+        _logger.debug(f"Remaining items in queue collection done. Empty: {self._queue.empty()}")
 
     def get(self, block: bool = True) -> Any:
         if not hasattr(self, "_first_get"):

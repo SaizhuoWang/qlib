@@ -75,9 +75,7 @@ def _find_pickle(filename_without_suffix: Path) -> Path:
         if path.exists():
             paths.append(path)
     if not paths:
-        raise FileNotFoundError(
-            f"No file starting with '{filename_without_suffix}' found"
-        )
+        raise FileNotFoundError(f"No file starting with '{filename_without_suffix}' found")
     if len(paths) > 1:
         raise ValueError(
             f"Multiple paths are found with prefix '{filename_without_suffix}': {paths}"
@@ -226,9 +224,7 @@ class IntradayProcessedData:
             proc = proc.loc[pd.IndexSlice[stock_id, :, date]]
             assert len(proc) == time_length and len(proc.columns) == feature_dim * 2
             proc_today = proc[cnames]
-            proc_yesterday = proc[[f"{c}_1" for c in cnames]].rename(
-                columns=lambda c: c[:-2]
-            )
+            proc_yesterday = proc[[f"{c}_1" for c in cnames]].rename(columns=lambda c: c[:-2])
         except (IndexError, KeyError):
             # legacy data
             proc = proc.loc[pd.IndexSlice[stock_id, date]]
@@ -240,9 +236,7 @@ class IntradayProcessedData:
                 (time_length, feature_dim)
             )
             proc_today = pd.DataFrame(proc_today, index=time_index, columns=cnames)
-            proc_yesterday = pd.DataFrame(
-                proc_yesterday, index=time_index, columns=cnames
-            )
+            proc_yesterday = pd.DataFrame(proc_yesterday, index=time_index, columns=cnames)
 
         self.today: pd.DataFrame = proc_today
         self.yesterday: pd.DataFrame = proc_yesterday

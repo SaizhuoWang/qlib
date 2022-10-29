@@ -115,9 +115,7 @@ class HashingStockStorage(BaseHandlerStorage):
             elif isinstance(selector, (list, str)):
                 stock_selector = selector
 
-        if not isinstance(stock_selector, (list, str)) and stock_selector != slice(
-            None
-        ):
+        if not isinstance(stock_selector, (list, str)) and stock_selector != slice(None):
             raise TypeError(
                 f"stock selector must be type str|list, or slice(None), rather than {stock_selector}"
             )
@@ -152,9 +150,7 @@ class HashingStockStorage(BaseHandlerStorage):
             fetch_stock_df_list[_index] = fetch_index_df
         if len(fetch_stock_df_list) == 0:
             index_names = (
-                ("instrument", "datetime")
-                if self.stock_level == 0
-                else ("datetime", "instrument")
+                ("instrument", "datetime") if self.stock_level == 0 else ("datetime", "instrument")
             )
             return pd.DataFrame(
                 index=pd.MultiIndex.from_arrays([[], []], names=index_names),

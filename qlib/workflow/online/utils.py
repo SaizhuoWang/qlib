@@ -175,9 +175,7 @@ class OnlineToolR(OnlineTool):
                 updater = PredUpdater(rec, to_date=to_date, from_date=from_date)
             except LoadObjectError as e:
                 # skip the recorder without pred
-                self.logger.warn(
-                    f"An exception `{str(e)}` happened when load `pred.pkl`, skip it."
-                )
+                self.logger.warn(f"An exception `{str(e)}` happened when load `pred.pkl`, skip it.")
                 continue
             updater.update()
 
