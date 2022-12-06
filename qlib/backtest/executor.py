@@ -115,7 +115,7 @@ class BaseExecutor:
         self.track_data = track_data
         self._trade_exchange = trade_exchange
         self.level_infra = LevelInfrastructure()
-        self.level_infra.reset_infra(common_infra=common_infra)
+        self.level_infra.reset_infra(common_infra=common_infra, executor=self)
         self._settle_type = settle_type
         self.reset(start_time=start_time, end_time=end_time, common_infra=common_infra)
         if common_infra is None:
@@ -136,6 +136,8 @@ class BaseExecutor:
             self.common_infra = common_infra
         else:
             self.common_infra.update(common_infra)
+
+        self.level_infra.reset_infra(common_infra=self.common_infra)
 
         if common_infra.has("trade_account"):
             # NOTE: there is a trick in the code.
@@ -264,6 +266,7 @@ class BaseExecutor:
         object
             trade decision
         """
+
         if self.track_data:
             yield trade_decision
 
@@ -304,6 +307,7 @@ class BaseExecutor:
 
         if return_value is not None:
             return_value.update({"execute_result": res})
+
         return res
 
     def get_all_executors(self) -> List[BaseExecutor]:
@@ -408,7 +412,7 @@ class NestedExecutor(BaseExecutor):
             trade_decision = updated_trade_decision
             # NEW UPDATE
             # create a hook for inner strategy to update outer decision
-            self.inner_strategy.alter_outer_trade_decision(trade_decision)
+            trade_decision = self.inner_strategy.alter_outer_trade_decision(trade_decision)
         return trade_decision
 
     def _collect_data(
@@ -489,10 +493,10 @@ class NestedExecutor(BaseExecutor):
                 # do nothing and just step forward
                 sub_cal.step()
 
-        return execute_result, {
-            "inner_order_indicators": inner_order_indicators,
-            "decision_list": decision_list,
-        }
+        # Let inner strategy know that the outer level execution is done.
+        self.inner_strategy.post_upper_level_exe_step()
+
+        return execute_result, {"inner_order_indicators": inner_order_indicators, "decision_list": decision_list}
 
     def post_inner_exe_step(self, inner_exe_res: List[object]) -> None:
         """
@@ -615,6 +619,13 @@ class SimulatorExecutor(BaseExecutor):
         execute_result: list = []
 
         for order in self._get_order_iterator(trade_decision):
+            # Each time we move into a new date, clear `self.dealt_order_amount` since it only maintains intraday
+            # information.
+            now_deal_day = self.trade_calendar.get_step_time()[0].floor(freq="D")
+            if self.deal_day is None or now_deal_day > self.deal_day:
+                self.dealt_order_amount = defaultdict(float)
+                self.deal_day = now_deal_day
+
             # execute the order.
             # NOTE: The trade_account will be changed in this function
             trade_val, trade_cost, trade_price = self.trade_exchange.deal_order(
@@ -623,7 +634,9 @@ class SimulatorExecutor(BaseExecutor):
                 dealt_order_amount=self.dealt_order_amount,
             )
             execute_result.append((order, trade_val, trade_cost, trade_price))
-            self._update_dealt_order_amount(order)
+
+            self.dealt_order_amount[order.stock_id] += order.deal_amount
+
             if self.verbose:
                 print(
                     "[I {:%Y-%m-%d %H:%M:%S}]: {} {}, price {:.2f}, amount {}, deal_amount {}, factor {}, "

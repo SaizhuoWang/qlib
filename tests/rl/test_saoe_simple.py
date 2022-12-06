@@ -16,6 +16,7 @@ from qlib.backtest import Order
 from qlib.config import C
 from qlib.log import set_log_with_config
 from qlib.rl.data import pickle_styled
+from qlib.rl.data.pickle_styled import PickleProcessedDataProvider
 from qlib.rl.order_execution import *
 from qlib.rl.trainer import backtest, train
 from qlib.rl.utils import ConsoleWriter, CsvWriter, EnvWrapperStatus
@@ -44,9 +45,8 @@ def test_pickle_data_inspect():
     )
     assert len(data) == 390
 
-    data = pickle_styled.load_intraday_processed_data(
-        DATA_DIR / "processed", "AAL", "2013-12-11", 5, data.get_time_index()
-    )
+    provider = PickleProcessedDataProvider(DATA_DIR / "processed")
+    data = provider.get_data("AAL", "2013-12-11", 5, data.get_time_index())
     assert len(data.today) == len(data.yesterday) == 390
 
 
@@ -59,7 +59,7 @@ def test_simulator_first_step():
         pd.Timestamp("2013-12-11 23:59:59"),
     )
 
-    simulator = SingleAssetOrderExecution(order, BACKTEST_DATA_DIR)
+    simulator = SingleAssetOrderExecutionSimple(order, BACKTEST_DATA_DIR)
     state = simulator.get_state()
     assert state.cur_time == pd.Timestamp("2013-12-11 09:30:00")
     assert state.position == 30.0
@@ -99,7 +99,7 @@ def test_simulator_stop_twap():
         pd.Timestamp("2013-12-11 23:59:59"),
     )
 
-    simulator = SingleAssetOrderExecution(order, BACKTEST_DATA_DIR)
+    simulator = SingleAssetOrderExecutionSimple(order, BACKTEST_DATA_DIR)
     for _ in range(13):
         simulator.step(1.0)
 
@@ -131,10 +131,10 @@ def test_simulator_stop_early():
     )
 
     with pytest.raises(ValueError):
-        simulator = SingleAssetOrderExecution(order, BACKTEST_DATA_DIR)
+        simulator = SingleAssetOrderExecutionSimple(order, BACKTEST_DATA_DIR)
         simulator.step(2.0)
 
-    simulator = SingleAssetOrderExecution(order, BACKTEST_DATA_DIR)
+    simulator = SingleAssetOrderExecutionSimple(order, BACKTEST_DATA_DIR)
     simulator.step(1.0)
 
     with pytest.raises(AssertionError):
@@ -150,7 +150,7 @@ def test_simulator_start_middle():
         pd.Timestamp("2013-12-11 15:44:59"),
     )
 
-    simulator = SingleAssetOrderExecution(order, BACKTEST_DATA_DIR)
+    simulator = SingleAssetOrderExecutionSimple(order, BACKTEST_DATA_DIR)
     assert len(simulator.ticks_for_order) == 330
     assert simulator.cur_time == pd.Timestamp("2013-12-11 10:15:00")
     simulator.step(2.0)
@@ -175,7 +175,7 @@ def test_interpreter():
         pd.Timestamp("2013-12-11 15:44:59"),
     )
 
-    simulator = SingleAssetOrderExecution(order, BACKTEST_DATA_DIR)
+    simulator = SingleAssetOrderExecutionSimple(order, BACKTEST_DATA_DIR)
     assert len(simulator.ticks_for_order) == 330
     assert simulator.cur_time == pd.Timestamp("2013-12-11 10:15:00")
 
@@ -183,7 +183,7 @@ def test_interpreter():
     class EmulateEnvWrapper(NamedTuple):
         status: EnvWrapperStatus
 
-    interpreter = FullHistoryStateInterpreter(FEATURE_DATA_DIR, 13, 390, 5)
+    interpreter = FullHistoryStateInterpreter(13, 390, 5, PickleProcessedDataProvider(FEATURE_DATA_DIR))
     interpreter_step = CurrentStepStateInterpreter(13)
     interpreter_action = CategoricalActionInterpreter(20)
     interpreter_action_twap = TwapRelativeActionInterpreter()
@@ -270,13 +270,13 @@ def test_network_sanity():
         pd.Timestamp("2013-12-11 15:59:59"),
     )
 
-    simulator = SingleAssetOrderExecution(order, BACKTEST_DATA_DIR)
+    simulator = SingleAssetOrderExecutionSimple(order, BACKTEST_DATA_DIR)
     assert len(simulator.ticks_for_order) == 390
 
     class EmulateEnvWrapper(NamedTuple):
         status: EnvWrapperStatus
 
-    interpreter = FullHistoryStateInterpreter(FEATURE_DATA_DIR, 13, 390, 5)
+    interpreter = FullHistoryStateInterpreter(13, 390, 5, PickleProcessedDataProvider(FEATURE_DATA_DIR))
     action_interp = CategoricalActionInterpreter(13)
 
     wrapper_status_kwargs = dict(
@@ -308,13 +308,13 @@ def test_twap_strategy(finite_env_type):
     orders = pickle_styled.load_orders(ORDER_DIR)
     assert len(orders) == 248
 
-    state_interp = FullHistoryStateInterpreter(FEATURE_DATA_DIR, 13, 390, 5)
+    state_interp = FullHistoryStateInterpreter(13, 390, 5, PickleProcessedDataProvider(FEATURE_DATA_DIR))
     action_interp = TwapRelativeActionInterpreter()
     policy = AllOne(state_interp.observation_space, action_interp.action_space)
     csv_writer = CsvWriter(Path(__file__).parent / ".output")
 
     backtest(
-        partial(SingleAssetOrderExecution, data_dir=BACKTEST_DATA_DIR, ticks_per_step=30),
+        partial(SingleAssetOrderExecutionSimple, data_dir=BACKTEST_DATA_DIR, ticks_per_step=30),
         state_interp,
         action_interp,
         orders,
@@ -339,7 +339,7 @@ def test_cn_ppo_strategy():
     )
     assert len(orders) == 40
 
-    state_interp = FullHistoryStateInterpreter(CN_FEATURE_DATA_DIR, 8, 240, 6)
+    state_interp = FullHistoryStateInterpreter(8, 240, 6, PickleProcessedDataProvider(CN_FEATURE_DATA_DIR))
     action_interp = CategoricalActionInterpreter(4)
     network = Recurrent(state_interp.observation_space)
     policy = PPO(network, state_interp.observation_space, action_interp.action_space, 1e-4)
@@ -349,7 +349,7 @@ def test_cn_ppo_strategy():
     csv_writer = CsvWriter(Path(__file__).parent / ".output")
 
     backtest(
-        partial(SingleAssetOrderExecution, data_dir=CN_BACKTEST_DATA_DIR, ticks_per_step=30),
+        partial(SingleAssetOrderExecutionSimple, data_dir=CN_BACKTEST_DATA_DIR, ticks_per_step=30),
         state_interp,
         action_interp,
         orders,
@@ -374,13 +374,13 @@ def test_ppo_train():
     )
     assert len(orders) == 40
 
-    state_interp = FullHistoryStateInterpreter(CN_FEATURE_DATA_DIR, 8, 240, 6)
+    state_interp = FullHistoryStateInterpreter(8, 240, 6, PickleProcessedDataProvider(CN_FEATURE_DATA_DIR))
     action_interp = CategoricalActionInterpreter(4)
     network = Recurrent(state_interp.observation_space)
     policy = PPO(network, state_interp.observation_space, action_interp.action_space, 1e-4)
 
     train(
-        partial(SingleAssetOrderExecution, data_dir=CN_BACKTEST_DATA_DIR, ticks_per_step=30),
+        partial(SingleAssetOrderExecutionSimple, data_dir=CN_BACKTEST_DATA_DIR, ticks_per_step=30),
         state_interp,
         action_interp,
         orders,

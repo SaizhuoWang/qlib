@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Generator, Optional, Union
 if TYPE_CHECKING:
     from qlib.backtest.exchange import Exchange
     from qlib.backtest.position import BasePosition
+    from qlib.backtest.executor import BaseExecutor
 
 from typing import Tuple
 
@@ -36,6 +37,7 @@ class BaseStrategy:
         outer_trade_decision : BaseTradeDecision, optional
             the trade decision of outer strategy which this strategy relies, and it will be traded in
             [start_time, end_time], by default None
+
             - If the strategy is used to split trade decision, it will be used
             - If the strategy is used for portfolio management, it can be ignored
         level_infra : LevelInfrastructure, optional
@@ -45,11 +47,13 @@ class BaseStrategy:
 
         trade_exchange : Exchange
             exchange that provides market info, used to deal order and generate report
+
             - If `trade_exchange` is None, self.trade_exchange will be set with common_infra
             - It allows different trade_exchanges is used in different executions.
             - For example:
+
                 - In daily execution, both daily exchange and minutely are usable, but the daily exchange is
-                    recommended because it run faster.
+                  recommended because it run faster.
                 - In minutely execution, the daily exchange is not usable, only the minutely exchange is recommended.
         """
 
@@ -59,6 +63,10 @@ class BaseStrategy:
             outer_trade_decision=outer_trade_decision,
         )
         self._trade_exchange = trade_exchange
+
+    @property
+    def executor(self) -> BaseExecutor:
+        return self.level_infra.get("executor")
 
     @property
     def trade_calendar(self) -> TradeCalendarManager:
@@ -90,7 +98,7 @@ class BaseStrategy:
         level_infra: LevelInfrastructure = None,
         common_infra: CommonInfrastructure = None,
         outer_trade_decision: BaseTradeDecision = None,
-        **kwargs,  # TODO: remove this?
+        **kwargs,
     ) -> None:
         """
         - reset `level_infra`, used to reset trade calendar, .etc
@@ -137,9 +145,45 @@ class BaseStrategy:
         ----------
         execute_result : List[object], optional
             the executed result for trade decision, by default None
+
             - When call the generate_trade_decision firstly, `execute_result` could be None
         """
         raise NotImplementedError("generate_trade_decision is not implemented!")
+
+    # helper methods: not necessary but for convenience
+    def get_data_cal_avail_range(self, rtype: str = "full") -> Tuple[int, int]:
+        """
+        return data calendar's available decision range for `self` strategy
+        the range consider following factors
+        - data calendar in the charge of `self` strategy
+        - trading range limitation from the decision of outer strategy
+
+
+        related methods
+        - TradeCalendarManager.get_data_cal_range
+        - BaseTradeDecision.get_data_cal_range_limit
+
+        Parameters
+        ----------
+        rtype: str
+            - "full": return the available data index range of the strategy from `start_time` to `end_time`
+            - "step": return the available data index range of the strategy of current step
+
+        Returns
+        -------
+        Tuple[int, int]:
+            the available range both sides are closed
+        """
+        cal_range = self.trade_calendar.get_data_cal_range(rtype=rtype)
+        if self.outer_trade_decision is None:
+            raise ValueError(f"There is not limitation for strategy {self}")
+        range_limit = self.outer_trade_decision.get_data_cal_range_limit(rtype=rtype)
+        return max(cal_range[0], range_limit[0]), min(cal_range[1], range_limit[1])
+
+    """
+    The following methods are used to do cross-level communications in nested execution.
+    You do not need to care about them if you are implementing a single-level execution.
+    """
 
     @staticmethod
     def update_trade_decision(
@@ -182,39 +226,15 @@ class BaseStrategy:
         """
         # default to reset the decision directly
         # NOTE: normally, user should do something to the strategy due to the change of outer decision
-        raise NotImplementedError(f"Please implement the `alter_outer_trade_decision` method")
+        return outer_trade_decision
 
-    # helper methods: not necessary but for convenience
-    def get_data_cal_avail_range(self, rtype: str = "full") -> Tuple[int, int]:
+    def post_upper_level_exe_step(self) -> None:
         """
-        return data calendar's available decision range for `self` strategy
-        the range consider following factors
-        - data calendar in the charge of `self` strategy
-        - trading range limitation from the decision of outer strategy
-
-
-        related methods
-        - TradeCalendarManager.get_data_cal_range
-        - BaseTradeDecision.get_data_cal_range_limit
-
-        Parameters
-        ----------
-        rtype: str
-            - "full": return the available data index range of the strategy from `start_time` to `end_time`
-            - "step": return the available data index range of the strategy of current step
-
-        Returns
-        -------
-        Tuple[int, int]:
-            the available range both sides are closed
+        A hook for doing sth after the upper level executor finished its execution (for example, finalize
+        the metrics collection).
         """
-        cal_range = self.trade_calendar.get_data_cal_range(rtype=rtype)
-        if self.outer_trade_decision is None:
-            raise ValueError(f"There is not limitation for strategy {self}")
-        range_limit = self.outer_trade_decision.get_data_cal_range_limit(rtype=rtype)
-        return max(cal_range[0], range_limit[0]), min(cal_range[1], range_limit[1])
 
-    def post_exe_step(self, execute_result: list) -> None:
+    def post_exe_step(self, execute_result: Optional[list]) -> None:
         """
         A hook for doing sth after the corresponding executor finished its execution.
 

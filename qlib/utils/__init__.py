@@ -4,6 +4,15 @@
 
 from __future__ import division, print_function
 
+import os
+import pickle
+import re
+import sys
+import copy
+import json
+from qlib.typehint import InstConf
+import yaml
+import redis
 import bisect
 import collections
 import contextlib
@@ -305,7 +314,11 @@ def get_module_by_module_path(module_path: Union[str, ModuleType]):
 
     :param module_path:
     :return:
+    :raises: ModuleNotFoundError
     """
+    if module_path is None:
+        raise ModuleNotFoundError("None is passed in as parameters as module_path")
+
     if isinstance(module_path, ModuleType):
         module = module_path
     else:
@@ -363,6 +376,10 @@ def get_callable_kwargs(
     -------
     (type, dict):
         the class/func object and it's arguments.
+
+    Raises
+    ------
+        ModuleNotFoundError
     """
     if isinstance(config, dict):
         key = "class" if "class" in config else "func"
@@ -396,7 +413,7 @@ get_cls_kwargs = get_callable_kwargs  # NOTE: this is for compatibility for the 
 
 
 def init_instance_by_config(
-    config: Union[str, dict, object, Path],  # TODO: use a user-defined type to replace this Union.
+    config: InstConf,
     default_module=None,
     accept_types: Union[type, Tuple[type]] = (),
     try_kwargs: Dict = {},
@@ -407,31 +424,8 @@ def init_instance_by_config(
 
     Parameters
     ----------
-    config : Union[str, dict, object]
-        dict example.
-            case 1)
-            {
-                'class': 'ClassName',
-                'kwargs': dict, #  It is optional. {} will be used if not given
-                'model_path': path, # It is optional if module is given
-            }
-            case 2)
-            {
-                'class': <The class it self>,
-                'kwargs': dict, #  It is optional. {} will be used if not given
-            }
-        str example.
-            1) specify a pickle object
-                - path like 'file:///<path to pickle file>/obj.pkl'
-            2) specify a class name
-                - "ClassName":  getattr(module, "ClassName")() will be used.
-            3) specify module path with class name
-                - "a.b.c.ClassName" getattr(<a.b.c.module>, "ClassName")() will be used.
-        object example:
-            instance of accept_types
-        Path example:
-            specify a pickle object
-                - it will be treated like 'file:///<path to pickle file>/obj.pkl'
+    config : InstConf
+
     default_module : Python module
         Optional. It should be a python module.
         NOTE: the "module_path" will be override by `module` arguments
@@ -796,7 +790,7 @@ def exists_qlib_data(qlib_dir):
             return False
 
     # check instruments
-    code_names = set(map(lambda x: x.name.lower(), features_dir.iterdir()))
+    code_names = set(map(lambda x: fname_to_code(x.name.lower()), features_dir.iterdir()))
     _instrument = instruments_dir.joinpath("all.txt")
     miss_code = set(
         pd.read_csv(_instrument, sep="\t", header=None).loc[:, 0].apply(str.lower)

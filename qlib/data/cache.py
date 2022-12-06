@@ -134,8 +134,10 @@ class MemCache:
 
         Parameters
         ----------
-        mem_cache_size_limit: cache max size.
-        limit_type: length or sizeof; length(call fun: len), size(call fun: sys.getsizeof).
+        mem_cache_size_limit:
+            cache max size.
+        limit_type:
+            length or sizeof; length(call fun: len), size(call fun: sys.getsizeof).
         """
 
         size_limit = (
@@ -402,7 +404,7 @@ class DatasetCache(BaseProviderCache):
 
         .. note:: The server use redis_lock to make sure
             read-write conflicts will not be triggered
-                but client readers are not considered.
+            but client readers are not considered.
         """
         if disk_cache == 0:
             # skip cache
@@ -511,7 +513,7 @@ class DatasetCache(BaseProviderCache):
         not_space_fields = remove_fields_space(fields)
         data = data.loc[:, not_space_fields]
         # set features fields
-        data.columns = list(fields)
+        data.columns = [str(i) for i in fields]
         return data
 
     @staticmethod
@@ -971,7 +973,7 @@ class DiskDatasetCache(DatasetCache):
         """gen_dataset_cache
 
         .. note:: This function does not consider the cache read write lock. Please
-        Acquire the lock outside this function
+            acquire the lock outside this function
 
         The format the cache contains 3 parts(followed by typical filename).
 
@@ -987,10 +989,10 @@ class DiskDatasetCache(DatasetCache):
                     1999-11-12 00:00:00     2   3
                     ...
 
-            .. note:: The start is closed. The end is open!!!!!
+                .. note:: The start is closed. The end is open!!!!!
 
             - Each line contains two element <start_index, end_index> with a timestamp as its index.
-            - It indicates the `start_index`(included) and `end_index`(excluded) of the data for `timestamp`
+            - It indicates the `start_index` (included) and `end_index` (excluded) of the data for `timestamp`
 
         - meta data: cache/d41366901e25de3ec47297f12e2ba11d.meta
 

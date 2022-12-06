@@ -143,7 +143,7 @@ class YahooCollector(BaseCollector):
                 _show_logging_func()
         except Exception as e:
             logger.warning(
-                f"get data error: {symbol}--{start_}--{end_}"
+                f"get data error: {symbol}--{start}--{end}"
                 + "Your data request fails. This may be caused by your firewall (e.g. GFW). Please switch your network if you want to access Yahoo! data"
             )
 
@@ -874,6 +874,10 @@ class YahooNormalizeUS1d(YahooNormalizeUS, YahooNormalize1d):
     pass
 
 
+class YahooNormalizeUS1dExtend(YahooNormalizeUS, YahooNormalize1dExtend):
+    pass
+
+
 class YahooNormalizeUS1min(YahooNormalizeUS, YahooNormalize1minOffline):
     CALC_PAUSED_NUM = False
 
@@ -1282,7 +1286,7 @@ class Run(BaseRun):
             "get_instruments",
         )
         for _index in index_list:
-            get_instruments(str(qlib_data_1d_dir), _index)
+            get_instruments(str(qlib_data_1d_dir), _index, market_index=f"{_region}_index")
 
 
 if __name__ == "__main__":

@@ -53,6 +53,7 @@ def init(default_conf="client", **kwargs):
     if clear_mem_cache:
         H.clear()
     C.set(default_conf, **kwargs)
+    get_module_logger.setLevel(C.logging_level)
 
     # mount nfs
     for _freq, provider_uri in C.provider_uri.items():

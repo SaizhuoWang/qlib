@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generator, Optional, Tuple, Union, cast
+from typing import Dict, TYPE_CHECKING, Generator, Optional, Tuple, Union, cast
 
 import pandas as pd
 
 from qlib.backtest.decision import BaseTradeDecision
-from qlib.backtest.report import Indicator, PortfolioMetrics
+from qlib.backtest.report import Indicator
 
 if TYPE_CHECKING:
     from qlib.strategy.base import BaseStrategy
@@ -19,21 +19,25 @@ from tqdm.auto import tqdm
 from ..utils.time import Freq
 
 
+PORT_METRIC = Dict[str, Tuple[pd.DataFrame, dict]]
+INDICATOR_METRIC = Dict[str, Tuple[pd.DataFrame, Indicator]]
+
+
 def backtest_loop(
     start_time: Union[pd.Timestamp, str],
     end_time: Union[pd.Timestamp, str],
     trade_strategy: BaseStrategy,
     trade_executor: BaseExecutor,
-) -> Tuple[PortfolioMetrics, Indicator]:
+) -> Tuple[PORT_METRIC, INDICATOR_METRIC]:
     """backtest function for the interaction of the outermost strategy and executor in the nested decision execution
 
     please refer to the docs of `collect_data_loop`
 
     Returns
     -------
-    portfolio_metrics: PortfolioMetrics
+    portfolio_dict: PORT_METRIC
         it records the trading portfolio_metrics information
-    indicator: Indicator
+    indicator_dict: INDICATOR_METRIC
         it computes the trading indicator
     """
     return_value: dict = {}
@@ -42,9 +46,10 @@ def backtest_loop(
     ):
         pass
 
-    portfolio_metrics = cast(PortfolioMetrics, return_value.get("portfolio_metrics"))
-    indicator = cast(Indicator, return_value.get("indicator"))
-    return portfolio_metrics, indicator
+    portfolio_dict = cast(PORT_METRIC, return_value.get("portfolio_dict"))
+    indicator_dict = cast(INDICATOR_METRIC, return_value.get("indicator_dict"))
+
+    return portfolio_dict, indicator_dict
 
 
 def collect_data_loop(
@@ -87,7 +92,9 @@ def collect_data_loop(
                 _execute_result
             )
             _execute_result = yield from trade_executor.collect_data(_trade_decision, level=0)
+            trade_strategy.post_exe_step(_execute_result)
             bar.update(1)
+        trade_strategy.post_upper_level_exe_step()
 
     if return_value is not None:
         all_executors = trade_executor.get_all_executors()
