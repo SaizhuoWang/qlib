@@ -443,12 +443,14 @@ class DataHandlerLP(DataHandler):
             if isinstance(d, list):
                 for element in d:
                     format_config_dict(element)
-            else:
+            elif isinstance(d, dict):
                 for k, v in d.items():
                     if isinstance(v, dict) or isinstance(v, list):
                         format_config_dict(v)
                     elif isinstance(v, datetime.date):
                         d[k] = v.strftime("%Y-%m-%d")
+            else:
+                return
 
         def recursive_sort_dict(d: Dict):
             """Recursively sort the dictionary"""

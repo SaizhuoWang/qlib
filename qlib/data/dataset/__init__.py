@@ -291,8 +291,7 @@ class TSDataSampler:
     more powerful subclasses.
 
     Known Issues:
-    - For performance issues, this Sampler will convert dataframe into arrays for better performance. This could result
-      in a different data type
+    - For performance issues, this Sampler will convert dataframe into arrays for better performance. This could result in a different data type
 
     """
 

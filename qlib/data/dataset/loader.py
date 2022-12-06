@@ -216,9 +216,7 @@ class QlibDataLoader(DLWParser):
 
         freq = self.freq[gp_name] if isinstance(self.freq, dict) else self.freq
         self.logger.info('Loading data for group "%s" with freq "%s" from disk', gp_name, freq)
-        import pdb
 
-        pdb.set_trace()
         df = D.features(
             instruments,
             exprs,
