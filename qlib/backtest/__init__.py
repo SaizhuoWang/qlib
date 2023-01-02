@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 from ..config import C
 from ..log import get_module_logger
 from ..utils import init_instance_by_config
-from .backtest import INDICATOR_METRIC, PORT_METRIC, backtest_loop, collect_data_loop
+from .backtest import INDICATOR_METRIC_TYPE, PORT_METRIC_TYPE, backtest_loop, collect_data_loop
 from .decision import Order
 from .exchange import Exchange
 from .utils import CommonInfrastructure
@@ -222,7 +222,7 @@ def backtest(
     account: Union[float, int, dict] = 1e9,
     exchange_kwargs: dict = {},
     pos_type: str = "Position",
-) -> Tuple[PORT_METRIC, INDICATOR_METRIC]:
+) -> Tuple[PORT_METRIC_TYPE, INDICATOR_METRIC_TYPE]:
     """initialize the strategy and executor, then backtest function for the interaction of the outermost strategy and
     executor in the nested decision execution
 

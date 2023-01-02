@@ -12,6 +12,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+from torch.profiler import record_function, profile, ProfilerActivity
 
 from ...data.dataset.handler import DataHandlerLP
 from ...data.dataset.weight import Reweighter
@@ -19,6 +20,9 @@ from ...log import get_module_logger
 from ...model.base import Model
 from ...model.utils import ConcatDataset
 from ...utils import get_or_create_path
+from datetime import datetime
+import viztracer
+from wszlib.constants import PROJECT_ROOT
 
 
 class LSTM(Model):
@@ -49,10 +53,10 @@ class LSTM(Model):
         early_stop=20,
         loss="mse",
         optimizer="adam",
-        n_jobs=10,
+        n_jobs=0,
         GPU=0,
         seed=None,
-        **kwargs
+        **kwargs,
     ):
         # Set logger.
         self.logger = get_module_logger("LSTM")
@@ -75,6 +79,9 @@ class LSTM(Model):
         )
         self.n_jobs = n_jobs
         self.seed = seed
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
         self.logger.info(
             "LSTM parameters setting:"
@@ -163,17 +170,51 @@ class LSTM(Model):
 
         self.LSTM_model.train()
 
-        for (data, weight) in data_loader:
-            feature = data[:, :, 0:-1].to(self.device)
-            label = data[:, -1, -1].to(self.device)
-
-            pred = self.LSTM_model(feature.float())
-            loss = self.loss_fn(pred, label, weight.to(self.device))
-
-            self.train_optimizer.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_value_(self.LSTM_model.parameters(), 3.0)
-            self.train_optimizer.step()
+        if hasattr(self, "profiling") and getattr(self, "profiling"):
+            torch_profiler = torch.profiler.profile(
+                schedule=torch.profiler.schedule(wait=2, warmup=3, active=4, repeat=3),
+                on_trace_ready=torch.profiler.tensorboard_trace_handler(
+                    f'{PROJECT_ROOT}/profiling/torch_profiler/TS_njobs{self.n_jobs}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+                ),
+                record_shapes=True,
+                profile_memory=True,
+                with_stack=True,
+                with_flops=True,
+                with_modules=True,
+                use_cuda=True,
+            )
+            viz_tracer = viztracer.VizTracer(
+                output_file=f"{PROJECT_ROOT}/profiling/viztracer/trace_TS_njobs{self.n_jobs}_{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
+            )
+            torch_profiler.start()
+            viz_tracer.start()
+        viz_traced = False
+        loader_iter = iter(data_loader)
+        for i in range(len(data_loader)):
+            with record_function("Get Batch"):
+                data = next(loader_iter)
+            with record_function("Data Copy to GPU"):
+                feature = data[:, :, 0:-1].to(self.device)
+                label = data[:, -1, -1].to(self.device)
+            with record_function("Model Forward"):
+                pred = self.LSTM_model(feature.float())
+            with record_function("Loss Backward"):
+                loss = self.loss_fn(pred, label, weight=None)
+                self.train_optimizer.zero_grad()
+                loss.backward()
+            with record_function("Optimize Step"):
+                torch.nn.utils.clip_grad_value_(self.LSTM_model.parameters(), 3.0)
+                self.train_optimizer.step()
+            if hasattr(self, "profiling") and getattr(self, "profiling"):
+                torch_profiler.step()
+                if not viz_traced:
+                    viz_traced = True
+                    viz_tracer.stop()
+                    viz_tracer.save()
+        if hasattr(self, "profiling") and getattr(self, "profiling"):
+            torch_profiler.stop()
+            self.logger.info("Profiling finished. Program exitting")
+            exit(0)
 
     def test_epoch(self, data_loader):
 
@@ -226,17 +267,17 @@ class LSTM(Model):
             raise ValueError("Unsupported reweighter type.")
 
         train_loader = DataLoader(
-            ConcatDataset(dl_train, wl_train),
+            dl_train,
+            num_workers=self.n_jobs,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=self.n_jobs,
             drop_last=True,
         )
         valid_loader = DataLoader(
             ConcatDataset(dl_valid, wl_valid),
+            num_workers=self.n_jobs,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.n_jobs,
             drop_last=True,
         )
 

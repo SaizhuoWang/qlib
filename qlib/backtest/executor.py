@@ -218,8 +218,7 @@ class BaseExecutor:
     ) -> Union[Generator[Any, Any, Tuple[List[object], dict]], Tuple[List[object], dict]]:
         """
         Please refer to the doc of collect_data
-        The only difference between `_collect_data` and `collect_data` is that some common steps are moved into
-        collect_data
+        The only difference between `_collect_data` and `collect_data` is that some common steps are moved to `collect_data`
 
         Parameters
         ----------

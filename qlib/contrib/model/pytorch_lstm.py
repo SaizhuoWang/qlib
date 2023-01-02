@@ -20,6 +20,11 @@ from ...model.base import Model
 from ...utils import get_or_create_path
 from ...workflow import R
 
+from torch.profiler import profile, record_function, ProfilerActivity
+from datetime import datetime
+import viztracer
+from wszlib.constants import PROJECT_ROOT
+
 
 class LSTM(Model):
     """LSTM Model
@@ -51,7 +56,7 @@ class LSTM(Model):
         optimizer="adam",
         GPU=0,
         seed=None,
-        **kwargs
+        **kwargs,
     ):
         # Set logger.
         self.logger = get_module_logger("LSTM")
@@ -74,6 +79,9 @@ class LSTM(Model):
             "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
         )
         self.seed = seed
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
         self.logger.info(
             "LSTM parameters setting:"
@@ -177,29 +185,73 @@ class LSTM(Model):
         indices = np.arange(len(x_train_values))
         np.random.shuffle(indices)
 
+        if hasattr(self, "profiling") and getattr(self, "profiling"):
+            torch_profiler = torch.profiler.profile(
+                activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
+                schedule=torch.profiler.schedule(wait=2, warmup=3, active=4, repeat=3),
+                on_trace_ready=torch.profiler.tensorboard_trace_handler(
+                    f'{PROJECT_ROOT}/profiling/torch_profiler/Baseline_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+                ),
+                record_shapes=True,
+                profile_memory=True,
+                with_stack=True,
+                with_flops=True,
+                with_modules=True,
+                use_cuda=True,
+            )
+            viz_tracer = viztracer.VizTracer(
+                output_file=f"{PROJECT_ROOT}/profiling/viztracer/trace_baseline_{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
+            )
+            viz_tracer.enable_thread_tracing()
+            torch_profiler.start()
+            viz_tracer.start()
+            viz_traced = False
+
         for i in range(len(indices))[:: self.batch_size]:
-
-            if len(indices) - i < self.batch_size:
-                break
-
-            feature = (
-                torch.from_numpy(x_train_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_train_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
-
-            pred = self.lstm_model(feature)
-            loss = self.loss_fn(pred, label)
-
-            self.train_optimizer.zero_grad()
-            loss.backward()
-            torch.nn.utils.clip_grad_value_(self.lstm_model.parameters(), 3.0)
-            self.train_optimizer.step()
+            with record_function("Get Batch and Move to GPU"):
+                if len(indices) - i < self.batch_size:
+                    target_idx = len(indices)
+                else:
+                    target_idx = i + self.batch_size
+                feature_np = x_train_values[indices[i : target_idx]]
+                label_np = y_train_values[indices[i : target_idx]]
+                # input("Indexed ndarray! Press Enter to continue...")
+                feature = torch.tensor(feature_np, dtype=torch.float32, device=self.device) 
+                label = torch.tensor(label_np, dtype=torch.float32, device=self.device) 
+                # (
+                #     torch.from_numpy(feature_np)
+                #     .float()
+                #     .to(self.device)
+                # )
+                # label = (
+                #     torch.from_numpy(label_np)
+                #     .float()
+                #     .to(self.device)
+                # )
+                # input("Converted to GPU tensor! Press Enter to continue...")
+            with record_function("Forward"):
+                pred = self.lstm_model(feature)
+                # input("FOrward finished! Press Enter to continue...")
+            with record_function("Loss"):
+                loss = self.loss_fn(pred, label)
+                self.train_optimizer.zero_grad()
+                loss.backward()
+                # input("Backward finished! Press Enter to continue...")
+            with record_function("Optimize"):
+                torch.nn.utils.clip_grad_value_(self.lstm_model.parameters(), 3.0)
+                self.train_optimizer.step()
+                # input("Optimize finished! Press Enter to continue...")
+            # input("Press Enter to continue...")
+            if hasattr(self, "profiling") and getattr(self, "profiling"):
+                torch_profiler.step()
+                if not viz_traced:
+                    viz_traced = True
+                    viz_tracer.stop()
+                    viz_tracer.save()
+        if hasattr(self, "profiling") and getattr(self, "profiling"):
+            torch_profiler.stop()
+            self.logger.info("Profiling finished. Program exitting")
+            exit(0)
 
     def test_epoch(self, data_x, data_y):
 
@@ -278,7 +330,7 @@ class LSTM(Model):
                     "train_score": train_score,
                     "val_loss": val_loss,
                     "val_score": val_score,
-                }
+                },
             )
 
             self.logger.info("train %.6f, valid %.6f" % (train_score, val_score))

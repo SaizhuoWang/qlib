@@ -138,7 +138,7 @@ class Exchange:
             raise ValueError(f"Get Unexpected arguments {kwargs}")
 
         if limit_threshold is None:
-            limit_threshold = C.limit_threshold
+            limit_threshold =  C.limit_threshold
         if deal_price is None:
             deal_price = C.deal_price
 

@@ -19,8 +19,10 @@ from tqdm.auto import tqdm
 from ..utils.time import Freq
 
 
-PORT_METRIC = Dict[str, Tuple[pd.DataFrame, dict]]
-INDICATOR_METRIC = Dict[str, Tuple[pd.DataFrame, Indicator]]
+PORT_METRIC_TYPE = Dict[str, Tuple[pd.DataFrame, dict]]
+INDICATOR_METRIC_TYPE = Dict[str, Tuple[pd.DataFrame, Indicator]]
+PORT_METRIC_KEY = "portfolio_dict"
+INDICATOR_KEY = "indicator_dict"
 
 
 def backtest_loop(
@@ -28,7 +30,7 @@ def backtest_loop(
     end_time: Union[pd.Timestamp, str],
     trade_strategy: BaseStrategy,
     trade_executor: BaseExecutor,
-) -> Tuple[PORT_METRIC, INDICATOR_METRIC]:
+) -> Tuple[PORT_METRIC_TYPE, INDICATOR_METRIC_TYPE]:
     """backtest function for the interaction of the outermost strategy and executor in the nested decision execution
 
     please refer to the docs of `collect_data_loop`
@@ -46,8 +48,8 @@ def backtest_loop(
     ):
         pass
 
-    portfolio_dict = cast(PORT_METRIC, return_value.get("portfolio_dict"))
-    indicator_dict = cast(INDICATOR_METRIC, return_value.get("indicator_dict"))
+    portfolio_dict = cast(PORT_METRIC_TYPE, return_value.get(PORT_METRIC_KEY))
+    indicator_dict = cast(INDICATOR_METRIC_TYPE, return_value.get(INDICATOR_KEY))
 
     return portfolio_dict, indicator_dict
 
@@ -108,10 +110,14 @@ def collect_data_loop(
         all_indicators = {}
         for _executor in all_executors:
             key = "{}{}".format(*Freq.parse(_executor.time_per_step))
-            all_indicators[
-                key
-            ] = _executor.trade_account.get_trade_indicator().generate_trade_indicators_dataframe()
-            all_indicators[key + "_obj"] = _executor.trade_account.get_trade_indicator()
+            all_indicators[key] = (
+                _executor.trade_account.get_trade_indicator().generate_trade_indicators_dataframe(),
+                _executor.trade_account.get_trade_indicator()
+            )
+            # all_indicators[
+            #     key
+            # ] = _executor.trade_account.get_trade_indicator().generate_trade_indicators_dataframe()
+            # all_indicators[key + "_obj"] = _executor.trade_account.get_trade_indicator()
         return_value.update(
-            {"portfolio_metrics": all_portfolio_metrics, "indicator": all_indicators}
+            {PORT_METRIC_KEY: all_portfolio_metrics, INDICATOR_KEY: all_indicators}
         )

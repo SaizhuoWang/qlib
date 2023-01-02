@@ -639,9 +639,8 @@ class DataHandlerLP(DataHandler):
 
     @property
     def digest(self) -> str:
-        config_str = repr(self.config_dict)
         import hashlib
-
+        config_str = repr(self.config_dict)
         return hashlib.md5(config_str.encode("utf-8")).hexdigest()[0:8]
 
     def setup_data(self, init_type: str = IT_FIT_SEQ, enable_cache: bool = True, **kwargs):

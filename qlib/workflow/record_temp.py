@@ -9,6 +9,7 @@ from typing import List, Optional, Union
 import pandas as pd
 
 from qlib.utils.exceptions import LoadObjectError
+from qlib.workflow import R
 
 from ..backtest import backtest as normal_backtest
 from ..contrib.eva.alpha import (calc_ic, calc_long_short_prec,
