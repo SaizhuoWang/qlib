@@ -6,6 +6,7 @@ from typing import Text, Union
 from ..data.dataset import Dataset
 from ..data.dataset.weight import Reweighter
 from ..utils.serial import Serializable
+from abc import abstractmethod
 
 
 class BaseModel(Serializable, metaclass=abc.ABCMeta):
@@ -25,6 +26,13 @@ class Model(BaseModel):
 
     @property
     def model(self):
+        raise NotImplementedError("Please implement this method in your model class")
+
+    def load_checkpoint(self):
+        self._load_checkpoint()
+    
+    @abstractmethod
+    def _load_checkpoint(self):
         raise NotImplementedError("Please implement this method in your model class")
 
     def fit(self, dataset: Dataset, reweighter: Reweighter):

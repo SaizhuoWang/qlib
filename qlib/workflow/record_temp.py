@@ -192,22 +192,21 @@ class SignalRecord(RecordTemp):
         return raw_label
 
     def generate(self, **kwargs):
+        if isinstance(self.dataset, DatasetH):
+            raw_label = self.generate_label(self.dataset)
+            self.save(**{"label.pkl": raw_label})
         # generate prediction
         pred = self.model.predict(self.dataset)
         if isinstance(pred, pd.Series):
             pred = pred.to_frame("score")
+        pred = pred.reindex(raw_label.index)
         self.save(**{"pred.pkl": pred})
-
         logger.info(
             f"Signal record 'pred.pkl' has been saved as the artifact of the Experiment {self.recorder.experiment_id}"
         )
         # print out results
         pprint(f"The following are prediction results of the {type(self.model).__name__} model.")
         pprint(pred.head(5))
-
-        if isinstance(self.dataset, DatasetH):
-            raw_label = self.generate_label(self.dataset)
-            self.save(**{"label.pkl": raw_label})
 
     def list(self):
         return ["pred.pkl", "label.pkl"]
@@ -330,9 +329,11 @@ class SigAnaRecord(ACRecordTemp):
         pred = self.load("pred.pkl")
         if label is None:
             label = self.load("label.pkl")
+
         if label is None or not isinstance(label, pd.DataFrame) or label.empty:
             logger.warning(f"Empty label.")
             return
+        # pred = pred.reindex(label.index)
         ic, ric = calc_ic(pred.iloc[:, 0], label.iloc[:, self.label_col])
         metrics = {
             "IC": ic.mean(),
@@ -483,7 +484,10 @@ class PortAnaRecord(ACRecordTemp):
         return ret_freq
 
     def _generate(self, **kwargs):
+        if 'recorder' in kwargs:
+            self._recorder = kwargs['recorder']
         pred = self.load("pred.pkl")
+        
 
         # replace the "<PRED>" with prediction saved before
         placeholder_value = {"<PRED>": pred}

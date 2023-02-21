@@ -6,12 +6,17 @@ import json
 import os
 import pickle
 import warnings
+import hashlib
+
 # coding=utf-8
-from typing import (Callable, Dict, Iterator, List, Optional, OrderedDict,
-                    Tuple, Union)
+from typing import Callable, Dict, Iterator, List, Optional, OrderedDict, Tuple, Union, TypedDict
 
+import filelock
+import numpy as np
+import SharedArray as sa
 import pandas as pd
-
+from numpy.lib.stride_tricks import sliding_window_view as window_trick
+from ...config import C
 from ...log import TimeInspector, get_module_logger
 from ...utils import init_instance_by_config, lazy_sort_index
 from ...utils.serial import Serializable
@@ -19,6 +24,7 @@ from . import loader as data_loader_module
 from . import processor as processor_module
 from .loader import DataLoader
 from .utils import fetch_df_by_col, fetch_df_by_index
+from abc import abstractmethod
 
 
 # TODO: A more general handler interface which does not relies on internal pd.DataFrame is needed.
@@ -122,7 +128,42 @@ class DataHandler(Serializable):
 
         super().config(**kwargs)
 
-    def setup_data(self, enable_cache: bool = False):
+    def load_cache(self):
+        """
+        Load the cached data from disk
+
+        Returns
+        -------
+        pd.DataFrame
+            the cached data
+        """
+        cache_path = self.get_cache_path()
+        self.logger.info(f"Loading cache from {cache_path} ...")
+        with open(cache_path, "rb") as f:
+            return pickle.load(f)
+
+    def save_cache(self):
+        """
+        Save the data and config dict to disk
+
+        """
+        cache_path = self.get_cache_path()
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        self.logger.info(f"Saving cache to {cache_path} ...")
+        with open(cache_path, "wb") as f:
+            pickle.dump(self._data, f)
+        with open(cache_path + "_config.json", "w") as f:
+            json.dump(self.config_dict, f)
+
+    @abstractmethod
+    def get_cache_path(self):
+        raise NotImplementedError
+
+    @property
+    def config_dict(self):
+        raise NotImplementedError
+
+    def setup_data(self, enable_cache: bool = True):
         """
         Set Up the data in case of running initialization for multiple time
 
@@ -141,10 +182,22 @@ class DataHandler(Serializable):
         """
         # Setup data.
         # _data may be with multiple column index level. The outer level indicates the feature set name
+
         with TimeInspector.logt("Loading data"):
             # make sure the fetch method is based on a index-sorted pd.DataFrame
-            self._data = lazy_sort_index(self.data_loader.load(self.instruments, self.start_time, self.end_time))
-        # TODO: cache
+            if enable_cache:
+                try:
+                    self._data = self.load_cache()
+                except FileNotFoundError:
+                    self.logger.info("Cache not found, loading data from source...")
+                    self._data = lazy_sort_index(
+                        self.data_loader.load(self.instruments, self.start_time, self.end_time)
+                    )
+                    self.save_cache()
+            else:
+                self._data = lazy_sort_index(
+                    self.data_loader.load(self.instruments, self.start_time, self.end_time)
+                )
 
     CS_ALL = "__all"  # return all columns with single-level index column
     CS_RAW = "__raw"  # return raw data with multi-level index column
@@ -230,7 +283,7 @@ class DataHandler(Serializable):
         col_set: Union[str, List[str]] = CS_ALL,
         squeeze: bool = False,
         proc_func: Callable = None,
-    ):
+    ) -> Tuple[pd.DataFrame, np.ndarray]:
         # This method is extracted for sharing in subclasses
         from .storage import BaseHandlerStorage  # pylint: disable=C0415
 
@@ -470,7 +523,8 @@ class DataHandlerLP(DataHandler):
             else:
                 return d
 
-        self.config_dict = {
+        # Make config dict
+        config_dict = {
             "instruments": instruments,
             "start_time": start_time,
             "end_time": end_time,
@@ -481,8 +535,9 @@ class DataHandlerLP(DataHandler):
             "handler_name": self.__class__.__name__,
             **kwargs,
         }
-        format_config_dict(self.config_dict)
-        self.config_dict = recursive_sort_dict(self.config_dict)
+        format_config_dict(config_dict)
+        self._config_dict = recursive_sort_dict(config_dict)
+
         # Setup preprocessor
         self.infer_processors = []  # for lint
         self.learn_processors = []  # for lint
@@ -498,10 +553,13 @@ class DataHandlerLP(DataHandler):
                         accept_types=processor_module.Processor,
                     )
                 )
-
         self.process_type = process_type
         self.drop_raw = drop_raw
         super().__init__(instruments, start_time, end_time, data_loader, **kwargs)
+
+    @property
+    def config_dict(self):
+        return self._config_dict
 
     def get_all_processors(self):
         return self.shared_processors + self.infer_processors + self.learn_processors
@@ -529,6 +587,29 @@ class DataHandlerLP(DataHandler):
         with_fit: bool,
         check_for_infer: bool,
     ) -> pd.DataFrame:
+        """Runs a list of processors on a dataframe
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The dataframe to process
+        proc_l : List[processor_module.Processor]
+            The processors to run
+        with_fit : bool
+            Whether to fit the processors before running them
+        check_for_infer : bool
+            Whether to check that the processors are for inference
+
+        Returns
+        -------
+        pd.DataFrame
+            The processed dataframe
+
+        Raises
+        ------
+        TypeError
+            If `check_for_infer` and any of the processors are not for inference
+        """
         for proc in proc_l:
             if check_for_infer and not proc.is_for_infer():
                 raise TypeError(
@@ -639,11 +720,10 @@ class DataHandlerLP(DataHandler):
 
     @property
     def digest(self) -> str:
-        import hashlib
         config_str = repr(self.config_dict)
         return hashlib.md5(config_str.encode("utf-8")).hexdigest()[0:8]
 
-    def setup_data(self, init_type: str = IT_FIT_SEQ, enable_cache: bool = True, **kwargs):
+    def setup_data(self, init_type: str = IT_FIT_SEQ, **kwargs):
         """
         Set up the data in case of running initialization for multiple time
 
@@ -659,33 +739,9 @@ class DataHandlerLP(DataHandler):
                 the processed data will be saved on disk, and handler will load the cached data from the disk directly
                 when we call `init` next time
         """
+        super().setup_data(**kwargs)  # Load raw data
 
-        from ...config import C
-
-        provider_dir = C["provider_uri"]["__DEFAULT_FREQ"]
-        cache_dir = os.path.join(provider_dir, "handler_cache", self.digest)
-        if enable_cache:
-            self.logger.info(f"Trying to load cached data from {cache_dir}")
-            # Try to load from cache dir
-            if os.path.isdir(cache_dir):
-                self.logger.info(f"{cache_dir} exists. Trying to load from it")
-                try:
-                    self._data = pickle.load(open(os.path.join(cache_dir, "_data.pkl"), "rb"))
-                    self._infer = pickle.load(open(os.path.join(cache_dir, "_infer.pkl"), "rb"))
-                    self._learn = pickle.load(open(os.path.join(cache_dir, "_learn.pkl"), "rb"))
-                    self.logger.info(f"Successfully loaded cached data from {cache_dir}")
-                    return
-                except:
-                    self.logger.info(
-                        f"{cache_dir} is not a valid cache directory, returning to setup from scratch"
-                    )
-            else:
-                self.logger.info(f"{cache_dir} does not exist. Returning to setup from scratch")
-
-        # init raw data
-        super().setup_data(**kwargs)
-
-        with TimeInspector.logt("fit & process data"):
+        with TimeInspector.logt("fit & process data"):  # Do preprocessing
             self.logger.info("Fitting and processing data ......")
             if init_type == DataHandlerLP.IT_FIT_IND:
                 self.fit()
@@ -697,25 +753,7 @@ class DataHandlerLP(DataHandler):
             else:
                 raise NotImplementedError(f"This type of input is not supported")
 
-        # TODO: Be able to cache handler data. Save the memory for data processing
-        if enable_cache:
-            import filelock
 
-            os.makedirs(cache_dir, exist_ok=True)
-            with filelock.FileLock(os.path.join(cache_dir, "lock")):
-                if not os.path.exists(os.path.join(cache_dir, "_data.pkl")):
-                    pickle.dump(self._data, open(os.path.join(cache_dir, "_data.pkl"), "wb"))
-                if not os.path.exists(os.path.join(cache_dir, "_infer.pkl")):
-                    pickle.dump(self._infer, open(os.path.join(cache_dir, "_infer.pkl"), "wb"))
-                if not os.path.exists(os.path.join(cache_dir, "_learn.pkl")):
-                    pickle.dump(self._learn, open(os.path.join(cache_dir, "_learn.pkl"), "wb"))
-                if not os.path.exists(os.path.join(cache_dir, "config.json")):
-                    json.dump(
-                        self.config_dict,
-                        open(os.path.join(cache_dir, "config.json"), "w"),
-                        indent=4,
-                    )
-                self.logger.info(f"Successfully saved cached data to {cache_dir}")
 
     def _get_df_by_key(self, data_key: str = DK_I) -> pd.DataFrame:
         if data_key == self.DK_R and self.drop_raw:

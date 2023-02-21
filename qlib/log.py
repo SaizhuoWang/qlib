@@ -56,7 +56,9 @@ class _QLibLoggerManager:
         for logger in self._loggers.values():
             logger.setLevel(level)
 
-    def __call__(self, module_name, level: Optional[int] = None) -> QlibLogger:
+    def __call__(
+        self, module_name,  level: Optional[int] = None, prefix: str = "qlib",
+    ) -> QlibLogger:
         """
         Get a logger for a specific module.
 
@@ -69,10 +71,10 @@ class _QLibLoggerManager:
         if level is None:
             level = C.logging_level
 
-        if not module_name.startswith("qlib."):
+        if not module_name.startswith(f"{prefix}."):
             # Add a prefix of qlib. when the requested ``module_name`` doesn't start with ``qlib.``.
             # If the module_name is already qlib.xxx, we do not format here. Otherwise, it will become qlib.qlib.xxx.
-            module_name = "qlib.{}".format(module_name)
+            module_name = f"{prefix}.{module_name}"
 
         # Get logger.
         module_logger = self._loggers.setdefault(module_name, QlibLogger(module_name))

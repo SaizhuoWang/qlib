@@ -184,6 +184,18 @@ class RollingGen(TaskGen):
     def _update_task_segs(self, task, segs):
         # update segments of this task
         task["dataset"]["kwargs"]["segments"] = copy.deepcopy(segs)
+        
+        # update segments of handler
+        fit_start_time = copy.deepcopy(segs['train'][0])
+        fit_end_time = copy.deepcopy(segs['train'][1])
+        start_time = copy.deepcopy(segs['train'][0])
+        end_time = copy.deepcopy(segs['test'][1])
+        if 'handler' in task['dataset']['kwargs']:
+            task['dataset']['kwargs']['handler']['kwargs']['fit_start_time'] = fit_start_time
+            task['dataset']['kwargs']['handler']['kwargs']['fit_end_time'] = fit_end_time
+            task['dataset']['kwargs']['handler']['kwargs']['start_time'] = start_time
+            task['dataset']['kwargs']['handler']['kwargs']['end_time'] = end_time
+
         if self.ds_extra_mod_func is not None:
             self.ds_extra_mod_func(task, self)
 
@@ -218,7 +230,7 @@ class RollingGen(TaskGen):
                     segments[k] = self.ta.shift(seg, step=self.step, rtype=rtype)
                 if segments[self.test_key][0] > test_end:
                     break
-                if segments[self.test_key][1] > test_end:
+                if segments[self.test_key][1] is None or segments[self.test_key][1] > test_end:
                     segments[self.test_key] = (segments[self.test_key][0], test_end)
             except KeyError:
                 # We reach the end of tasks
@@ -292,9 +304,11 @@ class RollingGen(TaskGen):
         test_end = transform_end_date(segments[self.test_key][1])
         # 2) and init test segments
         test_start_idx = self.ta.align_idx(segments[self.test_key][0])
+        # test_end_1 = self.ta.get(test_start_idx + self.step - 1)
+        # test_end_2 = test_end
         segments[self.test_key] = (
             self.ta.get(test_start_idx),
-            min(self.ta.get(test_start_idx + self.step - 1), test_end),
+            min(self.ta.get(test_start_idx + self.step - 1) or test_end, test_end),
         )
         if self.trunc_days is not None:
             trunc_segments(self.ta, segments, self.trunc_days, self.test_key)

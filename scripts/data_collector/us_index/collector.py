@@ -29,6 +29,7 @@ WIKI_INDEX_NAME_MAP = {
     "SP500": "List_of_S%26P_500_companies",
     "SP400": "List_of_S%26P_400_companies",
     "DJIA": "Dow_Jones_Industrial_Average",
+    "SP600": "List_of_S%26P_600_companies"
 }
 
 
@@ -273,19 +274,120 @@ class SP500Index(WIKIIndex):
 
 
 class SP400Index(WIKIIndex):
+    WIKISP400_CHANGES_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_400_companies"
+    DATE_FIELD_NAME = "date"
+    ADD = "Added ticker"
+    REMOVE = "Removed ticker"
+    
     @property
     def bench_start_date(self) -> pd.Timestamp:
         return pd.Timestamp("2000-01-01")
 
     def get_changes(self) -> pd.DataFrame:
-        pass
+        logger.info(f"get sp400 history changes......")
+        # NOTE: may update the index of the table
+        changes_df = pd.read_html(self.WIKISP400_CHANGES_URL)[-1]
+        changes_df = changes_df.iloc[:, [0, 1, 3]]
+        changes_df.columns = [self.DATE_FIELD_NAME, self.ADD, self.REMOVE]
+        
+        # Flatten the multi-index columns
+        
+        
+        # Strip the reference postfix [*] from the date column
+        import re
+        date_column = list(changes_df[self.DATE_FIELD_NAME])
+        for i in range(len(date_column)):
+            date_column[i] = re.sub(r'\[.*\]', '', date_column[i])
+        changes_df[self.DATE_FIELD_NAME] = date_column
+        
+        changes_df[self.DATE_FIELD_NAME] = pd.to_datetime(changes_df[self.DATE_FIELD_NAME])
+        _result = []
+        for _type in [self.ADD, self.REMOVE]:
+            _df = changes_df.copy()
+            _df[self.CHANGE_TYPE_FIELD] = _type
+            _df[self.SYMBOL_FIELD_NAME] = _df[_type]
+            _df.dropna(subset=[self.SYMBOL_FIELD_NAME], inplace=True)
+            if _type == self.ADD:
+                _df[self.DATE_FIELD_NAME] = _df[self.DATE_FIELD_NAME].apply(
+                    lambda x: get_trading_date_by_shift(self.calendar_list, x, 0)
+                )
+            else:
+                _df[self.DATE_FIELD_NAME] = _df[self.DATE_FIELD_NAME].apply(
+                    lambda x: get_trading_date_by_shift(self.calendar_list, x, -1)
+                )
+            _result.append(
+                _df[
+                    [
+                        self.DATE_FIELD_NAME,
+                        self.CHANGE_TYPE_FIELD,
+                        self.SYMBOL_FIELD_NAME,
+                    ]
+                ]
+            )
+        logger.info(f"end of get sp400 history changes.")
+        return pd.concat(_result, sort=False)
 
     def filter_df(self, df: pd.DataFrame) -> pd.DataFrame:
         if "Ticker symbol" in df.columns:
             return df.loc[:, ["Ticker symbol"]].copy()
 
-    def parse_instruments(self):
-        logger.warning(f"No suitable data source has been found!")
+    # def parse_instruments(self):
+        # logger.warning(f"No suitable data source has been found!")
+
+class SP600Index(WIKIIndex):
+    WIKISP600_CHANGES_URL = "https://en.wikipedia.org/wiki/List_of_S%26P_600_companies"
+    DATE_FIELD_NAME = "date"
+    ADD = "Added ticker"
+    REMOVE = "Removed ticker"
+    
+    @property
+    def bench_start_date(self) -> pd.Timestamp:
+        return pd.Timestamp("2000-01-01")
+
+    def get_changes(self) -> pd.DataFrame:
+        logger.info(f"get sp600 history changes......")
+        # NOTE: may update the index of the table
+        changes_df = pd.read_html(self.WIKISP600_CHANGES_URL)[-1]
+        changes_df = changes_df.iloc[:, [0, 1, 3]]
+        changes_df.columns = [self.DATE_FIELD_NAME, self.ADD, self.REMOVE]
+                
+        # Strip the reference postfix [*] from the date column
+        import re
+        date_column = list(changes_df[self.DATE_FIELD_NAME])
+        for i in range(len(date_column)):
+            date_column[i] = re.sub(r'\[.*\]', '', date_column[i])
+        changes_df[self.DATE_FIELD_NAME] = date_column
+        
+        changes_df[self.DATE_FIELD_NAME] = pd.to_datetime(changes_df[self.DATE_FIELD_NAME])
+        _result = []
+        for _type in [self.ADD, self.REMOVE]:
+            _df = changes_df.copy()
+            _df[self.CHANGE_TYPE_FIELD] = _type
+            _df[self.SYMBOL_FIELD_NAME] = _df[_type]
+            _df.dropna(subset=[self.SYMBOL_FIELD_NAME], inplace=True)
+            if _type == self.ADD:
+                _df[self.DATE_FIELD_NAME] = _df[self.DATE_FIELD_NAME].apply(
+                    lambda x: get_trading_date_by_shift(self.calendar_list, x, 0)
+                )
+            else:
+                _df[self.DATE_FIELD_NAME] = _df[self.DATE_FIELD_NAME].apply(
+                    lambda x: get_trading_date_by_shift(self.calendar_list, x, -1)
+                )
+            _result.append(
+                _df[
+                    [
+                        self.DATE_FIELD_NAME,
+                        self.CHANGE_TYPE_FIELD,
+                        self.SYMBOL_FIELD_NAME,
+                    ]
+                ]
+            )
+        logger.info(f"end of get sp600 history changes.")
+        return pd.concat(_result, sort=False)
+
+    def filter_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        if "Symbol" in df.columns:
+            return df.loc[:, ["Symbol"]].copy()
 
 
 if __name__ == "__main__":

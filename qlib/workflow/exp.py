@@ -183,7 +183,7 @@ class Experiment:
             self.active_recorder.start_run()
         return recorder
 
-    def _get_or_create_rec(self, recorder_id=None, recorder_name=None) -> (object, bool):
+    def _get_or_create_rec(self, recorder_id=None, recorder_name=None):
         """
         Method for getting or creating a recorder. It will try to first get a valid recorder, if exception occurs, it will
         automatically create a new recorder based on the given id and name.

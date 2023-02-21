@@ -13,15 +13,25 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
+
 # For supporting multiprocessing in outer code, joblib is used
 from joblib import delayed
-
+from wszlib.utils.wsz_tqdm import tqdm_joblib
 from ..config import C
 from ..log import get_module_logger
-from ..utils import (Wrapper, code_to_fname, get_module_by_module_path,
-                     get_period_list, hash_args, init_instance_by_config,
-                     normalize_cache_fields, parse_field, read_period_data,
-                     register_wrapper, time_to_slc_point)
+from ..utils import (
+    Wrapper,
+    code_to_fname,
+    get_module_by_module_path,
+    get_period_list,
+    hash_args,
+    init_instance_by_config,
+    normalize_cache_fields,
+    parse_field,
+    read_period_data,
+    register_wrapper,
+    time_to_slc_point,
+)
 from ..utils.paral import ParallelExt
 from .cache import DiskDatasetCache, H
 from .inst_processor import InstProcessor
@@ -605,16 +615,31 @@ class DatasetProvider(abc.ABC):
             )
         if logger is not None:
             logger.info(f"start to calculate {len(task_l)} tasks with {workers} workers")
+        returns = []
+        from tqdm import tqdm
+
+        with tqdm_joblib(tqdm(desc="dataset_processor", total=len(task_l))) as pbar:
+            retv = ParallelExt(
+                n_jobs=workers,
+                backend=C.joblib_backend,
+                maxtasksperchild=C.maxtasksperchild,
+            )(task_l)
         data = dict(
             zip(
                 inst_l,
-                ParallelExt(
-                    n_jobs=workers,
-                    backend=C.joblib_backend,
-                    maxtasksperchild=C.maxtasksperchild,
-                )(task_l),
+                retv,
             )
         )
+        # data = dict(
+        #     zip(
+        #         inst_l,
+        #         ParallelExt(
+        #             n_jobs=workers,
+        #             backend=C.joblib_backend,
+        #             maxtasksperchild=C.maxtasksperchild,
+        #         )(task_l),
+        #     )
+        # )
         if logger is not None:
             logger.info(f"finish calculating {len(task_l)} tasks with {workers} workers")
 
@@ -675,7 +700,6 @@ class DatasetProvider(abc.ABC):
             for begin, end in spans:
                 mask |= (data.index >= begin) & (data.index <= end)
             data = data[mask]
-
         for _processor in inst_processors:
             if _processor:
                 _processor_obj = init_instance_by_config(_processor, accept_types=InstProcessor)
@@ -976,6 +1000,7 @@ class LocalDatasetProvider(DatasetProvider):
         start_time=None,
         end_time=None,
         freq="day",
+        disk_cache=True,
         inst_processors=[],
     ):
         instruments_d = self.get_instruments_d(instruments, freq)
@@ -1267,8 +1292,8 @@ class BaseProvider:
         start_time=None,
         end_time=None,
         freq="day",
-        disk_cache=None,
         inst_processors=[],
+        disk_cache=None,
     ):
         """
         Parameters

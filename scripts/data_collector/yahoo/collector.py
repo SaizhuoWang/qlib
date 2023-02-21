@@ -28,13 +28,16 @@ from qlib.utils import code_to_fname, exists_qlib_data, fname_to_code
 CUR_DIR = Path(__file__).resolve().parent
 sys.path.append(str(CUR_DIR.parent.parent))
 
-from data_collector.base import (BaseCollector, BaseNormalize, BaseRun,
-                                 Normalize)
-from data_collector.utils import (deco_retry,
-                                  generate_minutes_calendar_from_daily,
-                                  get_br_stock_symbols, get_calendar_list,
-                                  get_hs_stock_symbols, get_in_stock_symbols,
-                                  get_us_stock_symbols)
+from data_collector.base import BaseCollector, BaseNormalize, BaseRun, Normalize
+from data_collector.utils import (
+    deco_retry,
+    generate_minutes_calendar_from_daily,
+    get_br_stock_symbols,
+    get_calendar_list,
+    get_hs_stock_symbols,
+    get_in_stock_symbols,
+    get_us_stock_symbols,
+)
 from dump_bin import DumpDataUpdate
 
 INDEX_BENCH_URL = "http://push2his.eastmoney.com/api/qt/stock/kline/get?secid=1.{index_code}&fields1=f1%2Cf2%2Cf3%2Cf4%2Cf5&fields2=f51%2Cf52%2Cf53%2Cf54%2Cf55%2Cf56%2Cf57%2Cf58&klt=101&fqt=0&beg={begin}&end={end}"
@@ -228,7 +231,12 @@ class YahooCollectorCN1d(YahooCollectorCN):
         _format = "%Y%m%d"
         _begin = self.start_datetime.strftime(_format)
         _end = self.end_datetime.strftime(_format)
-        for _index_name, _index_code in {"csi300": "000300", "csi100": "000903", "csi500": "000905"}.items():
+        for _index_name, _index_code in {
+            "csi300": "000300",
+            "csi100": "000903",
+            "csi500": "000905",
+            "csi1000": "000852",
+        }.items():
             logger.info(f"get bench data: {_index_name}({_index_code})......")
             try:
                 df = pd.DataFrame(
@@ -267,7 +275,7 @@ class YahooCollectorCN1d(YahooCollectorCN):
 class YahooCollectorCN1min(YahooCollectorCN):
     def get_instrument_list(self):
         symbols = super(YahooCollectorCN1min, self).get_instrument_list()
-        return symbols + ["000300.ss", "000905.ss", "000903.ss"]
+        return symbols + ["000300.ss", "000905.ss", "000903.ss", "000852.ss"]
 
     def download_index_data(self):
         pass
@@ -276,11 +284,7 @@ class YahooCollectorCN1min(YahooCollectorCN):
 class YahooCollectorUS(YahooCollector, ABC):
     def get_instrument_list(self):
         logger.info("get US stock symbols......")
-        symbols = get_us_stock_symbols() + [
-            "^GSPC",
-            "^NDX",
-            "^DJI",
-        ]
+        symbols = get_us_stock_symbols() + ["^GSPC", "^NDX", "^DJI", "^MID", "^SP600"]
         logger.info(f"get {len(symbols)} symbols.")
         return symbols
 
