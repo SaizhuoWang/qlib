@@ -12,16 +12,16 @@ from qlib.utils.exceptions import LoadObjectError
 from qlib.workflow import R
 
 from ..backtest import backtest as normal_backtest
-from ..contrib.eva.alpha import (calc_ic, calc_long_short_prec,
-                                 calc_long_short_return)
+from ..contrib.eva.alpha import calc_ic, calc_long_short_prec, calc_long_short_return
 from ..contrib.evaluate import indicator_analysis, risk_analysis
 from ..data.dataset import DatasetH
 from ..data.dataset.handler import DataHandlerLP
 from ..log import get_module_logger
-from ..utils import (class_casting, fill_placeholder, flatten_dict,
-                     get_date_by_shift)
+from ..utils import class_casting, fill_placeholder, flatten_dict, get_date_by_shift
 from ..utils.data import deepcopy_basic_type
 from ..utils.time import Freq
+
+from wszlib.type_hints import DataPackage
 
 logger = get_module_logger("workflow", logging.INFO)
 
@@ -139,7 +139,6 @@ class RecordTemp:
             whether the records are stored properly.
         """
         if include_self:
-
             # Some mlflow backend will not list the directly recursively.
             # So we force to the directly
             artifacts = {}
@@ -174,21 +173,30 @@ class SignalRecord(RecordTemp):
 
     @staticmethod
     def generate_label(dataset):
-        with class_casting(dataset, DatasetH):
-            params = dict(segments="test", col_set="label", data_key=DataHandlerLP.DK_R)
-            try:
-                # Assume the backend handler is DataHandlerLP
-                raw_label = dataset.prepare(**params)
-            except TypeError:
-                # The argument number is not right
-                del params["data_key"]
-                # The backend handler should be DataHandler
-                raw_label = dataset.prepare(**params)
-            except AttributeError as e:
-                # The data handler is initialized with `drop_raw=True`...
-                # So raw_label is not available
-                logger.warning(f"Exception: {e}")
-                raw_label = None
+        # with class_casting(dataset, DatasetH):
+        #     params = dict(segments="test", col_set="label", data_key=DataHandlerLP.DK_R)
+        #     try:
+        #         # Assume the backend handler is DataHandlerLP
+        #         raw_label = dataset.prepare(**params)
+        #     except TypeError:
+        #         # The argument number is not right
+        #         del params["data_key"]
+        #         # The backend handler should be DataHandler
+        #         raw_label = dataset.prepare(**params)
+        #     except AttributeError as e:
+        #         # The data handler is initialized with `drop_raw=True`...
+        #         # So raw_label is not available
+        #         logger.warning(f"Exception: {e}")
+        #         raw_label = None
+        data: DataPackage = dataset.prepare(segments="test", data_key=DataHandlerLP.DK_R)
+        label = data["y"][dataset.window_size - 1 :].squeeze().flatten()
+        indices = [
+            (tick, ticker)
+            for tick in data["ticks"][dataset.window_size - 1 :]
+            for ticker in data["tickers"]
+        ]
+        indices = pd.MultiIndex.from_tuples(indices, names=["datetime", "instrument"])
+        raw_label = pd.DataFrame(label, index=indices)
         return raw_label
 
     def generate(self, **kwargs):
@@ -484,10 +492,9 @@ class PortAnaRecord(ACRecordTemp):
         return ret_freq
 
     def _generate(self, **kwargs):
-        if 'recorder' in kwargs:
-            self._recorder = kwargs['recorder']
+        if "recorder" in kwargs:
+            self._recorder = kwargs["recorder"]
         pred = self.load("pred.pkl")
-        
 
         # replace the "<PRED>" with prediction saved before
         placeholder_value = {"<PRED>": pred}
