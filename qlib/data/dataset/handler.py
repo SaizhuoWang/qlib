@@ -7,6 +7,7 @@ import os
 import pickle
 import warnings
 import hashlib
+import filelock
 
 # coding=utf-8
 from typing import Callable, Dict, Iterator, List, Optional, OrderedDict, Tuple, Union, TypedDict
@@ -150,10 +151,12 @@ class DataHandler(Serializable):
         cache_path = self.get_cache_path()
         os.makedirs(os.path.dirname(cache_path), exist_ok=True)
         self.logger.info(f"Saving cache to {cache_path} ...")
-        with open(cache_path, "wb") as f:
-            pickle.dump(self._data, f)
-        with open(cache_path + "_config.json", "w") as f:
-            json.dump(self.config_dict, f)
+        with filelock.FileLock("{}.lock".format(cache_path)):
+            with open(cache_path, "wb") as f:
+                pickle.dump(self._data, f)
+        with filelock.FileLock("{}.lock".format(cache_path + "_config.json")):
+            with open(cache_path + "_config.json", "w") as f:
+                json.dump(self.config_dict, f)
 
     @abstractmethod
     def get_cache_path(self):
