@@ -6,37 +6,46 @@ from __future__ import division, print_function
 
 import abc
 import bisect
+import contextlib
 import copy
 import queue
 import re
 from typing import List, Optional, Union
 
+import joblib
 import numpy as np
 import pandas as pd
-
 # For supporting multiprocessing in outer code, joblib is used
 from joblib import delayed
-from wszlib.utils.wsz_tqdm import tqdm_joblib
+
 from ..config import C
 from ..log import get_module_logger
-from ..utils import (
-    Wrapper,
-    code_to_fname,
-    get_module_by_module_path,
-    get_period_list,
-    hash_args,
-    init_instance_by_config,
-    normalize_cache_fields,
-    parse_field,
-    read_period_data,
-    register_wrapper,
-    time_to_slc_point,
-)
+from ..utils import (Wrapper, code_to_fname, get_module_by_module_path,
+                     get_period_list, hash_args, init_instance_by_config,
+                     normalize_cache_fields, parse_field, read_period_data,
+                     register_wrapper, time_to_slc_point)
 from ..utils.paral import ParallelExt
 from .cache import DiskDatasetCache, H
 from .inst_processor import InstProcessor
 from .ops import Operators  # pylint: disable=W0611  # noqa: F401
 
+
+@contextlib.contextmanager
+def tqdm_joblib(tqdm_object):
+    """Context manager to patch joblib to report into tqdm progress bar given as argument"""
+
+    class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):
+        def __call__(self, *args, **kwargs):
+            tqdm_object.update(n=self.batch_size)
+            return super().__call__(*args, **kwargs)
+
+    old_batch_callback = joblib.parallel.BatchCompletionCallBack
+    joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
+    try:
+        yield tqdm_object
+    finally:
+        joblib.parallel.BatchCompletionCallBack = old_batch_callback
+        tqdm_object.close()
 
 class ProviderBackendMixin:
     """

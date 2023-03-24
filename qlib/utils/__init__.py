@@ -383,6 +383,8 @@ def get_callable_kwargs(
     """
     if isinstance(config, dict):
         key = "class" if "class" in config else "func"
+        if key not in config:
+            key = "name"
         if isinstance(config[key], str):
             # 1) get module and class
             # - case 1): "a.b.c.ClassName"

@@ -11,12 +11,14 @@ from ..utils.exceptions import RecorderInitializationError
 from .exp import Experiment
 from .expm import ExpManager
 from .recorder import Recorder
-
+import os
 
 class QlibRecorder:
     """
     A global system that helps to manage the experiments.
     """
+
+    suffix: str = ""    # suffix represents sub-dir in the experiment directory
 
     def __init__(self, exp_manager: ExpManager):
         self.exp_manager: ExpManager = exp_manager
@@ -320,6 +322,15 @@ class QlibRecorder:
             create=create,
             start=start,
         )
+    
+    def set(self, experiment_name: str, recorder_name: str):
+        """Set the active experiment and recorder.
+        Will set `active_experiment` for self.exp_manager and `active_recorder` for self.exp_manager.active_experiment.
+        """
+        active_experiment: Experiment = self.exp_manager.get_exp(experiment_name=experiment_name, start=False, create=False)
+        active_recorder = active_experiment.get_recorder(recorder_name=recorder_name, create=False)
+        active_experiment.active_recorder = active_recorder
+        self.exp_manager.active_experiment = active_experiment
 
     def delete_exp(self, experiment_id=None, experiment_name=None):
         """
@@ -530,13 +541,21 @@ class QlibRecorder:
             raise ValueError(
                 "You can choose only one of `local_path`(save the files in a path) or `kwargs`(pass in the objects directly)"
             )
+        if artifact_path is None:
+            artifact_path = R.suffix
+        elif len(R.suffix) > 0:
+            artifact_path = os.path.join(R.suffix, artifact_path)
         self.get_exp().get_recorder(start=True).save_objects(local_path, artifact_path, **kwargs)
 
     def load_object(self, name: Text):
         """
         Method for loading an object from artifacts in the experiment in the uri.
         """
-        return self.get_exp().get_recorder(start=True).load_object(name)
+        if len(R.suffix) > 0:
+            fname = os.path.join(R.suffix, name)
+        else:
+            fname = name
+        return self.get_exp().get_recorder(start=True).load_object(fname)
 
     def log_params(self, **kwargs):
         """

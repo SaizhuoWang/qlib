@@ -39,6 +39,10 @@ class RecordTemp:
     @classmethod
     def get_path(cls, path=None):
         names = []
+
+        if hasattr(R, "suffix"):
+            names.append(R.suffix)
+
         if cls.artifact_path is not None:
             names.append(cls.artifact_path)
 
