@@ -17,8 +17,7 @@ from ...log import get_module_logger
 from ...utils import get_pre_trading_date, is_tradable_date
 from ..backtest.backtest import update_account
 from ..evaluate import risk_analysis
-from .executor import (SimulatorExecutor, load_order_list, load_score_series,
-                       save_order_list, save_score_series)
+from .executor import SimulatorExecutor, load_order_list, load_score_series, save_order_list, save_score_series
 from .manager import UserManager
 from .utils import create_user_folder, prepare
 
@@ -159,12 +158,8 @@ class Operator:
 
             # load and execute the order list
             # will not modify the trade_account after executing
-            order_list = load_order_list(
-                user_path=(pathlib.Path(path) / user_id), trade_date=trade_date
-            )
-            trade_info = executor.execute(
-                order_list=order_list, trade_account=user.account, trade_date=trade_date
-            )
+            order_list = load_order_list(user_path=(pathlib.Path(path) / user_id), trade_date=trade_date)
+            trade_info = executor.execute(order_list=order_list, trade_account=user.account, trade_date=trade_date)
             executor.save_executed_file_from_trade_info(
                 trade_info=trade_info,
                 user_path=(pathlib.Path(path) / user_id),
@@ -208,9 +203,7 @@ class Operator:
             score_series = load_score_series((pathlib.Path(path) / user_id), trade_date)
             update_account(user.account, trade_info, trade_exchange, trade_date)
 
-            portfolio_metrics = (
-                user.account.portfolio_metrics.generate_portfolio_metrics_dataframe()
-            )
+            portfolio_metrics = user.account.portfolio_metrics.generate_portfolio_metrics_dataframe()
             self.logger.info(portfolio_metrics)
             um.save_user_data(user_id)
             self.logger.info("Update account state {} for {}".format(trade_date, user_id))
@@ -274,16 +267,12 @@ class Operator:
 
             # 4. auto execute order list
             order_list = load_order_list(user_path=user_path, trade_date=trade_date)
-            trade_info = executor.execute(
-                trade_account=user.account, order_list=order_list, trade_date=trade_date
-            )
+            trade_info = executor.execute(trade_account=user.account, order_list=order_list, trade_date=trade_date)
             executor.save_executed_file_from_trade_info(
                 trade_info=trade_info, user_path=user_path, trade_date=trade_date
             )
             # 5. update account state
-            trade_info = executor.load_trade_info_from_executed_file(
-                user_path=user_path, trade_date=trade_date
-            )
+            trade_info = executor.load_trade_info_from_executed_file(user_path=user_path, trade_date=trade_date)
             update_account(user.account, trade_info, trade_exchange, trade_date)
         portfolio_metrics = user.account.portfolio_metrics.generate_portfolio_metrics_dataframe()
         self.logger.info(portfolio_metrics)
@@ -307,16 +296,12 @@ class Operator:
         if id not in um.users:
             raise ValueError("Cannot find user ".format(id))
         bench = D.features([bench], ["$change"]).loc[bench, "$change"]
-        portfolio_metrics = um.users[
-            id
-        ].account.portfolio_metrics.generate_portfolio_metrics_dataframe()
+        portfolio_metrics = um.users[id].account.portfolio_metrics.generate_portfolio_metrics_dataframe()
         portfolio_metrics["bench"] = bench
         analysis_result = {}
         r = (portfolio_metrics["return"] - portfolio_metrics["bench"]).dropna()
         analysis_result["excess_return_without_cost"] = risk_analysis(r)
-        r = (
-            portfolio_metrics["return"] - portfolio_metrics["bench"] - portfolio_metrics["cost"]
-        ).dropna()
+        r = (portfolio_metrics["return"] - portfolio_metrics["bench"] - portfolio_metrics["cost"]).dropna()
         analysis_result["excess_return_with_cost"] = risk_analysis(r)
         print("Result:")
         print("excess_return_without_cost:")

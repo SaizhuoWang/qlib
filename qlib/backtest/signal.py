@@ -22,9 +22,7 @@ class Signal(metaclass=abc.ABCMeta):
     """
 
     @abc.abstractmethod
-    def get_signal(
-        self, start_time: pd.Timestamp, end_time: pd.Timestamp
-    ) -> Union[pd.Series, pd.DataFrame, None]:
+    def get_signal(self, start_time: pd.Timestamp, end_time: pd.Timestamp) -> Union[pd.Series, pd.DataFrame, None]:
         """
         get the signal at the end of the decision step(from `start_time` to `end_time`)
 
@@ -59,15 +57,11 @@ class SignalWCache(Signal):
         """
         self.signal_cache = convert_index_format(signal, level="datetime")
 
-    def get_signal(
-        self, start_time: pd.Timestamp, end_time: pd.Timestamp
-    ) -> Union[pd.Series, pd.DataFrame]:
+    def get_signal(self, start_time: pd.Timestamp, end_time: pd.Timestamp) -> Union[pd.Series, pd.DataFrame]:
         # the frequency of the signal may not align with the decision frequency of strategy
         # so resampling from the data is necessary
         # the latest signal leverage more recent data and therefore is used in trading.
-        signal = resam_ts_data(
-            self.signal_cache, start_time=start_time, end_time=end_time, method="last"
-        )
+        signal = resam_ts_data(self.signal_cache, start_time=start_time, end_time=end_time, method="last")
         return signal
 
 

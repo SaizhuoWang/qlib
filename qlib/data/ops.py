@@ -15,8 +15,7 @@ from ..utils import get_callable_kwargs
 from .base import Expression, ExpressionOps, Feature, PFeature
 
 try:
-    from ._libs.expanding import (expanding_resi, expanding_rsquare,
-                                  expanding_slope)
+    from ._libs.expanding import expanding_resi, expanding_rsquare, expanding_slope
     from ._libs.rolling import rolling_resi, rolling_rsquare, rolling_slope
 except ImportError:
     print(
@@ -672,9 +671,7 @@ class If(ExpressionOps):
             series_right = self.feature_right.load(instrument, start_index, end_index, *args)
         else:
             series_right = self.feature_right
-        series = pd.Series(
-            np.where(series_cond, series_left, series_right), index=series_cond.index
-        )
+        series = pd.Series(np.where(series_cond, series_left, series_right), index=series_cond.index)
         return series
 
     def get_longest_back_rolling(self):
@@ -772,9 +769,7 @@ class Rolling(ExpressionOps):
         if self.N == 0:
             # FIXME: How to make this accurate and efficiently? Or  should we
             # remove such support for N == 0?
-            get_module_logger(self.__class__.__name__).warning(
-                "The Rolling(ATTR, 0) will not be accurately calculated"
-            )
+            get_module_logger(self.__class__.__name__).warning("The Rolling(ATTR, 0) will not be accurately calculated")
             return self.feature.get_extended_window_size()
         elif 0 < self.N < 1:
             lft_etd, rght_etd = self.feature.get_extended_window_size()
@@ -824,9 +819,7 @@ class Ref(Rolling):
 
     def get_extended_window_size(self):
         if self.N == 0:
-            get_module_logger(self.__class__.__name__).warning(
-                "The Ref(ATTR, 0) will not be accurately calculated"
-            )
+            get_module_logger(self.__class__.__name__).warning("The Ref(ATTR, 0) will not be accurately calculated")
             return self.feature.get_extended_window_size()
         else:
             lft_etd, rght_etd = self.feature.get_extended_window_size()
@@ -1290,9 +1283,7 @@ class Rsquare(Rolling):
             series = pd.Series(expanding_rsquare(_series.values), index=_series.index)
         else:
             series = pd.Series(rolling_rsquare(_series.values, self.N), index=_series.index)
-            series.loc[
-                np.isclose(_series.rolling(self.N, min_periods=1).std(), 0, atol=2e-05)
-            ] = np.nan
+            series.loc[np.isclose(_series.rolling(self.N, min_periods=1).std(), 0, atol=2e-05)] = np.nan
         return series
 
 
@@ -1423,9 +1414,7 @@ class PairRolling(ExpressionOps):
         self.func = func
 
     def __str__(self):
-        return "{}({},{},{})".format(
-            type(self).__name__, self.feature_left, self.feature_right, self.N
-        )
+        return "{}({},{},{})".format(type(self).__name__, self.feature_left, self.feature_right, self.N)
 
     def _load_internal(self, instrument, start_index, end_index, *args):
         assert any(
@@ -1665,15 +1654,11 @@ class OpsWrapper:
                 _ops_class = _operator
 
             if not issubclass(_ops_class, (Expression,)):
-                raise TypeError(
-                    "operator must be subclass of ExpressionOps, not {}".format(_ops_class)
-                )
+                raise TypeError("operator must be subclass of ExpressionOps, not {}".format(_ops_class))
 
             if _ops_class.__name__ in self._ops:
                 get_module_logger(self.__class__.__name__).warning(
-                    "The custom operator [{}] will override the qlib default definition".format(
-                        _ops_class.__name__
-                    )
+                    "The custom operator [{}] will override the qlib default definition".format(_ops_class.__name__)
                 )
             self._ops[_ops_class.__name__] = _ops_class
 

@@ -9,11 +9,14 @@ from tianshou.data import Batch, Collector
 from tianshou.policy import BasePolicy
 from torch.utils.data import DataLoader, Dataset, DistributedSampler
 
-from qlib.rl.utils.finite_env import (FiniteDummyVectorEnv,
-                                      FiniteShmemVectorEnv,
-                                      FiniteSubprocVectorEnv, LogWriter,
-                                      check_nan_observation,
-                                      generate_nan_observation)
+from qlib.rl.utils.finite_env import (
+    FiniteDummyVectorEnv,
+    FiniteShmemVectorEnv,
+    FiniteSubprocVectorEnv,
+    LogWriter,
+    check_nan_observation,
+    generate_nan_observation,
+)
 
 _test_space = gym.spaces.Dict(
     {
@@ -175,9 +178,7 @@ class DoNothingTracker(LogWriter):
 def test_finite_dummy_vector_env():
     length = 100
     dataset = DummyDataset(length)
-    envs = FiniteDummyVectorEnv(
-        MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)]
-    )
+    envs = FiniteDummyVectorEnv(MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)])
     envs._collector_guarded = True
     policy = AnyPolicy()
     test_collector = Collector(policy, envs, exploration_noise=True)
@@ -193,9 +194,7 @@ def test_finite_dummy_vector_env():
 def test_finite_shmem_vector_env():
     length = 100
     dataset = DummyDataset(length)
-    envs = FiniteShmemVectorEnv(
-        MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)]
-    )
+    envs = FiniteShmemVectorEnv(MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)])
     envs._collector_guarded = True
     policy = AnyPolicy()
     test_collector = Collector(policy, envs, exploration_noise=True)
@@ -211,9 +210,7 @@ def test_finite_shmem_vector_env():
 def test_finite_subproc_vector_env():
     length = 100
     dataset = DummyDataset(length)
-    envs = FiniteSubprocVectorEnv(
-        MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)]
-    )
+    envs = FiniteSubprocVectorEnv(MetricTracker(length), [_finite_env_factory(dataset, 5, i) for i in range(5)])
     envs._collector_guarded = True
     policy = AnyPolicy()
     test_collector = Collector(policy, envs, exploration_noise=True)

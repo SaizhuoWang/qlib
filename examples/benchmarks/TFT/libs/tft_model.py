@@ -87,20 +87,16 @@ def apply_mlp(
       Tensor for MLP outputs.
     """
     if use_time_distributed:
-        hidden = tf.keras.layers.TimeDistributed(
-            tf.keras.layers.Dense(hidden_size, activation=hidden_activation)
-        )(inputs)
-        return tf.keras.layers.TimeDistributed(
-            tf.keras.layers.Dense(output_size, activation=output_activation)
-        )(hidden)
+        hidden = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(hidden_size, activation=hidden_activation))(
+            inputs
+        )
+        return tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(output_size, activation=output_activation))(hidden)
     else:
         hidden = tf.keras.layers.Dense(hidden_size, activation=hidden_activation)(inputs)
         return tf.keras.layers.Dense(output_size, activation=output_activation)(hidden)
 
 
-def apply_gating_layer(
-    x, hidden_layer_size, dropout_rate=None, use_time_distributed=True, activation=None
-):
+def apply_gating_layer(x, hidden_layer_size, dropout_rate=None, use_time_distributed=True, activation=None):
     """Applies a Gated Linear Unit (GLU) to an input.
 
     Args:
@@ -122,9 +118,7 @@ def apply_gating_layer(
         activation_layer = tf.keras.layers.TimeDistributed(
             tf.keras.layers.Dense(hidden_layer_size, activation=activation)
         )(x)
-        gated_layer = tf.keras.layers.TimeDistributed(
-            tf.keras.layers.Dense(hidden_layer_size, activation="sigmoid")
-        )(x)
+        gated_layer = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(hidden_layer_size, activation="sigmoid"))(x)
     else:
         activation_layer = tf.keras.layers.Dense(hidden_layer_size, activation=activation)(x)
         gated_layer = tf.keras.layers.Dense(hidden_layer_size, activation="sigmoid")(x)
@@ -181,9 +175,7 @@ def gated_residual_network(
         skip = linear(x)
 
     # Apply feedforward network
-    hidden = linear_layer(
-        hidden_layer_size, activation=None, use_time_distributed=use_time_distributed
-    )(x)
+    hidden = linear_layer(hidden_layer_size, activation=None, use_time_distributed=use_time_distributed)(x)
     if additional_context is not None:
         hidden = hidden + linear_layer(
             hidden_layer_size,
@@ -192,9 +184,7 @@ def gated_residual_network(
             use_bias=False,
         )(additional_context)
     hidden = tf.keras.layers.Activation("elu")(hidden)
-    hidden = linear_layer(
-        hidden_layer_size, activation=None, use_time_distributed=use_time_distributed
-    )(hidden)
+    hidden = linear_layer(hidden_layer_size, activation=None, use_time_distributed=use_time_distributed)(hidden)
 
     gating_layer, gate = apply_gating_layer(
         hidden,
@@ -249,13 +239,9 @@ class ScaledDotProductAttention:
           Tuple of (layer outputs, attention weights)
         """
         temper = tf.sqrt(tf.cast(tf.shape(k)[-1], dtype="float32"))
-        attn = Lambda(lambda x: K.batch_dot(x[0], x[1], axes=[2, 2]) / temper)(
-            [q, k]
-        )  # shape=(batch, q, k)
+        attn = Lambda(lambda x: K.batch_dot(x[0], x[1], axes=[2, 2]) / temper)([q, k])  # shape=(batch, q, k)
         if mask is not None:
-            mmask = Lambda(lambda x: (-1e9) * (1.0 - K.cast(x, "float32")))(
-                mask
-            )  # setting to infinity
+            mmask = Lambda(lambda x: (-1e9) * (1.0 - K.cast(x, "float32")))(mask)  # setting to infinity
             attn = Add()([attn, mmask])
         attn = self.activation(attn)
         attn = self.dropout(attn)
@@ -518,9 +504,7 @@ class TemporalFusionTransformer:
             all_inputs[:, :, num_regular_variables:],
         )
 
-        embedded_inputs = [
-            embeddings[i](categorical_inputs[Ellipsis, i]) for i in range(num_categorical_variables)
-        ]
+        embedded_inputs = [embeddings[i](categorical_inputs[Ellipsis, i]) for i in range(num_categorical_variables)]
 
         # Static inputs
         if self._static_input_loc:
@@ -544,20 +528,14 @@ class TemporalFusionTransformer:
 
         # Targets
         obs_inputs = tf.keras.backend.stack(
-            [
-                convert_real_to_embedding(regular_inputs[Ellipsis, i : i + 1])
-                for i in self._input_obs_loc
-            ],
+            [convert_real_to_embedding(regular_inputs[Ellipsis, i : i + 1]) for i in self._input_obs_loc],
             axis=-1,
         )
 
         # Observed (a prioir unknown) inputs
         wired_embeddings = []
         for i in range(num_categorical_variables):
-            if (
-                i not in self._known_categorical_input_idx
-                and i + num_regular_variables not in self._input_obs_loc
-            ):
+            if i not in self._known_categorical_input_idx and i + num_regular_variables not in self._input_obs_loc:
                 e = embeddings[i](categorical_inputs[:, :, i])
                 wired_embeddings.append(e)
 
@@ -584,9 +562,7 @@ class TemporalFusionTransformer:
             if i + num_regular_variables not in self._static_input_loc
         ]
 
-        known_combined_layer = tf.keras.backend.stack(
-            known_regular_inputs + known_categorical_inputs, axis=-1
-        )
+        known_combined_layer = tf.keras.backend.stack(known_regular_inputs + known_categorical_inputs, axis=-1)
 
         return unknown_inputs, known_combined_layer, obs_inputs, static_inputs
 
@@ -643,8 +619,7 @@ class TemporalFusionTransformer:
             num_entries = len(df)
             if num_entries >= self.time_steps:
                 valid_sampling_locations += [
-                    (identifier, self.time_steps + i)
-                    for i in range(num_entries - self.time_steps + 1)
+                    (identifier, self.time_steps + i) for i in range(num_entries - self.time_steps + 1)
                 ]
             split_data_map[identifier] = df
 
@@ -660,21 +635,13 @@ class TemporalFusionTransformer:
                 for i in np.random.choice(len(valid_sampling_locations), max_samples, replace=False)
             ]
         else:
-            print(
-                "Max samples={} exceeds # available segments={}".format(
-                    max_samples, len(valid_sampling_locations)
-                )
-            )
+            print("Max samples={} exceeds # available segments={}".format(max_samples, len(valid_sampling_locations)))
             ranges = valid_sampling_locations
 
         id_col = self._get_single_col_by_type(InputTypes.ID)
         time_col = self._get_single_col_by_type(InputTypes.TIME)
         target_col = self._get_single_col_by_type(InputTypes.TARGET)
-        input_cols = [
-            tup[0]
-            for tup in self.column_definition
-            if tup[2] not in {InputTypes.ID, InputTypes.TIME}
-        ]
+        input_cols = [tup[0] for tup in self.column_definition if tup[2] not in {InputTypes.ID, InputTypes.TIME}]
 
         for i, tup in enumerate(ranges):
             if (i + 1 % 1000) == 0:
@@ -715,9 +682,7 @@ class TemporalFusionTransformer:
             lags = self.time_steps
             x = input_data.values
             if time_steps >= lags:
-                return np.stack(
-                    [x[i : time_steps - (lags - 1) + i, :] for i in range(lags)], axis=1
-                )
+                return np.stack([x[i : time_steps - (lags - 1) + i, :] for i in range(lags)], axis=1)
 
             else:
                 return None
@@ -725,11 +690,7 @@ class TemporalFusionTransformer:
         id_col = self._get_single_col_by_type(InputTypes.ID)
         time_col = self._get_single_col_by_type(InputTypes.TIME)
         target_col = self._get_single_col_by_type(InputTypes.TARGET)
-        input_cols = [
-            tup[0]
-            for tup in self.column_definition
-            if tup[2] not in {InputTypes.ID, InputTypes.TIME}
-        ]
+        input_cols = [tup[0] for tup in self.column_definition if tup[2] not in {InputTypes.ID, InputTypes.TIME}]
 
         data_map = {}
         for _, sliced in data.groupby(id_col):
@@ -971,18 +932,14 @@ class TemporalFusionTransformer:
             initial_state=[static_context_state_h, static_context_state_c],
         )
 
-        future_lstm = get_lstm(return_state=False)(
-            future_features, initial_state=[state_h, state_c]
-        )
+        future_lstm = get_lstm(return_state=False)(future_features, initial_state=[state_h, state_c])
 
         lstm_layer = concat([history_lstm, future_lstm], axis=1)
 
         # Apply gated skip connection
         input_embeddings = concat([historical_features, future_features], axis=1)
 
-        lstm_layer, _ = apply_gating_layer(
-            lstm_layer, self.hidden_layer_size, self.dropout_rate, activation=None
-        )
+        lstm_layer, _ = apply_gating_layer(lstm_layer, self.hidden_layer_size, self.dropout_rate, activation=None)
         temporal_feature_layer = add_and_norm([lstm_layer, input_embeddings])
 
         # Static enrichment layers
@@ -1004,9 +961,7 @@ class TemporalFusionTransformer:
         mask = get_decoder_mask(enriched)
         x, self_att = self_attn_layer(enriched, enriched, enriched, mask=mask)
 
-        x, _ = apply_gating_layer(
-            x, self.hidden_layer_size, dropout_rate=self.dropout_rate, activation=None
-        )
+        x, _ = apply_gating_layer(x, self.hidden_layer_size, dropout_rate=self.dropout_rate, activation=None)
         x = add_and_norm([x, enriched])
 
         # Nonlinear processing on outputs
@@ -1050,9 +1005,9 @@ class TemporalFusionTransformer:
                 attention_components,
             ) = self._build_base_graph()
 
-            outputs = tf.keras.layers.TimeDistributed(
-                tf.keras.layers.Dense(self.output_size * len(self.quantiles))
-            )(transformer_layer[Ellipsis, self.num_encoder_steps :, :])
+            outputs = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(self.output_size * len(self.quantiles)))(
+                transformer_layer[Ellipsis, self.num_encoder_steps :, :]
+            )
 
             self._attention_components = attention_components
 
@@ -1238,9 +1193,7 @@ class TemporalFusionTransformer:
         identifier = data["identifier"]
         outputs = data["outputs"]
 
-        combined = self.model.predict(
-            inputs, workers=16, use_multiprocessing=True, batch_size=self.minibatch_size
-        )
+        combined = self.model.predict(inputs, workers=16, use_multiprocessing=True, batch_size=self.minibatch_size)
 
         # Format output_csv
         if self.output_size != 1:
@@ -1262,9 +1215,7 @@ class TemporalFusionTransformer:
 
         # Extract predictions for each quantile into different entries
         process_map = {
-            "p{}".format(int(q * 100)): combined[
-                Ellipsis, i * self.output_size : (i + 1) * self.output_size
-            ]
+            "p{}".format(int(q * 100)): combined[Ellipsis, i * self.output_size : (i + 1) * self.output_size]
             for i, q in enumerate(self.quantiles)
         }
 
@@ -1310,9 +1261,7 @@ class TemporalFusionTransformer:
             num_batches += 1
 
         # Split up inputs into batches
-        batched_inputs = [
-            inputs[i * batch_size : (i + 1) * batch_size, Ellipsis] for i in range(num_batches)
-        ]
+        batched_inputs = [inputs[i * batch_size : (i + 1) * batch_size, Ellipsis] for i in range(num_batches)]
 
         # Get attention weights, while avoiding large memory increases
         attention_by_batch = [get_batch_attention_weights(batch) for batch in batched_inputs]

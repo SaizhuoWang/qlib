@@ -72,9 +72,7 @@ def fill_1min_using_1d(
     qlib.init(provider_uri=str(qlib_data_1d_dir))
     data_1d = D.features(D.instruments("all"), ["$close"], min_date, max_date, freq="day")
 
-    miss_symbols = set(data_1d.index.get_level_values(level="instrument").unique()) - set(
-        symbols_1min
-    )
+    miss_symbols = set(data_1d.index.get_level_values(level="instrument").unique()) - set(symbols_1min)
     if not miss_symbols:
         logger.warning("More symbols in 1min than 1d, no padding required")
         return

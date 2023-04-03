@@ -371,9 +371,7 @@ class OnlineManager(Serializable):
             for strategy, models in strategy_models.items():
                 # only new online models need to prepare
                 if last_models.setdefault(strategy, set()) != set(models):
-                    models = self.trainer.end_train(
-                        models, experiment_name=strategy.name_id, **model_kwargs
-                    )
+                    models = self.trainer.end_train(models, experiment_name=strategy.name_id, **model_kwargs)
                     strategy.tool.reset_online_tag(models)
                     need_prepare = True
                 last_models[strategy] = set(models)

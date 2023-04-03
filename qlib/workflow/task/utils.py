@@ -196,9 +196,7 @@ class TimeAdjuster:
         if isinstance(segment, dict):
             return {k: self.align_seg(seg) for k, seg in segment.items()}
         elif isinstance(segment, (tuple, list)):
-            return self.align_time(segment[0], tp_type="start"), self.align_time(
-                segment[1], tp_type="end"
-            )
+            return self.align_time(segment[0], tp_type="start"), self.align_time(segment[1], tp_type="end")
         else:
             raise NotImplementedError(f"This type of input is not supported")
 
@@ -267,9 +265,7 @@ class TimeAdjuster:
             shift will raise error if the index(both start and end) is out of self.cal
         """
         if isinstance(seg, tuple):
-            start_idx, end_idx = self.align_idx(seg[0], tp_type="start"), self.align_idx(
-                seg[1], tp_type="end"
-            )
+            start_idx, end_idx = self.align_idx(seg[0], tp_type="start"), self.align_idx(seg[1], tp_type="end")
             if rtype == self.SHIFT_SD:
                 start_idx = self._add_step(start_idx, step)
                 end_idx = self._add_step(end_idx, step)

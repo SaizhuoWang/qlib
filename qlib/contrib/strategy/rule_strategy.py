@@ -12,8 +12,7 @@ from qlib.data.dataset.utils import convert_index_format
 from qlib.utils import lazy_sort_index
 from qlib.utils.file import get_io_object
 
-from ...backtest.decision import (BaseTradeDecision, Order, TradeDecisionWO,
-                                  TradeRange)
+from ...backtest.decision import BaseTradeDecision, Order, TradeDecisionWO, TradeRange
 from ...backtest.exchange import Exchange, OrderHelper
 from ...backtest.utils import CommonInfrastructure, LevelInfrastructure
 from ...data.data import D
@@ -62,9 +61,7 @@ class TWAPStrategy(BaseStrategy):
             # It is not time to start trading or trading has ended.
             return TradeDecisionWO(order_list=[], strategy=self)
 
-        rel_trade_step = (
-            trade_step - start_idx
-        )  # trade_step relative to start_idx (number of steps has already passed)
+        rel_trade_step = trade_step - start_idx  # trade_step relative to start_idx (number of steps has already passed)
 
         # update the order amount
         if execute_result is not None:
@@ -215,9 +212,7 @@ class SBBStrategyBase(BaseStrategy):
                     # calculate the amount of one part, ceil the amount
                     # floor((trade_unit_cnt + trade_len - trade_step - 1) / (trade_len - trade_step)) == ceil(trade_unit_cnt / (trade_len - trade_step))
                     _order_amount = (
-                        (trade_unit_cnt + trade_len - trade_step - 1)
-                        // (trade_len - trade_step)
-                        * _amount_trade_unit
+                        (trade_unit_cnt + trade_len - trade_step - 1) // (trade_len - trade_step) * _amount_trade_unit
                     )
                 if order.direction == order.SELL:
                     # sell all amount at last
@@ -243,9 +238,7 @@ class SBBStrategyBase(BaseStrategy):
                 # considering trade unit
                 if _amount_trade_unit is None:
                     # N trade day left, divide the order into N + 1 parts, and trade 2 parts
-                    _order_amount = (
-                        2 * self.trade_amount[order.stock_id] / (trade_len - trade_step + 1)
-                    )
+                    _order_amount = 2 * self.trade_amount[order.stock_id] / (trade_len - trade_step + 1)
                 # without considering trade unit
                 else:
                     # cal how many trade unit
@@ -542,17 +535,14 @@ class ACStrategy(BaseStrategy):
                     # calculate the amount of one part, ceil the amount
                     # floor((trade_unit_cnt + trade_len - trade_step - 1) / (trade_len - trade_step)) == ceil(trade_unit_cnt / (trade_len - trade_step))
                     _order_amount = (
-                        (trade_unit_cnt + trade_len - trade_step - 1)
-                        // (trade_len - trade_step)
-                        * _amount_trade_unit
+                        (trade_unit_cnt + trade_len - trade_step - 1) // (trade_len - trade_step) * _amount_trade_unit
                     )
             else:
                 # VA strategy
                 kappa_tild = self.lamb / self.eta * sig_sam * sig_sam
                 kappa = np.arccosh(kappa_tild / 2 + 1)
                 amount_ratio = (
-                    np.sinh(kappa * (trade_len - trade_step))
-                    - np.sinh(kappa * (trade_len - trade_step - 1))
+                    np.sinh(kappa * (trade_len - trade_step)) - np.sinh(kappa * (trade_len - trade_step - 1))
                 ) / np.sinh(kappa * trade_len)
                 _order_amount = order.amount * amount_ratio
                 _order_amount = self.trade_exchange.round_amount_by_trade_unit(
@@ -564,9 +554,7 @@ class ACStrategy(BaseStrategy):
 
             if order.direction == order.SELL:
                 # sell all amount at last
-                if self.trade_amount[order.stock_id] > 1e-5 and (
-                    _order_amount < 1e-5 or trade_step == trade_len - 1
-                ):
+                if self.trade_amount[order.stock_id] > 1e-5 and (_order_amount < 1e-5 or trade_step == trade_len - 1):
                     _order_amount = self.trade_amount[order.stock_id]
 
             _order_amount = min(_order_amount, self.trade_amount[order.stock_id])
@@ -588,9 +576,7 @@ class ACStrategy(BaseStrategy):
 class RandomOrderStrategy(BaseStrategy):
     def __init__(
         self,
-        trade_range: Union[
-            Tuple[int, int], TradeRange
-        ],  # The range is closed on both left and right.
+        trade_range: Union[Tuple[int, int], TradeRange],  # The range is closed on both left and right.
         sample_ratio: float = 1.0,
         volume_ratio: float = 0.01,
         market: str = "all",
@@ -634,9 +620,7 @@ class RandomOrderStrategy(BaseStrategy):
 
         order_list = []
         if step_time_start in self.volume_df:
-            for stock_id, volume in (
-                self.volume_df[step_time_start].dropna().sample(frac=self.sample_ratio).items()
-            ):
+            for stock_id, volume in self.volume_df[step_time_start].dropna().sample(frac=self.sample_ratio).items():
                 order_list.append(
                     self.common_infra.get("trade_exchange")
                     .get_order_helper()

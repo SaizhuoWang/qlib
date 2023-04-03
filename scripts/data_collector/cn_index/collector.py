@@ -20,8 +20,7 @@ CUR_DIR = Path(__file__).resolve().parent
 sys.path.append(str(CUR_DIR.parent.parent))
 
 from data_collector.index import IndexBase
-from data_collector.utils import (deco_retry, get_calendar_list,
-                                  get_instruments, get_trading_date_by_shift)
+from data_collector.utils import deco_retry, get_calendar_list, get_instruments, get_trading_date_by_shift
 
 NEW_COMPANIES_URL = "https://csi-web-dev.oss-cn-shanghai-finance-1-pub.aliyuncs.com/static/html/csindex/public/uploads/file/autofile/cons/{index_code}cons.xls"
 
@@ -112,14 +111,10 @@ class CSIIndex(IndexBase):
         """
         if self.freq != "day":
             inst_df[self.START_DATE_FIELD] = inst_df[self.START_DATE_FIELD].apply(
-                lambda x: (pd.Timestamp(x) + pd.Timedelta(hours=9, minutes=30)).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                lambda x: (pd.Timestamp(x) + pd.Timedelta(hours=9, minutes=30)).strftime("%Y-%m-%d %H:%M:%S")
             )
             inst_df[self.END_DATE_FIELD] = inst_df[self.END_DATE_FIELD].apply(
-                lambda x: (pd.Timestamp(x) + pd.Timedelta(hours=15, minutes=0)).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                lambda x: (pd.Timestamp(x) + pd.Timedelta(hours=15, minutes=0)).strftime("%Y-%m-%d %H:%M:%S")
             )
         return inst_df
 
@@ -160,13 +155,9 @@ class CSIIndex(IndexBase):
             symbol
         """
         symbol = f"{int(symbol):06}"
-        return (
-            f"SH{symbol}" if symbol.startswith("60") or symbol.startswith("688") else f"SZ{symbol}"
-        )
+        return f"SH{symbol}" if symbol.startswith("60") or symbol.startswith("688") else f"SZ{symbol}"
 
-    def _parse_excel(
-        self, excel_url: str, add_date: pd.Timestamp, remove_date: pd.Timestamp
-    ) -> pd.DataFrame:
+    def _parse_excel(self, excel_url: str, add_date: pd.Timestamp, remove_date: pd.Timestamp) -> pd.DataFrame:
         content = retry_request(excel_url, exclude_status=[404]).content
         _io = BytesIO(content)
         df_map = pd.read_excel(_io, sheet_name=None)
@@ -189,9 +180,7 @@ class CSIIndex(IndexBase):
         df = pd.concat(tmp)
         return df
 
-    def _parse_table(
-        self, content: str, add_date: pd.DataFrame, remove_date: pd.DataFrame
-    ) -> pd.DataFrame:
+    def _parse_table(self, content: str, add_date: pd.DataFrame, remove_date: pd.DataFrame) -> pd.DataFrame:
         df = pd.DataFrame()
         _tmp_count = 0
         for _df in pd.read_html(content):
@@ -253,9 +242,7 @@ class CSIIndex(IndexBase):
         if "沪深300" not in title:
             return pd.DataFrame()
 
-        logger.info(
-            f"load index data from https://www.csindex.com.cn/#/about/newsDetail?id={url.split('id=')[-1]}"
-        )
+        logger.info(f"load index data from https://www.csindex.com.cn/#/about/newsDetail?id={url.split('id=')[-1]}")
         _text = resp["content"]
         date_list = re.findall(r"(\d{4}).*?年.*?(\d+).*?月.*?(\d+).*?日", _text)
         if len(date_list) >= 2:
@@ -279,9 +266,7 @@ class CSIIndex(IndexBase):
                     excel_url = f"http://www.csindex.com.cn{excel_url}"
         if excel_url:
             try:
-                logger.info(
-                    f"get {add_date} changes from the excel, title={title}, excel_url={excel_url}"
-                )
+                logger.info(f"get {add_date} changes from the excel, title={title}, excel_url={excel_url}")
                 df = self._parse_excel(excel_url, add_date, remove_date)
             except ValueError:
                 logger.info(
@@ -305,9 +290,7 @@ class CSIIndex(IndexBase):
         page_num = 1
         page_size = 5
         data = retry_request(self.changes_url.format(page_size=page_size, page_num=page_num)).json()
-        data = retry_request(
-            self.changes_url.format(page_size=data["total"], page_num=page_num)
-        ).json()
+        data = retry_request(self.changes_url.format(page_size=data["total"], page_num=page_num)).json()
         for item in data["data"]:
             yield f"https://www.csindex.com.cn/csindex-home/announcement/queryAnnouncementById?id={item['id']}"
 

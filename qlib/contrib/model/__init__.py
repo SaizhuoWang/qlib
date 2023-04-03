@@ -17,16 +17,12 @@ try:
     from .xgboost import XGBModel
 except ModuleNotFoundError:
     XGBModel = None
-    print(
-        "ModuleNotFoundError. XGBModel is skipped(optional: maybe installing xgboost can fix it)."
-    )
+    print("ModuleNotFoundError. XGBModel is skipped(optional: maybe installing xgboost can fix it).")
 try:
     from .linear import LinearModel
 except ModuleNotFoundError:
     LinearModel = None
-    print(
-        "ModuleNotFoundError. LinearModel is skipped(optional: maybe installing scipy and sklearn can fix it)."
-    )
+    print("ModuleNotFoundError. LinearModel is skipped(optional: maybe installing scipy and sklearn can fix it).")
 # import pytorch models
 try:
     from .pytorch_add import ADD
@@ -52,9 +48,7 @@ try:
     )
 except ModuleNotFoundError:
     pytorch_classes = ()
-    print(
-        "ModuleNotFoundError.  PyTorch models are skipped (optional: maybe installing pytorch can fix it)."
-    )
+    print("ModuleNotFoundError.  PyTorch models are skipped (optional: maybe installing pytorch can fix it).")
 
 all_model_classes = (
     CatBoostModel,

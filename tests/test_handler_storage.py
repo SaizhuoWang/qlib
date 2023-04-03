@@ -80,9 +80,7 @@ class TestHandlerStorage(TestAutoData):
         data_handler = TestHandler(**self.data_handler_kwargs)
 
         # init data handler with hasing storage
-        data_handler_hs = TestHandler(
-            **self.data_handler_kwargs, infer_processors=["HashStockFormat"]
-        )
+        data_handler_hs = TestHandler(**self.data_handler_kwargs, infer_processors=["HashStockFormat"])
 
         fetch_start_time = "2019-01-01"
         fetch_end_time = "2019-12-31"

@@ -228,9 +228,7 @@ class ShrinkCovEstimator(RiskModel):
 
         theta_mat = (X**3).T.dot(X) / t - var[:, None] * S
         np.fill_diagonal(theta_mat, 0)
-        rho = np.sum(np.diag(phi_mat)) + r_bar * np.sum(
-            np.outer(1 / sqrt_var, sqrt_var) * theta_mat
-        )
+        rho = np.sum(np.diag(phi_mat)) + r_bar * np.sum(np.outer(1 / sqrt_var, sqrt_var) * theta_mat)
 
         gamma = np.linalg.norm(S - F, "fro") ** 2
 
@@ -239,9 +237,7 @@ class ShrinkCovEstimator(RiskModel):
 
         return alpha
 
-    def _get_shrink_param_lw_single_factor(
-        self, X: np.ndarray, S: np.ndarray, F: np.ndarray
-    ) -> float:
+    def _get_shrink_param_lw_single_factor(self, X: np.ndarray, S: np.ndarray, F: np.ndarray) -> float:
         """Ledoit-Wolf Shrinkage Estimator (Single Factor Model)
 
         This method shrinks the covariance matrix towards the single factor model target.
@@ -261,8 +257,7 @@ class ShrinkCovEstimator(RiskModel):
         roff1 = np.sum(v1 * cov_mkt[:, None].T) / var_mkt - np.sum(np.diag(v1) * cov_mkt) / var_mkt
         v3 = z.T.dot(z) / t - var_mkt * S
         roff3 = (
-            np.sum(v3 * np.outer(cov_mkt, cov_mkt)) / var_mkt**2
-            - np.sum(np.diag(v3) * cov_mkt**2) / var_mkt**2
+            np.sum(v3 * np.outer(cov_mkt, cov_mkt)) / var_mkt**2 - np.sum(np.diag(v3) * cov_mkt**2) / var_mkt**2
         )
         roff = 2 * roff1 - roff3
         rho = rdiag + roff

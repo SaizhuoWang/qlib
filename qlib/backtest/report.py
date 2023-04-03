@@ -15,8 +15,7 @@ from qlib.backtest.exchange import Exchange
 
 from ..tests.config import CSI300_BENCH
 from ..utils.resam import get_higher_eq_freq_feature, resam_ts_data
-from .high_performance_ds import (BaseOrderIndicator, BaseSingleMetric,
-                                  NumpyOrderIndicator)
+from .high_performance_ds import BaseOrderIndicator, BaseSingleMetric, NumpyOrderIndicator
 
 
 class PortfolioMetrics:
@@ -111,18 +110,10 @@ class PortfolioMetrics:
                 raise ValueError("benchmark freq can't be None!")
             _codes = benchmark if isinstance(benchmark, (list, dict)) else [benchmark]
             fields = ["$close/Ref($close,1)-1"]
-            _temp_result, _ = get_higher_eq_freq_feature(
-                _codes, fields, start_time, end_time, freq=freq
-            )
+            _temp_result, _ = get_higher_eq_freq_feature(_codes, fields, start_time, end_time, freq=freq)
             if len(_temp_result) == 0:
-                raise ValueError(
-                    f"The benchmark {_codes} does not exist. Please provide the right benchmark"
-                )
-            return (
-                _temp_result.groupby(level="datetime")[_temp_result.columns.tolist()[0]]
-                .mean()
-                .fillna(0)
-            )
+                raise ValueError(f"The benchmark {_codes} does not exist. Please provide the right benchmark")
+            return _temp_result.groupby(level="datetime")[_temp_result.columns.tolist()[0]].mean().fillna(0)
 
     def _sample_benchmark(
         self,
@@ -186,9 +177,7 @@ class PortfolioMetrics:
             )
 
         if trade_end_time is None and bench_value is None:
-            raise ValueError(
-                "Both trade_end_time and bench_value is None, benchmark is not usable."
-            )
+            raise ValueError("Both trade_end_time and bench_value is None, benchmark is not usable.")
         elif bench_value is None:
             bench_value = self._sample_benchmark(self.bench, trade_start_time, trade_end_time)
 
@@ -388,9 +377,7 @@ class Indicator:
         if len(decision) == 0:
             self.order_indicator.assign("amount", {})
         else:
-            self.order_indicator.assign(
-                "amount", {order.stock_id: order.amount_delta for order in decision}
-            )
+            self.order_indicator.assign("amount", {order.stock_id: order.amount_delta for order in decision})
 
     def _get_base_vol_pri(
         self,
@@ -448,9 +435,7 @@ class Indicator:
 
         assert isinstance(price_s, idd.SingleData)
         if agg == "vwap":
-            volume_s = trade_exchange.get_volume(
-                inst, trade_start_time, trade_end_time, method=None
-            )
+            volume_s = trade_exchange.get_volume(inst, trade_start_time, trade_end_time, method=None)
             if isinstance(volume_s, (int, float, np.number)):
                 volume_s = idd.SingleData(volume_s, [trade_start_time])
             assert isinstance(volume_s, idd.SingleData)
@@ -504,9 +489,7 @@ class Indicator:
                 bv_s = oi.get_index_data("base_volume").reindex(trade_dir.index)
 
                 bp_new, bv_new = {}, {}
-                for pr, v, (inst, direction) in zip(
-                    bp_s.data, bv_s.data, zip(trade_dir.index, trade_dir.data)
-                ):
+                for pr, v, (inst, direction) in zip(bp_s.data, bv_s.data, zip(trade_dir.index, trade_dir.data)):
                     if np.isnan(pr):
                         bp_tmp, bv_tmp = self._get_base_vol_pri(
                             inst,
@@ -563,9 +546,7 @@ class Indicator:
         self._update_trade_amount(outer_trade_decision)
         self._update_order_fulfill_rate()
         pa_config = indicator_config.get("pa_config", {})
-        self._agg_base_price(
-            inner_order_indicators, decision_list, trade_exchange, pa_config=pa_config
-        )  # TODO
+        self._agg_base_price(inner_order_indicators, decision_list, trade_exchange, pa_config=pa_config)  # TODO
         self._agg_order_price_advantage()
 
     def _cal_trade_fulfill_rate(self, method: str = "mean") -> Optional[BaseSingleMetric]:
@@ -575,13 +556,11 @@ class Indicator:
             )
         elif method == "amount_weighted":
             return self.order_indicator.transfer(
-                lambda ffr, deal_amount: (ffr * deal_amount.abs()).sum()
-                / (deal_amount.abs().sum()),
+                lambda ffr, deal_amount: (ffr * deal_amount.abs()).sum() / (deal_amount.abs().sum()),
             )
         elif method == "value_weighted":
             return self.order_indicator.transfer(
-                lambda ffr, trade_value: (ffr * trade_value.abs()).sum()
-                / (trade_value.abs().sum()),
+                lambda ffr, trade_value: (ffr * trade_value.abs()).sum() / (trade_value.abs().sum()),
             )
         else:
             raise ValueError(f"method {method} is not supported!")
@@ -634,9 +613,7 @@ class Indicator:
         ffr_config = indicator_config.get("ffr_config", {})
         pa_config = indicator_config.get("pa_config", {})
         fulfill_rate = self._cal_trade_fulfill_rate(method=ffr_config.get("weight_method", "mean"))
-        price_advantage = self._cal_trade_price_advantage(
-            method=pa_config.get("weight_method", "mean")
-        )
+        price_advantage = self._cal_trade_price_advantage(method=pa_config.get("weight_method", "mean"))
         positive_rate = self._cal_trade_positive_rate()
         deal_amount = self._cal_deal_amount()
         trade_value = self._cal_trade_value()
@@ -660,9 +637,7 @@ class Indicator:
                 ),
             )
 
-    def get_order_indicator(
-        self, raw: bool = True
-    ) -> Union[BaseOrderIndicator, Dict[Text, pd.Series]]:
+    def get_order_indicator(self, raw: bool = True) -> Union[BaseOrderIndicator, Dict[Text, pd.Series]]:
         return self.order_indicator if raw else self.order_indicator.to_series()
 
     def get_trade_indicator(self) -> Dict[str, Optional[BaseSingleMetric]]:

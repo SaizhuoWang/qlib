@@ -12,9 +12,7 @@ class HighFreqNorm(Processor):
         self.fit_end_time = fit_end_time
 
     def fit(self, df_features):
-        fetch_df = fetch_df_by_index(
-            df_features, slice(self.fit_start_time, self.fit_end_time), level="datetime"
-        )
+        fetch_df = fetch_df_by_index(df_features, slice(self.fit_start_time, self.fit_end_time), level="datetime")
         del df_features
         df_values = fetch_df.values
         names = {

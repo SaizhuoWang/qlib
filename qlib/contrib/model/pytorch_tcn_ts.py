@@ -72,9 +72,7 @@ class TCN(Model):
         self.early_stop = early_stop
         self.optimizer = optimizer.lower()
         self.loss = loss
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.n_jobs = n_jobs
         self.seed = seed
 
@@ -209,12 +207,8 @@ class TCN(Model):
         evals_result=dict(),
         save_path=None,
     ):
-        dl_train = dataset.prepare(
-            "train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
-        )
-        dl_valid = dataset.prepare(
-            "valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
-        )
+        dl_train = dataset.prepare("train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
+        dl_valid = dataset.prepare("valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
 
         # process nan brought by dataloader
         dl_train.config(fillna_type="ffill+bfill")

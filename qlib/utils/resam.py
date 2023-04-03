@@ -46,15 +46,11 @@ def resam_calendar(
     # if freq_sam is xminute, divide each trading day into several bars evenly
     if freq_sam.base == Freq.NORM_FREQ_MINUTE:
         if freq_raw.base != Freq.NORM_FREQ_MINUTE:
-            raise ValueError(
-                "when sampling minute calendar, freq of raw calendar must be minute or min"
-            )
+            raise ValueError("when sampling minute calendar, freq of raw calendar must be minute or min")
         else:
             if freq_raw.count > freq_sam.count:
                 raise ValueError("raw freq must be higher than sampling freq")
-        _calendar_minute = np.unique(
-            list(map(lambda x: cal_sam_minute(x, freq_sam.count, region), calendar_raw))
-        )
+        _calendar_minute = np.unique(list(map(lambda x: cal_sam_minute(x, freq_sam.count, region), calendar_raw)))
         return _calendar_minute
 
     # else, convert the raw calendar into day calendar, and divide the whole calendar into several bars evenly
@@ -83,9 +79,7 @@ def resam_calendar(
             raise ValueError("sampling freq must be xmin, xd, xw, xm")
 
 
-def get_higher_eq_freq_feature(
-    instruments, fields, start_time=None, end_time=None, freq="day", disk_cache=1
-):
+def get_higher_eq_freq_feature(instruments, fields, start_time=None, end_time=None, freq="day", disk_cache=1):
     """get the feature with higher or equal frequency than `freq`.
     Returns
     -------
@@ -96,9 +90,7 @@ def get_higher_eq_freq_feature(
     from ..data.data import D  # pylint: disable=C0415
 
     try:
-        _result = D.features(
-            instruments, fields, start_time, end_time, freq=freq, disk_cache=disk_cache
-        )
+        _result = D.features(instruments, fields, start_time, end_time, freq=freq, disk_cache=disk_cache)
         _freq = freq
     except (ValueError, KeyError) as value_key_e:
         _, norm_freq = Freq.parse(freq)

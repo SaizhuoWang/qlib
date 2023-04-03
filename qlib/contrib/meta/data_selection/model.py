@@ -88,13 +88,9 @@ class MetaModelDS(MetaTaskModel):
             elif self.criterion == "ic_loss":
                 criterion = ICLoss()
                 try:
-                    loss = criterion(
-                        pred, meta_input["y_test"], meta_input["test_idx"], skip_size=50
-                    )
+                    loss = criterion(pred, meta_input["y_test"], meta_input["test_idx"], skip_size=50)
                 except ValueError as e:
-                    get_module_logger("MetaModelDS").warning(
-                        f"Exception `{e}` when calculating IC loss"
-                    )
+                    get_module_logger("MetaModelDS").warning(f"Exception `{e}` when calculating IC loss")
                     continue
 
             assert not np.isnan(loss.detach().item()), "NaN loss!"
@@ -109,9 +105,7 @@ class MetaModelDS(MetaTaskModel):
             pred_y_all.append(
                 pd.DataFrame(
                     {
-                        "pred": pd.Series(
-                            pred.detach().cpu().numpy(), index=meta_input["test_idx"]
-                        ),
+                        "pred": pd.Series(pred.detach().cpu().numpy(), index=meta_input["test_idx"]),
                         "label": pd.Series(
                             meta_input["y_test"].detach().cpu().numpy(),
                             index=meta_input["test_idx"],
@@ -124,11 +118,7 @@ class MetaModelDS(MetaTaskModel):
         loss_l.setdefault(phase, []).append(running_loss)
 
         pred_y_all = pd.concat(pred_y_all)
-        ic = (
-            pred_y_all.groupby("datetime")
-            .apply(lambda df: df["pred"].corr(df["label"], method="spearman"))
-            .mean()
-        )
+        ic = pred_y_all.groupby("datetime").apply(lambda df: df["pred"].corr(df["label"], method="spearman")).mean()
 
         R.log_metrics(**{f"loss/{phase}": running_loss, "step": epoch})
         R.log_metrics(**{f"ic/{phase}": ic, "step": epoch})
@@ -163,11 +153,7 @@ class MetaModelDS(MetaTaskModel):
 
         if len(meta_tasks_l[1]):
             R.log_params(
-                **dict(
-                    proxy_test_begin=meta_tasks_l[1][0].task["dataset"]["kwargs"]["segments"][
-                        "test"
-                    ]
-                )
+                **dict(proxy_test_begin=meta_tasks_l[1][0].task["dataset"]["kwargs"]["segments"]["test"])
             )  # debug: record when the test phase starts
 
         self.tn = PredNet(

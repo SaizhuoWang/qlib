@@ -102,9 +102,7 @@ def _get_figure_with_position(
     :return:
     """
 
-    cum_return_df = _get_cum_return_data_with_position(
-        position, report_normal, label_data, start_date, end_date
-    )
+    cum_return_df = _get_cum_return_data_with_position(position, report_normal, label_data, start_date, end_date)
     cum_return_df = cum_return_df.set_index("date")
     # FIXME: support HIGH-FREQ
     cum_return_df.index = cum_return_df.index.strftime("%Y-%m-%d")
@@ -117,9 +115,7 @@ def _get_figure_with_position(
                 dict(row=1, col=1, graph_kwargs={"mode": "lines+markers", "xaxis": "x3"}),
             ),
             (
-                "{}_weight".format(
-                    _t_name.replace("minus", "plus") if "minus" in _t_name else _t_name
-                ),
+                "{}_weight".format(_t_name.replace("minus", "plus") if "minus" in _t_name else _t_name),
                 dict(row=2, col=1),
             ),
             (

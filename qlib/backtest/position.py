@@ -22,9 +22,7 @@ class BasePosition:
         self._settle_type = self.ST_NO
         self.position: dict = {}
 
-    def fill_stock_value(
-        self, start_time: Union[str, pd.Timestamp], freq: str, last_days: int = 30
-    ) -> None:
+    def fill_stock_value(self, start_time: Union[str, pd.Timestamp], freq: str, last_days: int = 30) -> None:
         pass
 
     def skip_update(self) -> bool:
@@ -282,9 +280,7 @@ class Position(BasePosition):
         except KeyError:
             pass
 
-    def fill_stock_value(
-        self, start_time: Union[str, pd.Timestamp], freq: str, last_days: int = 30
-    ) -> None:
+    def fill_stock_value(self, start_time: Union[str, pd.Timestamp], freq: str, last_days: int = 30) -> None:
         """fill the stock value by the close price of latest last_days from qlib.
 
         Parameters
@@ -318,18 +314,11 @@ class Position(BasePosition):
             freq=freq,
             disk_cache=True,
         ).dropna()
-        price_dict = (
-            price_df.groupby(["instrument"])
-            .tail(1)
-            .reset_index(level=1, drop=True)["$close"]
-            .to_dict()
-        )
+        price_dict = price_df.groupby(["instrument"]).tail(1).reset_index(level=1, drop=True)["$close"].to_dict()
 
         if len(price_dict) < len(stock_list):
             lack_stock = set(stock_list) - set(price_dict)
-            raise ValueError(
-                f"{lack_stock} doesn't have close price in qlib in the latest {last_days} days"
-            )
+            raise ValueError(f"{lack_stock} doesn't have close price in qlib in the latest {last_days} days")
 
         for stock in stock_list:
             self.position[stock]["price"] = price_dict[stock]
@@ -415,9 +404,7 @@ class Position(BasePosition):
     def update_stock_price(self, stock_id: str, price: float) -> None:
         self.position[stock_id]["price"] = price
 
-    def update_stock_count(
-        self, stock_id: str, bar: str, count: float
-    ) -> None:  # TODO: check type of `bar`
+    def update_stock_count(self, stock_id: str, bar: str, count: float) -> None:  # TODO: check type of `bar`
         self.position[stock_id][f"count_{bar}"] = count
 
     def update_stock_weight(self, stock_id: str, weight: float) -> None:
@@ -484,11 +471,7 @@ class Position(BasePosition):
         d = {}
         stock_list = self.get_stock_list()
         for stock_code in stock_list:
-            d[stock_code] = (
-                self.position[stock_code]["amount"]
-                * self.position[stock_code]["price"]
-                / position_value
-            )
+            d[stock_code] = self.position[stock_code]["amount"] * self.position[stock_code]["price"] / position_value
         return d
 
     def add_count_all(self, bar: str) -> None:

@@ -42,8 +42,7 @@ from packaging import version
 
 from ..config import C
 from ..log import get_module_logger, set_log_with_config
-from .file import (get_or_create_path, get_tmp_file_with_buffer,
-                   save_multiple_parts_file, unpack_archive_with_buffer)
+from .file import get_or_create_path, get_tmp_file_with_buffer, save_multiple_parts_file, unpack_archive_with_buffer
 
 log = get_module_logger("utils")
 # MultiIndex.is_lexsorted() is a deprecated method in Pandas 1.3.0.
@@ -170,9 +169,7 @@ def read_period_data(
     with open(data_path, "rb") as fd:
         while _next != NAN_INDEX:
             fd.seek(_next)
-            date, period, value, new_next = struct.unpack(
-                DATA_DTYPE, fd.read(struct.calcsize(DATA_DTYPE))
-            )
+            date, period, value, new_next = struct.unpack(DATA_DTYPE, fd.read(struct.calcsize(DATA_DTYPE)))
             if date > cur_date_int:
                 break
             prev_next = _next
@@ -355,9 +352,7 @@ def split_module_path(module_path: str) -> Tuple[str, str]:
     return m_path, cls
 
 
-def get_callable_kwargs(
-    config: Union[dict, str], default_module: Union[str, ModuleType] = None
-) -> (type, dict):
+def get_callable_kwargs(config: Union[dict, str], default_module: Union[str, ModuleType] = None) -> (type, dict):
     """
     extract class/func and kwargs from config info
 
@@ -634,9 +629,7 @@ def get_date_by_shift(
         if clip_shift:
             shift_index = np.clip(shift_index, 0, len(cal) - 1)
         else:
-            raise IndexError(
-                f"The shift_index({shift_index}) of the trading day ({trading_date}) is out of range"
-            )
+            raise IndexError(f"The shift_index({shift_index}) of the trading day ({trading_date}) is out of range")
     return cal[shift_index]
 
 
@@ -673,11 +666,7 @@ def transform_end_date(end_date=None, freq="day"):
     from ..data import D  # pylint: disable=C0415
 
     last_date = D.calendar(freq=freq)[-1]
-    if (
-        end_date is None
-        or (str(end_date) == "-1")
-        or (pd.Timestamp(last_date) < pd.Timestamp(end_date))
-    ):
+    if end_date is None or (str(end_date) == "-1") or (pd.Timestamp(last_date) < pd.Timestamp(end_date)):
         log.warning(
             "\nInfo: the end_date in the configuration file is {}, "
             "so the default last date {} is used.".format(end_date, last_date)
@@ -1021,9 +1010,7 @@ class Wrapper:
         self._provider = provider
 
     def __repr__(self):
-        return "{name}(provider={provider})".format(
-            name=self.__class__.__name__, provider=self._provider
-        )
+        return "{name}(provider={provider})".format(name=self.__class__.__name__, provider=self._provider)
 
     def __getattr__(self, key):
         if self.__dict__.get("_provider", None) is None:

@@ -93,9 +93,9 @@ class DEnsembleModel(Model, FeatureInt):
             loss_curve = self.retrieve_loss_curve(model_k, df_train, features)
             pred_k = self.predict_sub(model_k, df_train, features)
             pred_sub.iloc[:, k] = pred_k
-            pred_ensemble = (pred_sub.iloc[:, : k + 1] * self.sub_weights[0 : k + 1]).sum(
-                axis=1
-            ) / np.sum(self.sub_weights[0 : k + 1])
+            pred_ensemble = (pred_sub.iloc[:, : k + 1] * self.sub_weights[0 : k + 1]).sum(axis=1) / np.sum(
+                self.sub_weights[0 : k + 1]
+            )
             loss_values = pd.Series(self.get_loss(y_train.values.squeeze(), pred_ensemble.values))
 
             if self.enable_sr:
@@ -205,9 +205,7 @@ class DEnsembleModel(Model, FeatureInt):
                     / M
                 )
             loss_feat = self.get_loss(y_train.values.squeeze(), pred.values)
-            g.loc[i_f, "g_value"] = np.mean(loss_feat - loss_values) / (
-                np.std(loss_feat - loss_values) + 1e-7
-            )
+            g.loc[i_f, "g_value"] = np.mean(loss_feat - loss_values) / (np.std(loss_feat - loss_values) + 1e-7)
             x_train_tmp.loc[:, feat] = x_train.loc[:, feat].copy()
 
         # one column in train features is all-nan # if g['g_value'].isna().any()

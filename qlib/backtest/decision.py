@@ -6,9 +6,9 @@ from __future__ import annotations
 from abc import abstractmethod
 from datetime import time
 from enum import IntEnum
+
 # try to fix circular imports when enabling type hints
-from typing import (TYPE_CHECKING, Any, ClassVar, Generic, List, Optional,
-                    Tuple, TypeVar, Union, cast)
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, List, Optional, Tuple, TypeVar, Union, cast
 
 from qlib.backtest.utils import TradeCalendarManager
 from qlib.data.data import Cal
@@ -82,9 +82,7 @@ class Order:
 
     def __post_init__(self) -> None:
         if self.direction not in {Order.SELL, Order.BUY}:
-            raise NotImplementedError(
-                "direction not supported, `Order.SELL` for sell, `Order.BUY` for buy"
-            )
+            raise NotImplementedError("direction not supported, `Order.SELL` for sell, `Order.BUY` for buy")
         self.deal_amount = 0.0
         self.factor = None
 
@@ -116,9 +114,7 @@ class Order:
         return self.direction * 2 - 1
 
     @staticmethod
-    def parse_dir(
-        direction: Union[str, int, np.integer, OrderDir, np.ndarray]
-    ) -> Union[OrderDir, np.ndarray]:
+    def parse_dir(direction: Union[str, int, np.integer, OrderDir, np.ndarray]) -> Union[OrderDir, np.ndarray]:
         if isinstance(direction, OrderDir):
             return direction
         elif isinstance(direction, (int, float, np.integer, np.floating)):
@@ -236,9 +232,7 @@ class TradeRange:
         raise NotImplementedError(f"Please implement the `__call__` method")
 
     @abstractmethod
-    def clip_time_range(
-        self, start_time: pd.Timestamp, end_time: pd.Timestamp
-    ) -> Tuple[pd.Timestamp, pd.Timestamp]:
+    def clip_time_range(self, start_time: pd.Timestamp, end_time: pd.Timestamp) -> Tuple[pd.Timestamp, pd.Timestamp]:
         """
         Parameters
         ----------
@@ -263,9 +257,7 @@ class IdxTradeRange(TradeRange):
     def __call__(self, trade_calendar: TradeCalendarManager = None) -> Tuple[int, int]:
         return self._start_idx, self._end_idx
 
-    def clip_time_range(
-        self, start_time: pd.Timestamp, end_time: pd.Timestamp
-    ) -> Tuple[pd.Timestamp, pd.Timestamp]:
+    def clip_time_range(self, start_time: pd.Timestamp, end_time: pd.Timestamp) -> Tuple[pd.Timestamp, pd.Timestamp]:
         raise NotImplementedError
 
 
@@ -287,9 +279,7 @@ class TradeRangeByTime(TradeRange):
         end_time : str | time
             e.g. "14:30"
         """
-        self.start_time = (
-            pd.Timestamp(start_time).time() if isinstance(start_time, str) else start_time
-        )
+        self.start_time = pd.Timestamp(start_time).time() if isinstance(start_time, str) else start_time
         self.end_time = pd.Timestamp(end_time).time() if isinstance(end_time, str) else end_time
         assert self.start_time < self.end_time
 
@@ -298,18 +288,12 @@ class TradeRangeByTime(TradeRange):
             raise NotImplementedError("trade_calendar is necessary for getting TradeRangeByTime.")
 
         start_date = trade_calendar.start_time.date()
-        val_start, val_end = concat_date_time(start_date, self.start_time), concat_date_time(
-            start_date, self.end_time
-        )
+        val_start, val_end = concat_date_time(start_date, self.start_time), concat_date_time(start_date, self.end_time)
         return trade_calendar.get_range_idx(val_start, val_end)
 
-    def clip_time_range(
-        self, start_time: pd.Timestamp, end_time: pd.Timestamp
-    ) -> Tuple[pd.Timestamp, pd.Timestamp]:
+    def clip_time_range(self, start_time: pd.Timestamp, end_time: pd.Timestamp) -> Tuple[pd.Timestamp, pd.Timestamp]:
         start_date = start_time.date()
-        val_start, val_end = concat_date_time(start_date, self.start_time), concat_date_time(
-            start_date, self.end_time
-        )
+        val_start, val_end = concat_date_time(start_date, self.start_time), concat_date_time(start_date, self.end_time)
         # NOTE: `end_date` should not be used. Because the `end_date` is for slicing. It may be in the next day
         # Assumption: start_time and end_time is for intra-day trading. So it is OK for only using start_date
         return max(val_start, start_time), min(val_end, end_time)
@@ -404,9 +388,7 @@ class BaseTradeDecision(Generic[DecisionType]):
 
     def _get_range_limit(self, **kwargs: Any) -> Tuple[int, int]:
         if self.trade_range is not None:
-            return self.trade_range(
-                trade_calendar=cast(TradeCalendarManager, kwargs.get("inner_calendar"))
-            )
+            return self.trade_range(trade_calendar=cast(TradeCalendarManager, kwargs.get("inner_calendar")))
         else:
             raise NotImplementedError("The decision didn't provide an index range")
 
@@ -471,9 +453,7 @@ class BaseTradeDecision(Generic[DecisionType]):
                 _start_idx, _end_idx = max(0, _start_idx), min(self.total_step - 1, _end_idx)
         return _start_idx, _end_idx
 
-    def get_data_cal_range_limit(
-        self, rtype: str = "full", raise_error: bool = False
-    ) -> Tuple[int, int]:
+    def get_data_cal_range_limit(self, rtype: str = "full", raise_error: bool = False) -> Tuple[int, int]:
         """
         get the range limit based on data calendar
 
@@ -523,9 +503,7 @@ class BaseTradeDecision(Generic[DecisionType]):
             if rtype == "full":
                 val_start, val_end = self.trade_range.clip_time_range(day_start, day_end)
             elif rtype == "step":
-                val_start, val_end = self.trade_range.clip_time_range(
-                    self.start_time, self.end_time
-                )
+                val_start, val_end = self.trade_range.clip_time_range(self.start_time, self.end_time)
             else:
                 raise ValueError(f"This type of input {rtype} is not supported")
             _, _, start_idx, end_index = Cal.locate_index(val_start, val_end, freq=freq)

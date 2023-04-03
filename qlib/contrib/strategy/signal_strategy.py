@@ -25,9 +25,7 @@ class BaseSignalStrategy(BaseStrategy):
     def __init__(
         self,
         *,
-        signal: Union[
-            Signal, Tuple[BaseModel, Dataset], List, Dict, Text, pd.Series, pd.DataFrame
-        ] = None,
+        signal: Union[Signal, Tuple[BaseModel, Dataset], List, Dict, Text, pd.Series, pd.DataFrame] = None,
         model=None,
         dataset=None,
         risk_degree: float = 0.95,
@@ -217,9 +215,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
         elif self.method_sell == "random":
             candi = filter_stock(last)
             try:
-                sell = pd.Index(
-                    np.random.choice(candi, self.n_drop, replace=False) if len(last) else []
-                )
+                sell = pd.Index(np.random.choice(candi, self.n_drop, replace=False) if len(last) else [])
             except ValueError:  # No enough candidates
                 sell = candi
         else:
@@ -277,9 +273,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
                 direction=OrderDir.BUY,
             )
             buy_amount = value / buy_price
-            factor = self.trade_exchange.get_factor(
-                stock_id=code, start_time=trade_start_time, end_time=trade_end_time
-            )
+            factor = self.trade_exchange.get_factor(stock_id=code, start_time=trade_start_time, end_time=trade_end_time)
             buy_amount = self.trade_exchange.round_amount_by_trade_unit(buy_amount, factor)
             buy_order = Order(
                 stock_id=code,
@@ -489,13 +483,9 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
         cur_weight = current.get_stock_weight_dict(only_stock=False)
         cur_weight = np.array([cur_weight.get(stock, 0) for stock in universe])
         assert all(cur_weight >= 0), "current weight has negative values"
-        cur_weight = cur_weight / self.get_risk_degree(
-            trade_date
-        )  # sum of weight should be risk_degree
+        cur_weight = cur_weight / self.get_risk_degree(trade_date)  # sum of weight should be risk_degree
         if cur_weight.sum() > 1 and self.verbose:
-            self.logger.warning(
-                f"previous total holdings excess risk degree (current: {cur_weight.sum()})"
-            )
+            self.logger.warning(f"previous total holdings excess risk degree (current: {cur_weight.sum()})")
 
         # load bench weight
         bench_weight = D.features(
@@ -509,9 +499,7 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
 
         # whether stock tradable
         # NOTE: currently we use last day volume to check whether tradable
-        tradable = D.features(
-            D.instruments("all"), ["$volume"], start_time=pre_date, end_time=pre_date
-        ).squeeze()
+        tradable = D.features(D.instruments("all"), ["$volume"], start_time=pre_date, end_time=pre_date).squeeze()
         tradable.index = tradable.index.droplevel(level="datetime")
         tradable = tradable.reindex(universe).gt(0).values
         mask_force_hold = ~tradable
@@ -531,9 +519,7 @@ class EnhancedIndexingStrategy(WeightStrategyBase):
             mfs=mask_force_sell,
         )
 
-        target_weight_position = {
-            stock: weight for stock, weight in zip(universe, weight) if weight > 0
-        }
+        target_weight_position = {stock: weight for stock, weight in zip(universe, weight) if weight > 0}
 
         if self.verbose:
             self.logger.info("trade date: {:%Y-%m-%d}".format(trade_date))

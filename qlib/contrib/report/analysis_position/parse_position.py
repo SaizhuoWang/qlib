@@ -98,9 +98,7 @@ def _add_label_to_position(position_df: pd.DataFrame, label_data: pd.DataFrame) 
     return _result_df
 
 
-def _add_bench_to_position(
-    position_df: pd.DataFrame = None, bench: pd.Series = None
-) -> pd.DataFrame:
+def _add_bench_to_position(position_df: pd.DataFrame = None, bench: pd.Series = None) -> pd.DataFrame:
     """Concat position with bench
 
     :param position_df: position DataFrame
@@ -128,9 +126,7 @@ def _calculate_label_rank(df: pd.DataFrame) -> pd.DataFrame:
 
         # Sell: -1, Hold: 0, Buy: 1
         for i in [-1, 0, 1]:
-            g_df.loc[g_df["status"] == i, "rank_label_mean"] = g_df[g_df["status"] == i][
-                "rank_ratio"
-            ].mean()
+            g_df.loc[g_df["status"] == i, "rank_label_mean"] = g_df[g_df["status"] == i]["rank_ratio"].mean()
 
         g_df["excess_return"] = g_df[_label_name] - g_df[_label_name].mean()
         return g_df

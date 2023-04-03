@@ -43,9 +43,7 @@ def backtest_loop(
         it computes the trading indicator
     """
     return_value: dict = {}
-    for _decision in collect_data_loop(
-        start_time, end_time, trade_strategy, trade_executor, return_value
-    ):
+    for _decision in collect_data_loop(start_time, end_time, trade_strategy, trade_executor, return_value):
         pass
 
     portfolio_dict = cast(PORT_METRIC_TYPE, return_value.get(PORT_METRIC_KEY))
@@ -90,9 +88,7 @@ def collect_data_loop(
     with tqdm(total=trade_executor.trade_calendar.get_trade_len(), desc="backtest loop") as bar:
         _execute_result = None
         while not trade_executor.finished():
-            _trade_decision: BaseTradeDecision = trade_strategy.generate_trade_decision(
-                _execute_result
-            )
+            _trade_decision: BaseTradeDecision = trade_strategy.generate_trade_decision(_execute_result)
             _execute_result = yield from trade_executor.collect_data(_trade_decision, level=0)
             trade_strategy.post_exe_step(_execute_result)
             bar.update(1)
@@ -101,9 +97,7 @@ def collect_data_loop(
     if return_value is not None:
         all_executors = trade_executor.get_all_executors()
         all_portfolio_metrics = {
-            "{}{}".format(
-                *Freq.parse(_executor.time_per_step)
-            ): _executor.trade_account.get_portfolio_metrics()
+            "{}{}".format(*Freq.parse(_executor.time_per_step)): _executor.trade_account.get_portfolio_metrics()
             for _executor in all_executors
             if _executor.trade_account.is_port_metr_enabled()
         }
@@ -112,12 +106,10 @@ def collect_data_loop(
             key = "{}{}".format(*Freq.parse(_executor.time_per_step))
             all_indicators[key] = (
                 _executor.trade_account.get_trade_indicator().generate_trade_indicators_dataframe(),
-                _executor.trade_account.get_trade_indicator()
+                _executor.trade_account.get_trade_indicator(),
             )
             # all_indicators[
             #     key
             # ] = _executor.trade_account.get_trade_indicator().generate_trade_indicators_dataframe()
             # all_indicators[key + "_obj"] = _executor.trade_account.get_trade_indicator()
-        return_value.update(
-            {PORT_METRIC_KEY: all_portfolio_metrics, INDICATOR_KEY: all_indicators}
-        )
+        return_value.update({PORT_METRIC_KEY: all_portfolio_metrics, INDICATOR_KEY: all_indicators})

@@ -163,9 +163,7 @@ def _mount_nfs_uri(provider_uri, mount_path, auto_mount: bool = False):
                 command_res = os.popen("dpkg -l | grep nfs-common")
                 command_res = command_res.readlines()
                 if not command_res:
-                    raise OSError(
-                        "nfs-common is not found, please install it by execute: sudo apt install nfs-common"
-                    )
+                    raise OSError("nfs-common is not found, please install it by execute: sudo apt install nfs-common")
                 # manually mount
                 command_status = os.system(mount_command)
                 if command_status == 256:
@@ -304,9 +302,7 @@ def auto_init(**kwargs):
             qlib_conf_update = conf.get("qlib_cfg_update", {})
             for k, v in kwargs.items():
                 if k in qlib_conf_update:
-                    logger.warning(
-                        f"`qlib_conf_update` from conf_pp is override by `kwargs` on key '{k}'"
-                    )
+                    logger.warning(f"`qlib_conf_update` from conf_pp is override by `kwargs` on key '{k}'")
             qlib_conf_update.update(kwargs)
 
             init_from_yaml_conf(qlib_conf_path, **qlib_conf_update)

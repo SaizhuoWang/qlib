@@ -83,9 +83,7 @@ def get_shifted_label(data_df, shifts=5, col_shift="LABEL0"):
 def fill_test_na(test_df):
     test_df_res = test_df.copy()
     feature_cols = ~test_df_res.columns.str.contains("label", case=False)
-    test_feature_fna = (
-        test_df_res.loc[:, feature_cols].groupby("datetime").apply(lambda df: df.fillna(df.mean()))
-    )
+    test_feature_fna = test_df_res.loc[:, feature_cols].groupby("datetime").apply(lambda df: df.fillna(df.mean()))
     test_df_res.loc[:, feature_cols] = test_feature_fna
     return test_df_res
 
@@ -178,17 +176,11 @@ class TFTModel(ModelFT):
         LABEL_COL = DATASET_SETTING[DATASET]["label_col"]
 
         if DATASET not in ALLOW_DATASET:
-            raise AssertionError(
-                "The dataset is not supported, please make a new formatter to fit this dataset"
-            )
+            raise AssertionError("The dataset is not supported, please make a new formatter to fit this dataset")
 
         dtrain, dvalid = self._prepare_data(dataset)
-        dtrain.loc[:, LABEL_COL] = get_shifted_label(
-            dtrain, shifts=LABEL_SHIFT, col_shift=LABEL_COL
-        )
-        dvalid.loc[:, LABEL_COL] = get_shifted_label(
-            dvalid, shifts=LABEL_SHIFT, col_shift=LABEL_COL
-        )
+        dtrain.loc[:, LABEL_COL] = get_shifted_label(dtrain, shifts=LABEL_SHIFT, col_shift=LABEL_COL)
+        dvalid.loc[:, LABEL_COL] = get_shifted_label(dvalid, shifts=LABEL_SHIFT, col_shift=LABEL_COL)
 
         train = process_qlib_data(dtrain, DATASET, fillna=True).dropna()
         valid = process_qlib_data(dvalid, DATASET, fillna=True).dropna()
@@ -250,9 +242,7 @@ class TFTModel(ModelFT):
 
             def extract_numerical_data(data):
                 """Strips out forecast time and identifier columns."""
-                return data[
-                    [col for col in data.columns if col not in {"forecast_time", "identifier"}]
-                ]
+                return data[[col for col in data.columns if col not in {"forecast_time", "identifier"}]]
 
             # p50_loss = utils.numpy_normalised_quantile_loss(
             #    extract_numerical_data(targets), extract_numerical_data(p50_forecast),
@@ -269,9 +259,7 @@ class TFTModel(ModelFT):
             raise ValueError("model is not fitted yet!")
         d_test = dataset.prepare("test", col_set=["feature", "label"])
         d_test = transform_df(d_test)
-        d_test.loc[:, self.label_col] = get_shifted_label(
-            d_test, shifts=self.label_shift, col_shift=self.label_col
-        )
+        d_test.loc[:, self.label_col] = get_shifted_label(d_test, shifts=self.label_shift, col_shift=self.label_col)
         test = process_qlib_data(d_test, self.expt_name, fillna=True).dropna()
 
         use_gpu = (True, self.gpu_id)

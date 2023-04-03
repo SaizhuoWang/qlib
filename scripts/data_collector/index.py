@@ -182,12 +182,10 @@ class IndexBase:
             self.SYMBOL_FIELD_NAME,
             self.CHANGE_TYPE_FIELD,
         ]
-        for _trading_date in tqdm(
-            sorted(history_companies[self.DATE_FIELD_NAME].unique(), reverse=True)
-        ):
-            _currenet_code = history_companies[
-                history_companies[self.DATE_FIELD_NAME] == _trading_date
-            ][self.SYMBOL_FIELD_NAME].tolist()
+        for _trading_date in tqdm(sorted(history_companies[self.DATE_FIELD_NAME].unique(), reverse=True)):
+            _currenet_code = history_companies[history_companies[self.DATE_FIELD_NAME] == _trading_date][
+                self.SYMBOL_FIELD_NAME
+            ].tolist()
             if last_code:
                 add_code = list(set(last_code) - set(_currenet_code))
                 remote_code = list(set(_currenet_code) - set(last_code))
@@ -241,16 +239,11 @@ class IndexBase:
             raise ValueError(f"get new companies error: {self.index_name}")
         new_df = new_df.copy()
         logger.info("parse history companies by changes......")
-        for _row in tqdm(
-            changers_df.sort_values(self.DATE_FIELD_NAME, ascending=False).itertuples(index=False)
-        ):
+        for _row in tqdm(changers_df.sort_values(self.DATE_FIELD_NAME, ascending=False).itertuples(index=False)):
             if _row.type == self.ADD:
-                min_end_date = new_df.loc[
-                    new_df[self.SYMBOL_FIELD_NAME] == _row.symbol, self.END_DATE_FIELD
-                ].min()
+                min_end_date = new_df.loc[new_df[self.SYMBOL_FIELD_NAME] == _row.symbol, self.END_DATE_FIELD].min()
                 new_df.loc[
-                    (new_df[self.END_DATE_FIELD] == min_end_date)
-                    & (new_df[self.SYMBOL_FIELD_NAME] == _row.symbol),
+                    (new_df[self.END_DATE_FIELD] == min_end_date) & (new_df[self.SYMBOL_FIELD_NAME] == _row.symbol),
                     self.START_DATE_FIELD,
                 ] = _row.date
             else:
@@ -263,9 +256,7 @@ class IndexBase:
         inst_df = new_df.loc[:, instruments_columns]
         _inst_prefix = self.INST_PREFIX.strip()
         if _inst_prefix:
-            inst_df["save_inst"] = inst_df[self.SYMBOL_FIELD_NAME].apply(
-                lambda x: f"{_inst_prefix}{x}"
-            )
+            inst_df["save_inst"] = inst_df[self.SYMBOL_FIELD_NAME].apply(lambda x: f"{_inst_prefix}{x}")
         inst_df = self.format_datetime(inst_df)
         inst_df.to_csv(
             self.instruments_dir.joinpath(f"{self.index_name.lower()}.txt"),

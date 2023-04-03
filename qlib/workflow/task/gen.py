@@ -184,17 +184,17 @@ class RollingGen(TaskGen):
     def _update_task_segs(self, task, segs):
         # update segments of this task
         task["dataset"]["kwargs"]["segments"] = copy.deepcopy(segs)
-        
+
         # update segments of handler
-        fit_start_time = copy.deepcopy(segs['train'][0])
-        fit_end_time = copy.deepcopy(segs['train'][1])
-        start_time = copy.deepcopy(segs['train'][0])
-        end_time = copy.deepcopy(segs['test'][1])
-        if 'handler' in task['dataset']['kwargs']:
-            task['dataset']['kwargs']['handler']['kwargs']['fit_start_time'] = fit_start_time
-            task['dataset']['kwargs']['handler']['kwargs']['fit_end_time'] = fit_end_time
-            task['dataset']['kwargs']['handler']['kwargs']['start_time'] = start_time
-            task['dataset']['kwargs']['handler']['kwargs']['end_time'] = end_time
+        fit_start_time = copy.deepcopy(segs["train"][0])
+        fit_end_time = copy.deepcopy(segs["train"][1])
+        start_time = copy.deepcopy(segs["train"][0])
+        end_time = copy.deepcopy(segs["test"][1])
+        if "handler" in task["dataset"]["kwargs"]:
+            task["dataset"]["kwargs"]["handler"]["kwargs"]["fit_start_time"] = fit_start_time
+            task["dataset"]["kwargs"]["handler"]["kwargs"]["fit_end_time"] = fit_end_time
+            task["dataset"]["kwargs"]["handler"]["kwargs"]["start_time"] = start_time
+            task["dataset"]["kwargs"]["handler"]["kwargs"]["end_time"] = end_time
 
         if self.ds_extra_mod_func is not None:
             self.ds_extra_mod_func(task, self)

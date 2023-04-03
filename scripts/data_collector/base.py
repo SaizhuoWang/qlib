@@ -24,9 +24,7 @@ class BaseCollector(abc.ABC):
     NORMAL_FLAG = "NORMAL"
 
     DEFAULT_START_DATETIME_1D = pd.Timestamp("2000-01-01")
-    DEFAULT_START_DATETIME_1MIN = pd.Timestamp(
-        datetime.datetime.now() - pd.Timedelta(days=5 * 6 - 1)
-    ).date()
+    DEFAULT_START_DATETIME_1MIN = pd.Timestamp(datetime.datetime.now() - pd.Timedelta(days=5 * 6 - 1)).date()
     DEFAULT_END_DATETIME_1D = pd.Timestamp(datetime.datetime.now() + pd.Timedelta(days=1)).date()
     DEFAULT_END_DATETIME_1MIN = DEFAULT_END_DATETIME_1D
 
@@ -76,9 +74,7 @@ class BaseCollector(abc.ABC):
         self.max_collector_count = max_collector_count
         self.mini_symbol_map = {}
         self.interval = interval
-        self.check_data_length = max(
-            int(check_data_length) if check_data_length is not None else 0, 0
-        )
+        self.check_data_length = max(int(check_data_length) if check_data_length is not None else 0, 0)
 
         self.start_datetime = self.normalize_start_datetime(start)
         self.end_datetime = self.normalize_end_datetime(end)
@@ -184,9 +180,7 @@ class BaseCollector(abc.ABC):
 
     def cache_small_data(self, symbol, df):
         if len(df) < self.check_data_length:
-            logger.warning(
-                f"the number of trading days of {symbol} is less than {self.check_data_length}!"
-            )
+            logger.warning(f"the number of trading days of {symbol} is less than {self.check_data_length}!")
             _temp = self.mini_symbol_map.setdefault(symbol, [])
             _temp.append(df.copy())
             return self.CACHE_FLAG
@@ -225,9 +219,7 @@ class BaseCollector(abc.ABC):
             if not _df.empty:
                 self.save_instrument(_symbol, _df.drop_duplicates(["date"]).sort_values(["date"]))
         if self.mini_symbol_map:
-            logger.warning(
-                f"less than {self.check_data_length} instrument list: {list(self.mini_symbol_map.keys())}"
-            )
+            logger.warning(f"less than {self.check_data_length} instrument list: {list(self.mini_symbol_map.keys())}")
         logger.info(f"total {len(self.instrument_list)}, error: {len(set(instrument_list))}")
 
 
@@ -428,9 +420,7 @@ class BaseRun(abc.ABC):
             **kwargs,
         ).collector_data()
 
-    def normalize_data(
-        self, date_field_name: str = "date", symbol_field_name: str = "symbol", **kwargs
-    ):
+    def normalize_data(self, date_field_name: str = "date", symbol_field_name: str = "symbol", **kwargs):
         """normalize data
 
         Parameters

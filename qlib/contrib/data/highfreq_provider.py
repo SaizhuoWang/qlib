@@ -7,9 +7,7 @@ from typing import Optional
 import qlib
 from qlib import get_module_logger
 from qlib.config import REG_CN
-from qlib.contrib.ops.high_freq import (BFillNan, Cut, Date, DayLast, FFillNan,
-                                        IsInf, IsNull, Select,
-                                        get_calendar_day)
+from qlib.contrib.ops.high_freq import BFillNan, Cut, Date, DayLast, FFillNan, IsInf, IsNull, Select, get_calendar_day
 from qlib.data import D
 from qlib.data.data import Cal
 from qlib.data.dataset.handler import DataHandlerLP
@@ -245,9 +243,7 @@ class HighFreqProvider:
         with open(path + "tmp_dataset.pkl", "rb") as f:
             new_dataset = pkl.load(f)
 
-        time_list = D.calendar(start_time=self.start_time, end_time=self.end_time, freq="1min")[
-            ::240
-        ]
+        time_list = D.calendar(start_time=self.start_time, end_time=self.end_time, freq="1min")[::240]
 
         def generate_dataset(times):
             if os.path.isfile(path + times.strftime("%Y-%m-%d") + ".pkl"):

@@ -3,8 +3,7 @@
 
 import pandas as pd
 
-from qlib.contrib.data.handler import (_DEFAULT_LEARN_PROCESSORS,
-                                       DataHandlerLP, check_transform_proc)
+from qlib.contrib.data.handler import _DEFAULT_LEARN_PROCESSORS, DataHandlerLP, check_transform_proc
 from qlib.data.dataset.loader import QlibDataLoader
 
 
@@ -13,9 +12,7 @@ class Avg15minLoader(QlibDataLoader):
         df = super(Avg15minLoader, self).load(instruments, start_time, end_time)
         if self.is_group:
             # feature_day(day freq) and feature_15min(1min freq, Average every 15 minutes) renamed feature
-            df.columns = df.columns.map(
-                lambda x: ("feature", x[1]) if x[0].startswith("feature") else x
-            )
+            df.columns = df.columns.map(lambda x: ("feature", x[1]) if x[0].startswith("feature") else x)
         return df
 
 

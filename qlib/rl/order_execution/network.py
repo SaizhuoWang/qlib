@@ -46,19 +46,11 @@ class Recurrent(nn.Module):
         self.rnn_class = rnn_classes[rnn_type]
         self.rnn_layers = rnn_num_layers
 
-        self.raw_rnn = self.rnn_class(
-            hidden_dim, hidden_dim, batch_first=True, num_layers=self.rnn_layers
-        )
-        self.prev_rnn = self.rnn_class(
-            hidden_dim, hidden_dim, batch_first=True, num_layers=self.rnn_layers
-        )
-        self.pri_rnn = self.rnn_class(
-            hidden_dim, hidden_dim, batch_first=True, num_layers=self.rnn_layers
-        )
+        self.raw_rnn = self.rnn_class(hidden_dim, hidden_dim, batch_first=True, num_layers=self.rnn_layers)
+        self.prev_rnn = self.rnn_class(hidden_dim, hidden_dim, batch_first=True, num_layers=self.rnn_layers)
+        self.pri_rnn = self.rnn_class(hidden_dim, hidden_dim, batch_first=True, num_layers=self.rnn_layers)
 
-        self.raw_fc = nn.Sequential(
-            nn.Linear(obs_space["data_processed"].shape[-1], hidden_dim), nn.ReLU()
-        )
+        self.raw_fc = nn.Sequential(nn.Linear(obs_space["data_processed"].shape[-1], hidden_dim), nn.ReLU())
         self.pri_fc = nn.Sequential(nn.Linear(2, hidden_dim), nn.ReLU())
         self.dire_fc = nn.Sequential(
             nn.Linear(2, hidden_dim),
@@ -79,9 +71,7 @@ class Recurrent(nn.Module):
     def _init_extra_branches(self) -> None:
         pass
 
-    def _source_features(
-        self, obs: FullHistoryObs, device: torch.device
-    ) -> Tuple[List[torch.Tensor], torch.Tensor]:
+    def _source_features(self, obs: FullHistoryObs, device: torch.device) -> Tuple[List[torch.Tensor], torch.Tensor]:
         bs, _, data_dim = obs["data_processed"].size()
         data = torch.cat((torch.zeros(bs, 1, data_dim, device=device), obs["data_processed"]), 1)
         cur_step = obs["cur_step"].long()

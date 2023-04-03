@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import (TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type,
-                    Union, cast)
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Type, Union, cast
 
 from ..utils.index_data import IndexData
 
@@ -138,7 +137,7 @@ class Exchange:
             raise ValueError(f"Get Unexpected arguments {kwargs}")
 
         if limit_threshold is None:
-            limit_threshold =  C.limit_threshold
+            limit_threshold = C.limit_threshold
         if deal_price is None:
             deal_price = C.deal_price
 
@@ -174,9 +173,7 @@ class Exchange:
         # $change is for calculating the limit of the stock
 
         # 　get volume limit from kwargs
-        self.buy_vol_limit, self.sell_vol_limit, vol_lt_fields = self._get_vol_limit(
-            volume_threshold
-        )
+        self.buy_vol_limit, self.sell_vol_limit, vol_lt_fields = self._get_vol_limit(volume_threshold)
 
         necessary_fields = {
             self.buy_price,
@@ -233,13 +230,9 @@ class Exchange:
             # The 'factor.day.bin' file not exists, and `factor` field contains `nan`
             # Use adjusted price
             self.trade_w_adj_price = True
-            self.logger.warning(
-                "factor.day.bin file not exists or factor contains `nan`. Order using adjusted_price."
-            )
+            self.logger.warning("factor.day.bin file not exists or factor contains `nan`. Order using adjusted_price.")
             if self.trade_unit is not None:
-                self.logger.warning(
-                    f"trade unit {self.trade_unit} is not supported in adjusted_price mode."
-                )
+                self.logger.warning(f"trade unit {self.trade_unit} is not supported in adjusted_price mode.")
         else:
             # The `factor.day.bin` file exists and all data `close` and `factor` are not `nan`
             # Use normal price
@@ -262,14 +255,10 @@ class Exchange:
                 self.logger.warning("No $factor set for extra_quote. Use 1.0 as $factor.")
             if "limit_sell" not in self.extra_quote.columns:
                 self.extra_quote["limit_sell"] = False
-                self.logger.warning(
-                    "No limit_sell set for extra_quote. All stock will be able to be sold."
-                )
+                self.logger.warning("No limit_sell set for extra_quote. All stock will be able to be sold.")
             if "limit_buy" not in self.extra_quote.columns:
                 self.extra_quote["limit_buy"] = False
-                self.logger.warning(
-                    "No limit_buy set for extra_quote. All stock will be able to be bought."
-                )
+                self.logger.warning("No limit_buy set for extra_quote. All stock will be able to be bought.")
             assert set(self.extra_quote.columns) == set(self.quote_df.columns) - {"$change"}
             self.quote_df = pd.concat([self.quote_df, self.extra_quote], sort=False, axis=0)
 
@@ -310,9 +299,7 @@ class Exchange:
             )  # pylint: disable=E1130
 
     @staticmethod
-    def _get_vol_limit(
-        volume_threshold: Union[tuple, dict, None]
-    ) -> Tuple[Optional[list], Optional[list], set]:
+    def _get_vol_limit(volume_threshold: Union[tuple, dict, None]) -> Tuple[Optional[list], Optional[list], set]:
         """
         preprocess the volume limit.
         get the fields need to get from qlib.
@@ -391,16 +378,12 @@ class Exchange:
         elif direction == Order.BUY:
             return cast(
                 bool,
-                self.quote.get_data(
-                    stock_id, start_time, end_time, field="limit_buy", method="all"
-                ),
+                self.quote.get_data(stock_id, start_time, end_time, field="limit_buy", method="all"),
             )
         elif direction == Order.SELL:
             return cast(
                 bool,
-                self.quote.get_data(
-                    stock_id, start_time, end_time, field="limit_sell", method="all"
-                ),
+                self.quote.get_data(stock_id, start_time, end_time, field="limit_sell", method="all"),
             )
         else:
             raise ValueError(f"direction {direction} is not supported!")
@@ -446,9 +429,7 @@ class Exchange:
 
     def check_order(self, order: Order) -> bool:
         # check limit and suspended
-        return self.is_stock_tradable(
-            order.stock_id, order.start_time, order.end_time, order.direction
-        )
+        return self.is_stock_tradable(order.stock_id, order.start_time, order.end_time, order.direction)
 
     def deal_order(
         self,
@@ -549,12 +530,8 @@ class Exchange:
             raise NotImplementedError(f"This type of input is not supported")
 
         deal_price = self.quote.get_data(stock_id, start_time, end_time, field=pstr, method=method)
-        if method is not None and (
-            deal_price is None or np.isnan(deal_price) or deal_price <= 1e-08
-        ):
-            self.logger.warning(
-                f"(stock_id:{stock_id}, trade_time:{(start_time, end_time)}, {pstr}): {deal_price}!!!"
-            )
+        if method is not None and (deal_price is None or np.isnan(deal_price) or deal_price <= 1e-08):
+            self.logger.warning(f"(stock_id:{stock_id}, trade_time:{(start_time, end_time)}, {pstr}): {deal_price}!!!")
             self.logger.warning(f"setting deal_price to close price")
             deal_price = self.get_close(stock_id, start_time, end_time, method)
         return deal_price
@@ -575,9 +552,7 @@ class Exchange:
         assert start_time is not None and end_time is not None, "the time range must be given"
         if stock_id not in self.quote.get_all_stock():
             return None
-        return self.quote.get_data(
-            stock_id, start_time, end_time, field="$factor", method="ts_data_last"
-        )
+        return self.quote.get_data(stock_id, start_time, end_time, field="$factor", method="ts_data_last")
 
     def generate_amount_position_from_weight_position(
         self,
@@ -607,15 +582,12 @@ class Exchange:
                 # weight_position must be greater than 0 and less than 1
                 if wp < 0 or wp > 1:
                     raise ValueError(
-                        "weight_position is {}, "
-                        "weight_position is not in the range of (0, 1).".format(wp),
+                        "weight_position is {}, " "weight_position is not in the range of (0, 1).".format(wp),
                     )
                 tradable_weight += wp
 
         if tradable_weight - 1.0 >= 1e-5:
-            raise ValueError(
-                "tradable_weight is {}, can not greater than 1.".format(tradable_weight)
-            )
+            raise ValueError("tradable_weight is {}, can not greater than 1.".format(tradable_weight))
 
         amount_dict = {}
         for stock_id in weight_position:
@@ -637,9 +609,7 @@ class Exchange:
                 )
         return amount_dict
 
-    def get_real_deal_amount(
-        self, current_amount: float, target_amount: float, factor: float = None
-    ) -> float:
+    def get_real_deal_amount(self, current_amount: float, target_amount: float, factor: float = None) -> float:
         """
         Calculate the real adjust deal amount when considering the trading unit
         :param current_amount:
@@ -749,12 +719,8 @@ class Exchange:
         value = 0
         for stock_id in amount_dict:
             if not only_tradable or (
-                not self.check_stock_suspended(
-                    stock_id=stock_id, start_time=start_time, end_time=end_time
-                )
-                and not self.check_stock_limit(
-                    stock_id=stock_id, start_time=start_time, end_time=end_time
-                )
+                not self.check_stock_suspended(stock_id=stock_id, start_time=start_time, end_time=end_time)
+                and not self.check_stock_limit(stock_id=stock_id, start_time=start_time, end_time=end_time)
             ):
                 value += (
                     self.get_deal_price(
@@ -777,13 +743,9 @@ class Exchange:
         """Please refer to the docs of get_amount_of_trade_unit"""
         if factor is None:
             if stock_id is not None and start_time is not None and end_time is not None:
-                factor = self.get_factor(
-                    stock_id=stock_id, start_time=start_time, end_time=end_time
-                )
+                factor = self.get_factor(stock_id=stock_id, start_time=start_time, end_time=end_time)
             else:
-                raise ValueError(
-                    f"`factor` and (`stock_id`, `start_time`, `end_time`) can't both be None"
-                )
+                raise ValueError(f"`factor` and (`stock_id`, `start_time`, `end_time`) can't both be None")
         assert factor is not None
         return factor
 
@@ -889,15 +851,11 @@ class Exchange:
         orig_deal_amount = order.deal_amount
         order.deal_amount = max(min(vol_limit_min, orig_deal_amount), 0)
         if vol_limit_min < orig_deal_amount:
-            self.logger.debug(
-                f"Order clipped due to volume limitation: {order}, {list(zip(vol_limit_num, vol_limit))}"
-            )
+            self.logger.debug(f"Order clipped due to volume limitation: {order}, {list(zip(vol_limit_num, vol_limit))}")
 
         return None
 
-    def _get_buy_amount_by_cash_limit(
-        self, trade_price: float, cash: float, cost_ratio: float
-    ) -> float:
+    def _get_buy_amount_by_cash_limit(self, trade_price: float, cash: float, cost_ratio: float) -> float:
         """return the real order amount after cash limit for buying.
         Parameters
         ----------
@@ -945,10 +903,7 @@ class Exchange:
                 direction=order.direction,
             ),
         )
-        total_trade_val = (
-            cast(float, self.get_volume(order.stock_id, order.start_time, order.end_time))
-            * trade_price
-        )
+        total_trade_val = cast(float, self.get_volume(order.stock_id, order.start_time, order.end_time)) * trade_price
         order.factor = self.get_factor(order.stock_id, order.start_time, order.end_time)
         order.deal_amount = order.amount  # set to full amount and clip it step by step
         # Clipping amount first
@@ -972,9 +927,7 @@ class Exchange:
             # Otherwise, we clip the amount based on current position
             if position is not None:
                 current_amount = (
-                    position.get_stock_amount(order.stock_id)
-                    if position.check_stock(order.stock_id)
-                    else 0
+                    position.get_stock_amount(order.stock_id) if position.check_stock(order.stock_id) else 0
                 )
                 if not np.isclose(order.deal_amount, current_amount):
                     # when not selling last stock. rounding is necessary
@@ -1003,9 +956,7 @@ class Exchange:
                     self.logger.debug(f"Order clipped due to cost higher than cash: {order}")
                 elif cash < trade_val + max(trade_val * cost_ratio, self.min_cost):
                     # The money is not enough
-                    max_buy_amount = self._get_buy_amount_by_cash_limit(
-                        trade_price, cash, cost_ratio
-                    )
+                    max_buy_amount = self._get_buy_amount_by_cash_limit(trade_price, cash, cost_ratio)
                     order.deal_amount = self.round_amount_by_trade_unit(
                         min(max_buy_amount, order.deal_amount),
                         order.factor,
@@ -1013,9 +964,7 @@ class Exchange:
                     self.logger.debug(f"Order clipped due to cash limitation: {order}")
                 else:
                     # The money is enough
-                    order.deal_amount = self.round_amount_by_trade_unit(
-                        order.deal_amount, order.factor
-                    )
+                    order.deal_amount = self.round_amount_by_trade_unit(order.deal_amount, order.factor)
             else:
                 # Unknown amount of money. Just round the amount
                 order.deal_amount = self.round_amount_by_trade_unit(order.deal_amount, order.factor)

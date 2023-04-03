@@ -191,9 +191,7 @@ class TestPIT(unittest.TestCase):
         fields = ["P($$roewa_q)"]
         instruments = ["sh600519"]
         _ = D.features(instruments, fields, freq="day")  # this should not raise error
-        data = D.features(
-            instruments, fields, end_time="2020-01-01", freq="day"
-        )  # this should not raise error
+        data = D.features(instruments, fields, end_time="2020-01-01", freq="day")  # this should not raise error
         s = data.iloc[:, 0]
         # You can check the expected value based on the content in `docs/advanced/PIT.rst`
         expect = """

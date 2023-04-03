@@ -136,17 +136,12 @@ class CryptoCollector(BaseCollector):
             cg = CoinGeckoAPI()
             data = cg.get_coin_market_chart_by_id(id=symbol, vs_currency="usd", days="max")
             _resp = pd.DataFrame(columns=["date"] + list(data.keys()))
-            _resp["date"] = [
-                dt.fromtimestamp(mktime(time.localtime(x[0] / 1000))) for x in data["prices"]
-            ]
+            _resp["date"] = [dt.fromtimestamp(mktime(time.localtime(x[0] / 1000))) for x in data["prices"]]
             for key in data.keys():
                 _resp[key] = [x[1] for x in data[key]]
             _resp["date"] = pd.to_datetime(_resp["date"])
             _resp["date"] = [x.date() for x in _resp["date"]]
-            _resp = _resp[
-                (_resp["date"] < pd.to_datetime(end).date())
-                & (_resp["date"] > pd.to_datetime(start).date())
-            ]
+            _resp = _resp[(_resp["date"] < pd.to_datetime(end).date()) & (_resp["date"] > pd.to_datetime(start).date())]
             if _resp.shape[0] != 0:
                 _resp = _resp.reset_index()
             if isinstance(_resp, pd.DataFrame):
@@ -224,9 +219,7 @@ class CryptoNormalize(BaseNormalize):
         return df.reset_index()
 
     def normalize(self, df: pd.DataFrame) -> pd.DataFrame:
-        df = self.normalize_crypto(
-            df, self._calendar_list, self._date_field_name, self._symbol_field_name
-        )
+        df = self.normalize_crypto(df, self._calendar_list, self._date_field_name, self._symbol_field_name)
         return df
 
 
@@ -298,9 +291,7 @@ class Run(BaseRun):
             $ python collector.py download_data --source_dir ~/.qlib/crypto_data/source/1d --start 2015-01-01 --end 2021-11-30 --delay 1 --interval 1d
         """
 
-        super(Run, self).download_data(
-            max_collector_count, delay, start, end, check_data_length, limit_nums
-        )
+        super(Run, self).download_data(max_collector_count, delay, start, end, check_data_length, limit_nums)
 
     def normalize_data(self, date_field_name: str = "date", symbol_field_name: str = "symbol"):
         """normalize data

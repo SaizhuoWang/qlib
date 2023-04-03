@@ -94,9 +94,7 @@ class TRAModel(Model):
             "router",
             "oracle",
         ], f"invalid transport method {transport_method}"
-        assert (
-            transport_method == "none" or tra_config["num_states"] > 1
-        ), "optimal transport requires `num_states` > 1"
+        assert transport_method == "none" or tra_config["num_states"] > 1, "optimal transport requires `num_states` > 1"
         assert (
             memory_mode != "daily" or tra_config["src_info"] == "TPE"
         ), "daily transport can only support TPE as `src_info`"
@@ -174,17 +172,10 @@ class TRAModel(Model):
             for param in self.tra.predictors.parameters():
                 param.requires_grad_(False)
 
-        self.logger.info(
-            "# model params: %d"
-            % sum(p.numel() for p in self.model.parameters() if p.requires_grad)
-        )
-        self.logger.info(
-            "# tra params: %d" % sum(p.numel() for p in self.tra.parameters() if p.requires_grad)
-        )
+        self.logger.info("# model params: %d" % sum(p.numel() for p in self.model.parameters() if p.requires_grad))
+        self.logger.info("# tra params: %d" % sum(p.numel() for p in self.tra.parameters() if p.requires_grad))
 
-        self.optimizer = optim.Adam(
-            list(self.model.parameters()) + list(self.tra.parameters()), lr=self.lr
-        )
+        self.optimizer = optim.Adam(list(self.model.parameters()) + list(self.tra.parameters()), lr=self.lr)
 
         self.fitted = False
         self.global_step = -1
@@ -202,9 +193,7 @@ class TRAModel(Model):
         max_steps = len(data_set)
         if self.max_steps_per_epoch is not None:
             if epoch == 0 and self.max_steps_per_epoch < max_steps:
-                self.logger.info(
-                    f"max steps updated from {max_steps} to {self.max_steps_per_epoch}"
-                )
+                self.logger.info(f"max steps updated from {max_steps} to {self.max_steps_per_epoch}")
             max_steps = min(self.max_steps_per_epoch, max_steps)
 
         cur_step = 0
@@ -258,9 +247,7 @@ class TRAModel(Model):
                     self._writer.add_scalar("training/lamb", lamb, self.global_step)
                     if not self.use_daily_transport:
                         P_mean = P.mean(axis=0).detach()
-                        self._writer.add_scalar(
-                            "training/P", P_mean.max() / P_mean.min(), self.global_step
-                        )
+                        self._writer.add_scalar("training/P", P_mean.max() / P_mean.min(), self.global_step)
                 loss = loss - lamb * reg
             else:
                 pred = all_preds.mean(dim=1)
@@ -411,22 +398,16 @@ class TRAModel(Model):
             # NOTE: during evaluating, the whole memory will be refreshed
             if not is_pretrain and (self.transport_method == "router" or self.eval_train):
                 train_set.clear_memory()  # NOTE: clear the shared memory
-                train_metrics = self.test_epoch(
-                    epoch, train_set, is_pretrain=is_pretrain, prefix="train"
-                )[0]
+                train_metrics = self.test_epoch(epoch, train_set, is_pretrain=is_pretrain, prefix="train")[0]
                 evals_result["train"].append(train_metrics)
                 self.logger.info("train metrics: %s" % train_metrics)
 
-            valid_metrics = self.test_epoch(
-                epoch, valid_set, is_pretrain=is_pretrain, prefix="valid"
-            )[0]
+            valid_metrics = self.test_epoch(epoch, valid_set, is_pretrain=is_pretrain, prefix="valid")[0]
             evals_result["valid"].append(valid_metrics)
             self.logger.info("valid metrics: %s" % valid_metrics)
 
             if self.eval_test:
-                test_metrics = self.test_epoch(
-                    epoch, test_set, is_pretrain=is_pretrain, prefix="test"
-                )[0]
+                test_metrics = self.test_epoch(epoch, test_set, is_pretrain=is_pretrain, prefix="test")[0]
                 evals_result["test"].append(test_metrics)
                 self.logger.info("test metrics: %s" % test_metrics)
 
@@ -454,9 +435,7 @@ class TRAModel(Model):
 
     def fit(self, dataset, evals_result=dict()):
 
-        assert isinstance(
-            dataset, MTSDatasetH
-        ), "TRAModel only supports `qlib.contrib.data.dataset.MTSDatasetH`"
+        assert isinstance(dataset, MTSDatasetH), "TRAModel only supports `qlib.contrib.data.dataset.MTSDatasetH`"
 
         train_set, valid_set, test_set = dataset.prepare(["train", "valid", "test"])
 
@@ -476,27 +455,19 @@ class TRAModel(Model):
             self._fit(train_set, valid_set, test_set, evals_result, is_pretrain=True)
 
             # reset optimizer
-            self.optimizer = optim.Adam(
-                list(self.model.parameters()) + list(self.tra.parameters()), lr=self.lr
-            )
+            self.optimizer = optim.Adam(list(self.model.parameters()) + list(self.tra.parameters()), lr=self.lr)
 
         self.logger.info("training...")
         best_score = self._fit(train_set, valid_set, test_set, evals_result, is_pretrain=False)
 
         self.logger.info("inference")
-        train_metrics, train_preds, train_probs, train_P = self.test_epoch(
-            -1, train_set, return_pred=True
-        )
+        train_metrics, train_preds, train_probs, train_P = self.test_epoch(-1, train_set, return_pred=True)
         self.logger.info("train metrics: %s" % train_metrics)
 
-        valid_metrics, valid_preds, valid_probs, valid_P = self.test_epoch(
-            -1, valid_set, return_pred=True
-        )
+        valid_metrics, valid_preds, valid_probs, valid_P = self.test_epoch(-1, valid_set, return_pred=True)
         self.logger.info("valid metrics: %s" % valid_metrics)
 
-        test_metrics, test_preds, test_probs, test_P = self.test_epoch(
-            -1, test_set, return_pred=True
-        )
+        test_metrics, test_preds, test_probs, test_P = self.test_epoch(-1, test_set, return_pred=True)
         self.logger.info("test metrics: %s" % test_metrics)
 
         if self.logdir:
@@ -557,9 +528,7 @@ class TRAModel(Model):
 
     def predict(self, dataset, segment="test"):
 
-        assert isinstance(
-            dataset, MTSDatasetH
-        ), "TRAModel only supports `qlib.contrib.data.dataset.MTSDatasetH`"
+        assert isinstance(dataset, MTSDatasetH), "TRAModel only supports `qlib.contrib.data.dataset.MTSDatasetH`"
 
         if not self.fitted:
             raise ValueError("model is not fitted yet!")

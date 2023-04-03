@@ -33,13 +33,9 @@ def canonicalize(
     """To 32-bit numeric types. Recursively."""
     if isinstance(value, pd.DataFrame):
         return value.to_numpy()
-    if isinstance(value, (float, np.floating)) or (
-        isinstance(value, np.ndarray) and value.dtype.kind == "f"
-    ):
+    if isinstance(value, (float, np.floating)) or (isinstance(value, np.ndarray) and value.dtype.kind == "f"):
         return np.array(value, dtype=np.float32)
-    elif isinstance(value, (int, bool, np.integer)) or (
-        isinstance(value, np.ndarray) and value.dtype.kind == "i"
-    ):
+    elif isinstance(value, (int, bool, np.integer)) or (isinstance(value, np.ndarray) and value.dtype.kind == "i"):
         return np.array(value, dtype=np.int32)
     elif isinstance(value, dict):
         return {k: canonicalize(v) for k, v in value.items()}
@@ -102,9 +98,7 @@ class FullHistoryStateInterpreter(StateInterpreter[SAOEState, FullHistoryObs]):
 
         position_history = np.full(self.max_step + 1, 0.0, dtype=np.float32)
         position_history[0] = state.order.amount
-        position_history[1 : len(state.history_steps) + 1] = state.history_steps[
-            "position"
-        ].to_numpy()
+        position_history[1 : len(state.history_steps) + 1] = state.history_steps["position"].to_numpy()
 
         # The min, slice here are to make sure that indices fit into the range,
         # even after the final step of the simulator (in the done step),
@@ -130,9 +124,7 @@ class FullHistoryStateInterpreter(StateInterpreter[SAOEState, FullHistoryObs]):
     def observation_space(self) -> spaces.Dict:
         space = {
             "data_processed": spaces.Box(-np.inf, np.inf, shape=(self.data_ticks, self.data_dim)),
-            "data_processed_prev": spaces.Box(
-                -np.inf, np.inf, shape=(self.data_ticks, self.data_dim)
-            ),
+            "data_processed_prev": spaces.Box(-np.inf, np.inf, shape=(self.data_ticks, self.data_dim)),
             "acquiring": spaces.Discrete(2),
             "cur_tick": spaces.Box(0, self.data_ticks - 1, shape=(), dtype=np.int32),
             "cur_step": spaces.Box(0, self.max_step - 1, shape=(), dtype=np.int32),

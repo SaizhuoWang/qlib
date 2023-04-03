@@ -26,9 +26,7 @@ class Serializable:
     - For examples, a learnable Datahandler just wants to save the parameters without data when dumping to disk
     """
 
-    pickle_backend = (
-        "pickle"  # another optional value is "dill" which can pickle more things of python.
-    )
+    pickle_backend = "pickle"  # another optional value is "dill" which can pickle more things of python.
     default_dump_all = False  # if dump all things
     config_attr = ["_include", "_exclude"]
     exclude_attr = []  # exclude_attr have lower priorities than `self._exclude`

@@ -73,9 +73,7 @@ class IGMTF(Model):
         self.loss = loss
         self.base_model = base_model
         self.model_path = model_path
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
         self.logger.info(
@@ -163,9 +161,7 @@ class IGMTF(Model):
 
             vx = x - torch.mean(x)
             vy = y - torch.mean(y)
-            return torch.sum(vx * vy) / (
-                torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2))
-            )
+            return torch.sum(vx * vy) / (torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2)))
 
         if self.metric == ("", "loss"):
             return -self.loss_fn(pred[mask], label[mask])
@@ -216,9 +212,7 @@ class IGMTF(Model):
             batch = slice(idx, idx + count)
             feature = torch.from_numpy(x_train_values[batch]).float().to(self.device)
             label = torch.from_numpy(y_train_values[batch]).float().to(self.device)
-            pred = self.igmtf_model(
-                feature, train_hidden=train_hidden, train_hidden_day=train_hidden_day
-            )
+            pred = self.igmtf_model(feature, train_hidden=train_hidden, train_hidden_day=train_hidden_day)
             loss = self.loss_fn(pred, label)
 
             self.train_optimizer.zero_grad()
@@ -244,9 +238,7 @@ class IGMTF(Model):
             feature = torch.from_numpy(x_values[batch]).float().to(self.device)
             label = torch.from_numpy(y_values[batch]).float().to(self.device)
 
-            pred = self.igmtf_model(
-                feature, train_hidden=train_hidden, train_hidden_day=train_hidden_day
-            )
+            pred = self.igmtf_model(feature, train_hidden=train_hidden, train_hidden_day=train_hidden_day)
             loss = self.loss_fn(pred, label)
             losses.append(loss.item())
 
@@ -295,9 +287,7 @@ class IGMTF(Model):
 
         model_dict = self.igmtf_model.state_dict()
         pretrained_dict = {
-            k: v
-            for k, v in pretrained_model.state_dict().items()
-            if k in model_dict  # pylint: disable=E1135
+            k: v for k, v in pretrained_model.state_dict().items() if k in model_dict  # pylint: disable=E1135
         }
         model_dict.update(pretrained_dict)
         self.igmtf_model.load_state_dict(model_dict)
@@ -313,9 +303,7 @@ class IGMTF(Model):
             train_hidden, train_hidden_day = self.get_train_hidden(x_train)
             self.train_epoch(x_train, y_train, train_hidden, train_hidden_day)
             self.logger.info("evaluating...")
-            train_loss, train_score = self.test_epoch(
-                x_train, y_train, train_hidden, train_hidden_day
-            )
+            train_loss, train_score = self.test_epoch(x_train, y_train, train_hidden, train_hidden_day)
             val_loss, val_score = self.test_epoch(x_valid, y_valid, train_hidden, train_hidden_day)
             self.logger.info("train %.6f, valid %.6f" % (train_score, val_score))
             evals_result["train"].append(train_score)
@@ -446,9 +434,7 @@ class IGMTFModel(nn.Module):
         sample_train_hidden = train_hidden[day_index.long().cpu()].squeeze()
         sample_train_hidden = torch.cat(list(sample_train_hidden)).to(device)
         sample_train_hidden = self.lins(sample_train_hidden)
-        cos_similarity = self.cal_cos_similarity(
-            self.project1(mini_batch_out), self.project2(sample_train_hidden)
-        )
+        cos_similarity = self.cal_cos_similarity(self.project1(mini_batch_out), self.project2(sample_train_hidden))
 
         row = (
             torch.linspace(0, x.shape[0] - 1, x.shape[0])

@@ -246,8 +246,7 @@ class Checkpoint(Callback):
         if self.every_n_iters is not None and (trainer.current_iter + 1) % self.every_n_iters == 0:
             should_save_ckpt = True
         if self.time_interval is not None and (
-            self._last_checkpoint_time is None
-            or (time.time() - self._last_checkpoint_time) >= self.time_interval
+            self._last_checkpoint_time is None or (time.time() - self._last_checkpoint_time) >= self.time_interval
         ):
             should_save_ckpt = True
         if should_save_ckpt:

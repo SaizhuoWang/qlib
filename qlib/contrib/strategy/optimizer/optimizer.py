@@ -249,9 +249,7 @@ class PortfolioOptimizer(BaseOptimizer):
 
         # turnover constraint
         if w0 is not None:
-            cons.append(
-                {"type": "ineq", "fun": lambda x: self.delta - np.sum(np.abs(x - w0))}
-            )  # >= 0
+            cons.append({"type": "ineq", "fun": lambda x: self.delta - np.sum(np.abs(x - w0))})  # >= 0
 
         return bounds, cons
 

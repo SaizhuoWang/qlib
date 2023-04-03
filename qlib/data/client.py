@@ -77,9 +77,7 @@ class Client:
                 else:
                     self.logger.info(msg["detailed_info"])
             if msg["status"] != 0:
-                ex = ValueError(
-                    f"Bad response(status=={msg['status']}), detailed info: {msg['detailed_info']}"
-                )
+                ex = ValueError(f"Bad response(status=={msg['status']}), detailed info: {msg['detailed_info']}")
                 msg_queue.put(ex)
             else:
                 if msg_proc_func is not None:

@@ -65,9 +65,7 @@ class HFLGBModel(ModelFT, LightGBMFInt):
         df_test.dropna(inplace=True)
         x_test, y_test = df_test["feature"], df_test["label"]
         # Convert label into alpha
-        y_test[y_test.columns[0]] = y_test[y_test.columns[0]] - y_test[y_test.columns[0]].mean(
-            level=0
-        )
+        y_test[y_test.columns[0]] = y_test[y_test.columns[0]] - y_test[y_test.columns[0]].mean(level=0)
 
         res = pd.Series(self.model.predict(x_test.values), index=x_test.index)
         y_test["pred"] = res
@@ -95,12 +93,8 @@ class HFLGBModel(ModelFT, LightGBMFInt):
         if y_train.values.ndim == 2 and y_train.values.shape[1] == 1:
             l_name = df_train["label"].columns[0]
             # Convert label into alpha
-            df_train["label"][l_name] = df_train["label"][l_name] - df_train["label"][l_name].mean(
-                level=0
-            )
-            df_valid["label"][l_name] = df_valid["label"][l_name] - df_valid["label"][l_name].mean(
-                level=0
-            )
+            df_train["label"][l_name] = df_train["label"][l_name] - df_train["label"][l_name].mean(level=0)
+            df_valid["label"][l_name] = df_valid["label"][l_name] - df_valid["label"][l_name].mean(level=0)
 
             def mapping_fn(x):
                 return 0 if x < 0 else 1

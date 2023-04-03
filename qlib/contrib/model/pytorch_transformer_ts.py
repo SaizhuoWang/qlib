@@ -55,16 +55,10 @@ class TransformerModel(Model):
         self.optimizer = optimizer.lower()
         self.loss = loss
         self.n_jobs = n_jobs
-        self.device = torch.device(
-            "cuda:%d" % GPU if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % GPU if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
         self.logger = get_module_logger("TransformerModel")
-        self.logger.info(
-            "Naive Transformer:"
-            "\nbatch_size : {}"
-            "\ndevice : {}".format(self.batch_size, self.device)
-        )
+        self.logger.info("Naive Transformer:" "\nbatch_size : {}" "\ndevice : {}".format(self.batch_size, self.device))
 
         if self.seed is not None:
             np.random.seed(self.seed)
@@ -72,13 +66,9 @@ class TransformerModel(Model):
 
         self.model = Transformer(d_feat, d_model, nhead, num_layers, dropout, self.device)
         if optimizer.lower() == "adam":
-            self.train_optimizer = optim.Adam(
-                self.model.parameters(), lr=self.lr, weight_decay=self.reg
-            )
+            self.train_optimizer = optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.reg)
         elif optimizer.lower() == "gd":
-            self.train_optimizer = optim.SGD(
-                self.model.parameters(), lr=self.lr, weight_decay=self.reg
-            )
+            self.train_optimizer = optim.SGD(self.model.parameters(), lr=self.lr, weight_decay=self.reg)
         else:
             raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
@@ -155,12 +145,8 @@ class TransformerModel(Model):
         save_path=None,
     ):
 
-        dl_train = dataset.prepare(
-            "train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
-        )
-        dl_valid = dataset.prepare(
-            "valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
-        )
+        dl_train = dataset.prepare("train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
+        dl_valid = dataset.prepare("valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
 
         if dl_train.empty or dl_valid.empty:
             raise ValueError("Empty data from dataset, please check your dataset config.")
@@ -267,9 +253,7 @@ class Transformer(nn.Module):
         super(Transformer, self).__init__()
         self.feature_layer = nn.Linear(d_feat, d_model)
         self.pos_encoder = PositionalEncoding(d_model)
-        self.encoder_layer = nn.TransformerEncoderLayer(
-            d_model=d_model, nhead=nhead, dropout=dropout
-        )
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, dropout=dropout)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)
         self.decoder_layer = nn.Linear(d_model, 1)
         self.device = device

@@ -111,9 +111,7 @@ class SepDataFrame:
                     self._df_dict[_df_dict_key] = df.to_frame(col_name)
                 else:
                     df_copy = df.copy()  # avoid changing df
-                    df_copy.columns = pd.MultiIndex.from_tuples(
-                        [(*col_name, *idx) for idx in df.columns.to_list()]
-                    )
+                    df_copy.columns = pd.MultiIndex.from_tuples([(*col_name, *idx) for idx in df.columns.to_list()])
                     self._df_dict[_df_dict_key] = df_copy
 
     def __delitem__(self, item: str):

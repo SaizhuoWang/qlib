@@ -69,9 +69,7 @@ class ALSTM(Model):
         self.early_stop = early_stop
         self.optimizer = optimizer.lower()
         self.loss = loss
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
         self.logger.info(
@@ -174,16 +172,8 @@ class ALSTM(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = (
-                torch.from_numpy(x_train_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_train_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
+            feature = torch.from_numpy(x_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
             pred = self.ALSTM_model(feature)
             loss = self.loss_fn(pred, label)
@@ -211,12 +201,8 @@ class ALSTM(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
+            feature = torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
             with torch.no_grad():
                 pred = self.ALSTM_model(feature)
@@ -330,9 +316,7 @@ class ALSTMModel(nn.Module):
         except Exception as e:
             raise ValueError("unknown rnn_type `%s`" % self.rnn_type) from e
         self.net = nn.Sequential()
-        self.net.add_module(
-            "fc_in", nn.Linear(in_features=self.input_size, out_features=self.hid_size)
-        )
+        self.net.add_module("fc_in", nn.Linear(in_features=self.input_size, out_features=self.hid_size))
         self.net.add_module("act", nn.Tanh())
         self.rnn = klass(
             input_size=self.hid_size,
@@ -358,9 +342,7 @@ class ALSTMModel(nn.Module):
     def forward(self, inputs):
         # inputs: [batch_size, input_size*input_day]
         inputs = inputs.view(len(inputs), self.input_size, -1)
-        inputs = inputs.permute(
-            0, 2, 1
-        )  # [batch, input_size, seq_len] -> [batch, seq_len, input_size]
+        inputs = inputs.permute(0, 2, 1)  # [batch, input_size, seq_len] -> [batch, seq_len, input_size]
         rnn_out, _ = self.rnn(self.net(inputs))  # [batch, seq_len, num_directions * hidden_size]
         attention_score = self.att_net(rnn_out)  # [batch, seq_len, 1]
         out_att = torch.mul(rnn_out, attention_score)

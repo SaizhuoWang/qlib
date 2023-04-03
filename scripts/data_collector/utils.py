@@ -73,11 +73,7 @@ def get_calendar_list(bench_code="CSI300") -> List[pd.Timestamp]:
 
     calendar = _CALENDAR_MAP.get(bench_code, None)
     if calendar is None:
-        if (
-            bench_code.startswith("US_")
-            or bench_code.startswith("IN_")
-            or bench_code.startswith("BR_")
-        ):
+        if bench_code.startswith("US_") or bench_code.startswith("IN_") or bench_code.startswith("BR_"):
             print(Ticker(CALENDAR_BENCH_URL_MAP[bench_code]))
             print(Ticker(CALENDAR_BENCH_URL_MAP[bench_code]).history(interval="1d", period="max"))
             df = Ticker(CALENDAR_BENCH_URL_MAP[bench_code]).history(interval="1d", period="max")
@@ -89,9 +85,7 @@ def get_calendar_list(bench_code="CSI300") -> List[pd.Timestamp]:
                 def _get_calendar(month):
                     _cal = []
                     try:
-                        resp = requests.get(
-                            SZSE_CALENDAR_URL.format(month=month, random=random.random)
-                        ).json()
+                        resp = requests.get(SZSE_CALENDAR_URL.format(month=month, random=random.random)).json()
                         for _r in resp["data"]:
                             if int(_r["jybz"]):
                                 _cal.append(pd.Timestamp(_r["jyrq"]))
@@ -173,9 +167,7 @@ def get_calendar_list_by_ratio(
                 p_bar.update()
 
     logger.info(f"count how many funds have founded in this day......")
-    _dict_count_founding = {
-        date: _number_all_funds for date in _dict_count_trade.keys()
-    }  # dict{date:count}
+    _dict_count_founding = {date: _number_all_funds for date in _dict_count_trade.keys()}  # dict{date:count}
     with tqdm(total=_number_all_funds) as p_bar:
         for oldest_date in all_oldest_list:
             for date in _dict_count_founding.keys():
@@ -185,8 +177,7 @@ def get_calendar_list_by_ratio(
     calendar = [
         date
         for date in _dict_count_trade
-        if _dict_count_trade[date]
-        >= max(int(_dict_count_founding[date] * threshold), minimum_count)
+        if _dict_count_trade[date] >= max(int(_dict_count_founding[date] * threshold), minimum_count)
     ]
 
     return calendar

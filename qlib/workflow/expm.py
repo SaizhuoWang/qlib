@@ -8,8 +8,7 @@ from urllib.parse import urlparse
 import mlflow
 from filelock import FileLock
 from mlflow.entities import ViewType
-from mlflow.exceptions import (RESOURCE_ALREADY_EXISTS, ErrorCode,
-                               MlflowException)
+from mlflow.exceptions import RESOURCE_ALREADY_EXISTS, ErrorCode, MlflowException
 
 from ..config import C
 from ..log import get_module_logger
@@ -43,9 +42,7 @@ class ExpManager:
         logger.debug(f"experiment manager uri is at {self.uri}")
 
     def __repr__(self):
-        return "{name}(current_uri={curi})".format(
-            name=self.__class__.__name__, curi=self._current_uri
-        )
+        return "{name}(current_uri={curi})".format(name=self.__class__.__name__, curi=self._current_uri)
 
     def start_exp(
         self,
@@ -216,9 +213,7 @@ class ExpManager:
             experiment_name = self._default_exp_name
 
         if create:
-            exp, _ = self._get_or_create_exp(
-                experiment_id=experiment_id, experiment_name=experiment_name
-            )
+            exp, _ = self._get_or_create_exp(experiment_id=experiment_id, experiment_name=experiment_name)
         else:
             exp = self._get_exp(experiment_id=experiment_id, experiment_name=experiment_name)
         if self.active_experiment is None and start:
@@ -240,17 +235,13 @@ class ExpManager:
         except ValueError:
             if experiment_name is None:
                 experiment_name = self._default_exp_name
-            logger.warning(
-                f"No valid experiment found. Create a new experiment with name {experiment_name}."
-            )
+            logger.warning(f"No valid experiment found. Create a new experiment with name {experiment_name}.")
 
             # NOTE: mlflow doesn't consider the lock for recording multiple runs
             # So we supported it in the interface wrapper
             pr = urlparse(self.uri)
             if pr.scheme == "file":
-                with FileLock(
-                    os.path.join(pr.netloc, pr.path, "filelock")
-                ):  # pylint: disable=E0110
+                with FileLock(os.path.join(pr.netloc, pr.path, "filelock")):  # pylint: disable=E0110
                     return self.create_exp(experiment_name), True
             # NOTE: for other schemes like http, we double check to avoid create exp conflicts
             try:
@@ -354,15 +345,11 @@ class MLflowExpManager(ExpManager):
         # Create experiment
         if experiment_name is None:
             experiment_name = self._default_exp_name
-        experiment, _ = self._get_or_create_exp(
-            experiment_id=experiment_id, experiment_name=experiment_name
-        )
+        experiment, _ = self._get_or_create_exp(experiment_id=experiment_id, experiment_name=experiment_name)
         # Set up active experiment
         self.active_experiment = experiment
         # Start the experiment
-        self.active_experiment.start(
-            recorder_id=recorder_id, recorder_name=recorder_name, resume=resume
-        )
+        self.active_experiment.start(recorder_id=recorder_id, recorder_name=recorder_name, resume=resume)
 
         return self.active_experiment
 
@@ -421,9 +408,7 @@ class MLflowExpManager(ExpManager):
         run_view_type = 1 if kwargs.get("run_view_type") is None else kwargs.get("run_view_type")
         max_results = 100000 if kwargs.get("max_results") is None else kwargs.get("max_results")
         order_by = kwargs.get("order_by")
-        return self.client.search_runs(
-            experiment_ids, filter_string, run_view_type, max_results, order_by
-        )
+        return self.client.search_runs(experiment_ids, filter_string, run_view_type, max_results, order_by)
 
     def delete_exp(self, experiment_id=None, experiment_name=None):
         assert (

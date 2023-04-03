@@ -74,9 +74,7 @@ def save_multiple_parts_file(filename, format="gztar"):
 
     # Create model dir
     if os.path.exists(file_path):
-        raise FileExistsError(
-            "ERROR: file exists: {}, cannot be create the directory.".format(file_path)
-        )
+        raise FileExistsError("ERROR: file exists: {}, cannot be create the directory.".format(file_path))
 
     os.makedirs(file_path)
 

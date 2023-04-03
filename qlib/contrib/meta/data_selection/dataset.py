@@ -15,8 +15,7 @@ from qlib.log import get_module_logger
 from qlib.model.meta.dataset import MetaTaskDataset
 from qlib.model.meta.task import MetaTask
 from qlib.model.trainer import TrainerR
-from qlib.utils import (auto_filter_kwargs, get_date_by_shift,
-                        init_instance_by_config)
+from qlib.utils import auto_filter_kwargs, get_date_by_shift, init_instance_by_config
 from qlib.utils.data import deepcopy_basic_type
 from qlib.workflow import R
 from qlib.workflow.task.gen import RollingGen, task_generator
@@ -51,9 +50,7 @@ class InternalData:
         """
 
         # 1) prepare the prediction of proxy models
-        perf_task_tpl = deepcopy(
-            self.task_tpl
-        )  # this task is supposed to contains no complicated objects
+        perf_task_tpl = deepcopy(self.task_tpl)  # this task is supposed to contains no complicated objects
 
         trainer = auto_filter_kwargs(trainer)(experiment_name=self.exp_name, **trainer_kwargs)
         # NOTE:
@@ -264,9 +261,7 @@ class MetaDatasetDS(MetaTaskDataset):
         else:
             self.internal_data = InternalData(task_tpl, step=step, exp_name=exp_name)
             self.internal_data.setup()
-        self.task_tpl = deepcopy(
-            task_tpl
-        )  # FIXME: if the handler is shared, how to avoid the explosion of the memroy.
+        self.task_tpl = deepcopy(task_tpl)  # FIXME: if the handler is shared, how to avoid the explosion of the memroy.
         self.trunc_days = trunc_days
         self.hist_step_n = hist_step_n
         self.step = step

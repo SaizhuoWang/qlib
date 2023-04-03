@@ -15,9 +15,7 @@ from qlib.rl.order_execution.simulator_qlib import SingleAssetOrderExecution
 
 TOTAL_POSITION = 2100.0
 
-python_version_request = pytest.mark.skipif(
-    sys.version_info < (3, 8), reason="requires python3.8 or higher"
-)
+python_version_request = pytest.mark.skipif(sys.version_info < (3, 8), reason="requires python3.8 or higher")
 
 
 def is_close(a: float, b: float, epsilon: float = 1e-4) -> bool:

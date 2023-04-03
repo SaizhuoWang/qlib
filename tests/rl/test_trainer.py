@@ -16,9 +16,7 @@ from qlib.rl.reward import Reward
 from qlib.rl.simulator import Simulator
 from qlib.rl.trainer import Checkpoint, EarlyStopping, Trainer, TrainingVessel
 
-pytestmark = pytest.mark.skipif(
-    sys.version_info < (3, 8), reason="Pickle styled data only supports Python >= 3.8"
-)
+pytestmark = pytest.mark.skipif(sys.version_info < (3, 8), reason="Pickle styled data only supports Python >= 3.8")
 
 
 class ZeroSimulator(Simulator):

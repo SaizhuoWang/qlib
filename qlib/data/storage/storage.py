@@ -225,9 +225,7 @@ class InstrumentStorage(BaseStorage):
 
     def __setitem__(self, k: InstKT, v: InstVT) -> None:
         """Set self[key] to value."""
-        raise NotImplementedError(
-            "Subclass of InstrumentStorage must implement `__setitem__` method"
-        )
+        raise NotImplementedError("Subclass of InstrumentStorage must implement `__setitem__` method")
 
     def __delitem__(self, k: InstKT) -> None:
         """Delete self[key].
@@ -237,15 +235,11 @@ class InstrumentStorage(BaseStorage):
         ValueError
             If the data(storage) does not exist, raise ValueError
         """
-        raise NotImplementedError(
-            "Subclass of InstrumentStorage must implement `__delitem__` method"
-        )
+        raise NotImplementedError("Subclass of InstrumentStorage must implement `__delitem__` method")
 
     def __getitem__(self, k: InstKT) -> InstVT:
         """x.__getitem__(k) <==> x[k]"""
-        raise NotImplementedError(
-            "Subclass of InstrumentStorage must implement `__getitem__` method"
-        )
+        raise NotImplementedError("Subclass of InstrumentStorage must implement `__getitem__` method")
 
     def __len__(self) -> int:
         """
@@ -418,17 +412,13 @@ class FeatureStorage(BaseStorage):
         storage_si = self.start_index
         storage_ei = self.end_index
         if storage_si is None or storage_ei is None:
-            raise ValueError(
-                "storage.start_index or storage.end_index is None, storage may not exist"
-            )
+            raise ValueError("storage.start_index or storage.end_index is None, storage may not exist")
 
         start_index = storage_si if start_index is None else start_index
         end_index = storage_ei if end_index is None else end_index
 
         if start_index is None or end_index is None:
-            logger.warning(
-                "both start_index and end_index are None, or storage does not exist; rebase is ignored"
-            )
+            logger.warning("both start_index and end_index are None, or storage does not exist; rebase is ignored")
             return
 
         if start_index < 0 or end_index < 0:

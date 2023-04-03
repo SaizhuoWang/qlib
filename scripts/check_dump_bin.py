@@ -63,18 +63,12 @@ class CheckBin:
             redis_port=-1,
         )
         csv_path = Path(csv_path).expanduser()
-        self.csv_files = sorted(
-            csv_path.glob(f"*{file_suffix}") if csv_path.is_dir() else [csv_path]
-        )
+        self.csv_files = sorted(csv_path.glob(f"*{file_suffix}") if csv_path.is_dir() else [csv_path])
 
         if check_fields is None:
-            check_fields = list(
-                map(lambda x: x.name.split(".")[0], bin_path_list[0].glob(f"*.bin"))
-            )
+            check_fields = list(map(lambda x: x.name.split(".")[0], bin_path_list[0].glob(f"*.bin")))
         else:
-            check_fields = (
-                check_fields.split(",") if isinstance(check_fields, str) else check_fields
-            )
+            check_fields = check_fields.split(",") if isinstance(check_fields, str) else check_fields
         self.check_fields = list(map(lambda x: x.strip(), check_fields))
         self.qlib_fields = list(map(lambda x: f"${x}", self.check_fields))
         self.max_workers = max_workers
@@ -123,9 +117,7 @@ class CheckBin:
         compare_false = []
         with tqdm(total=len(self.csv_files)) as p_bar:
             with ProcessPoolExecutor(max_workers=self.max_workers) as executor:
-                for file_path, _check_res in zip(
-                    self.csv_files, executor.map(self._compare, self.csv_files)
-                ):
+                for file_path, _check_res in zip(self.csv_files, executor.map(self._compare, self.csv_files)):
                     symbol = file_path.name.strip(self.file_suffix)
                     if _check_res == self.NOT_IN_FEATURES:
                         not_in_features.append(symbol)

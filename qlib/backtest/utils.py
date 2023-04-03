@@ -69,9 +69,7 @@ class TradeCalendarManager:
         _calendar = Cal.calendar(freq=freq, future=True)
         assert isinstance(_calendar, np.ndarray)
         self._calendar = _calendar
-        _, _, _start_index, _end_index = Cal.locate_index(
-            start_time, end_time, freq=freq, future=True
-        )
+        _, _, _start_index, _end_index = Cal.locate_index(start_time, end_time, freq=freq, future=True)
         self.start_index = _start_index
         self.end_index = _end_index
         self.trade_len = _end_index - _start_index + 1
@@ -101,9 +99,7 @@ class TradeCalendarManager:
     def get_trade_step(self) -> int:
         return self.trade_step
 
-    def get_step_time(
-        self, trade_step: int = None, shift: int = 0
-    ) -> Tuple[pd.Timestamp, pd.Timestamp]:
+    def get_step_time(self, trade_step: int = None, shift: int = 0) -> Tuple[pd.Timestamp, pd.Timestamp]:
         """
         Get the left and right endpoints of the trade_step'th trading interval
 
@@ -232,9 +228,7 @@ class BaseInfrastructure:
 
     def update(self, other: BaseInfrastructure) -> None:
         support_infra = other.get_support_infra()
-        infra_dict = {
-            _infra: getattr(other, _infra) for _infra in support_infra if hasattr(other, _infra)
-        }
+        infra_dict = {_infra: getattr(other, _infra) for _infra in support_infra if hasattr(other, _infra)}
         self.reset_infra(**infra_dict)
 
 
@@ -266,9 +260,7 @@ class LevelInfrastructure(BaseInfrastructure):
             self.get("trade_calendar").reset(freq, start_time=start_time, end_time=end_time)
         else:
             self.reset_infra(
-                trade_calendar=TradeCalendarManager(
-                    freq, start_time=start_time, end_time=end_time, level_infra=self
-                ),
+                trade_calendar=TradeCalendarManager(freq, start_time=start_time, end_time=end_time, level_infra=self),
             )
 
     def set_sub_level_infra(self, sub_level_infra: LevelInfrastructure) -> None:
@@ -276,9 +268,7 @@ class LevelInfrastructure(BaseInfrastructure):
         self.reset_infra(sub_level_infra=sub_level_infra)
 
 
-def get_start_end_idx(
-    trade_calendar: TradeCalendarManager, outer_trade_decision: BaseTradeDecision
-) -> Tuple[int, int]:
+def get_start_end_idx(trade_calendar: TradeCalendarManager, outer_trade_decision: BaseTradeDecision) -> Tuple[int, int]:
     """
     A helper function for getting the decision-level index range limitation for inner strategy
     - NOTE: this function is not applicable to order-level

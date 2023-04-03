@@ -59,12 +59,8 @@ def calc_long_short_prec(
         return int(len(x) * quantile)
 
     # find the top/low quantile of prediction and treat them as long and short target
-    long = group.apply(lambda x: x.nlargest(N(x), columns="pred").label).reset_index(
-        level=0, drop=True
-    )
-    short = group.apply(lambda x: x.nsmallest(N(x), columns="pred").label).reset_index(
-        level=0, drop=True
-    )
+    long = group.apply(lambda x: x.nlargest(N(x), columns="pred").label).reset_index(level=0, drop=True)
+    short = group.apply(lambda x: x.nsmallest(N(x), columns="pred").label).reset_index(level=0, drop=True)
 
     groupll = long.groupby(date_col)
     l_dom = groupll.apply(lambda x: x > 0)
@@ -139,9 +135,7 @@ def pred_autocorr(pred: pd.Series, lag=1, inst_col="instrument", date_col="datet
     """
     if isinstance(pred, pd.DataFrame):
         pred = pred.iloc[:, 0]
-        get_module_logger("pred_autocorr").warning(
-            f"Only the first column in {pred.columns} of `pred` is kept"
-        )
+        get_module_logger("pred_autocorr").warning(f"Only the first column in {pred.columns} of `pred` is kept")
     pred_ustk = pred.sort_index().unstack(inst_col)
     corr_s = {}
     for (idx, cur), (_, prev) in zip(pred_ustk.iterrows(), pred_ustk.shift(lag).iterrows()):
@@ -167,9 +161,7 @@ def pred_autocorr_all(pred_dict, n_jobs=-1, **kwargs):
     return complex_parallel(Parallel(n_jobs=n_jobs, verbose=10), ac_dict)
 
 
-def calc_ic(
-    pred: pd.Series, label: pd.Series, date_col="datetime", dropna=False
-) -> (pd.Series, pd.Series):
+def calc_ic(pred: pd.Series, label: pd.Series, date_col="datetime", dropna=False) -> (pd.Series, pd.Series):
     """calc_ic.
 
     Parameters

@@ -108,9 +108,7 @@ class Account:
         self.benchmark_config: dict = {}  # avoid no attribute error
         self.init_vars(init_cash, position_dict, freq, benchmark_config)
 
-    def init_vars(
-        self, init_cash: float, position_dict: dict, freq: str, benchmark_config: dict
-    ) -> None:
+    def init_vars(self, init_cash: float, position_dict: dict, freq: str, benchmark_config: dict) -> None:
         # 1) the following variables are shared by multiple layers
         # - you will see a shallow copy instead of deepcopy in the NestedExecutor;
         self.init_cash = init_cash
@@ -149,9 +147,7 @@ class Account:
             # The frequency of account may not align with the trading frequency.
             # This may result in obscure bugs when data quality is low.
             if isinstance(self.benchmark_config, dict) and "start_time" in self.benchmark_config:
-                self.current_position.fill_stock_value(
-                    self.benchmark_config["start_time"], self.freq
-                )
+                self.current_position.fill_stock_value(self.benchmark_config["start_time"], self.freq)
 
         # trading related metrics(e.g. high-frequency trading)
         self.indicator = Indicator()
@@ -187,9 +183,7 @@ class Account:
     def get_cash(self) -> float:
         return self.current_position.get_cash()
 
-    def _update_state_from_order(
-        self, order: Order, trade_val: float, cost: float, trade_price: float
-    ) -> None:
+    def _update_state_from_order(self, order: Order, trade_val: float, cost: float, trade_price: float) -> None:
         if self.is_port_metr_enabled():
             # update turnover
             self.accum_info.add_turnover(trade_val)
@@ -200,17 +194,13 @@ class Account:
             trade_amount = trade_val / trade_price
             if order.direction == Order.SELL:  # 0 for sell
                 # when sell stock, get profit from price change
-                profit = (
-                    trade_val - self.current_position.get_stock_price(order.stock_id) * trade_amount
-                )
+                profit = trade_val - self.current_position.get_stock_price(order.stock_id) * trade_amount
                 self.accum_info.add_return_value(profit)  # note here do not consider cost
 
             elif order.direction == Order.BUY:  # 1 for buy
                 # when buy stock, we get return for the rtn computing method
                 # profit in buy order is to make rtn is consistent with earning at the end of bar
-                profit = (
-                    self.current_position.get_stock_price(order.stock_id) * trade_amount - trade_val
-                )
+                profit = self.current_position.get_stock_price(order.stock_id) * trade_amount - trade_val
                 self.accum_info.add_return_value(profit)  # note here do not consider cost
 
     def update_order(self, order: Order, trade_val: float, cost: float, trade_price: float) -> None:
@@ -263,9 +253,7 @@ class Account:
             # NOTE: updating bar_count does not only serve portfolio metrics, it also serve the strategy
             self.current_position.add_count_all(bar=self.freq)
 
-    def update_portfolio_metrics(
-        self, trade_start_time: pd.Timestamp, trade_end_time: pd.Timestamp
-    ) -> None:
+    def update_portfolio_metrics(self, trade_start_time: pd.Timestamp, trade_end_time: pd.Timestamp) -> None:
         """update portfolio_metrics"""
         # calculate earning
         # account_value - last_account_value
@@ -428,9 +416,7 @@ class Account:
             _positions = self.get_hist_positions()
             return _portfolio_metrics, _positions
         else:
-            raise ValueError(
-                "generate_portfolio_metrics should be True if you want to generate portfolio_metrics"
-            )
+            raise ValueError("generate_portfolio_metrics should be True if you want to generate portfolio_metrics")
 
     def get_trade_indicator(self) -> Indicator:
         """get the trade indicator instance, which has pa/pos/ffr info."""

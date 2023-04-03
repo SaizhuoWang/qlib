@@ -77,15 +77,11 @@ def add_one_stock_daily_data(filepath, type, exchange_place, arc, date):
         hms = str(hms)
         if hms[0] == "1":  # >=10,
             return (
-                "-".join([day[0:4], day[4:6], day[6:8]])
-                + " "
-                + ":".join([hms[:2], hms[2:4], hms[4:6] + "." + hms[6:]])
+                "-".join([day[0:4], day[4:6], day[6:8]]) + " " + ":".join([hms[:2], hms[2:4], hms[4:6] + "." + hms[6:]])
             )
         else:
             return (
-                "-".join([day[0:4], day[4:6], day[6:8]])
-                + " "
-                + ":".join([hms[:1], hms[1:3], hms[3:5] + "." + hms[5:]])
+                "-".join([day[0:4], day[4:6], day[6:8]]) + " " + ":".join([hms[:1], hms[1:3], hms[3:5] + "." + hms[5:]])
             )
 
     ## Discard the entire row if wrong data timestamp encoutered.
@@ -106,10 +102,7 @@ def add_one_stock_daily_data(filepath, type, exchange_place, arc, date):
     timestamp = list(zip(list(df["date"]), list(df["time"])))  ## The cleaned timestamp
     # generate timestamp
     pd_timestamp = pd.DatetimeIndex(
-        [
-            pd.Timestamp(format_time(timestamp[i][0], timestamp[i][1]))
-            for i in range(len(df["date"]))
-        ]
+        [pd.Timestamp(format_time(timestamp[i][0], timestamp[i][1])) for i in range(len(df["date"]))]
     )
     df = df.drop(columns=["date", "time", "name", "code", "wind_code"])
     # df = pd.DataFrame(data=df.to_dict("list"), index=pd_timestamp)
@@ -207,13 +200,7 @@ def add_data(tick_date, doc_type, stock_name_dict):
 
         sz_files = (
             (
-                set(
-                    [
-                        i.split(".csv")[0]
-                        for i in os.listdir(temp_data_path_sz)
-                        if i[:2] == "30" or i[0] == "0"
-                    ]
-                )
+                set([i.split(".csv")[0] for i in os.listdir(temp_data_path_sz) if i[:2] == "30" or i[0] == "0"])
                 & set(stock_name_dict["SZ"])
             )
             if is_files_exist["sz"]
@@ -263,15 +250,8 @@ def add_data(tick_date, doc_type, stock_name_dict):
         os.system(f"rm -f {DATA_PATH}/{tick_date + '_{}.tar.gz'.format(doc_type)}")
         os.system(f"rm -rf {DATA_PATH}/{tick_date + '_' + doc_type}")
         total_time = time.time() - begin_time
-        f = (DATA_FINISH_INFO_PATH / "data_info_finish_log_{}_{}".format(doc_type, tick_date)).open(
-            "w+"
-        )
-        f.write(
-            "finish: date:{}, consume_time:{}, end_time: {}".format(
-                tick_date, total_time, time.time()
-            )
-            + "\n"
-        )
+        f = (DATA_FINISH_INFO_PATH / "data_info_finish_log_{}_{}".format(doc_type, tick_date)).open("w+")
+        f.write("finish: date:{}, consume_time:{}, end_time: {}".format(tick_date, total_time, time.time()) + "\n")
         f.close()
 
     except Exception as e:
@@ -319,15 +299,7 @@ class DSCreator:
 
         # doc_type = 'Day'
         for doc_type in doc_type_l:
-            date_list = list(
-                set(
-                    [
-                        int(path.split("_")[0])
-                        for path in os.listdir(DATABASE_PATH)
-                        if doc_type in path
-                    ]
-                )
-            )
+            date_list = list(set([int(path.split("_")[0]) for path in os.listdir(DATABASE_PATH) if doc_type in path]))
             date_list.sort()
             date_list = [str(date) for date in date_list]
 

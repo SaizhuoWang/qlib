@@ -75,9 +75,7 @@ class TCN(Model):
         self.optimizer = optimizer.lower()
         self.loss = loss
         GPU = int(GPU)
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
         self.logger.info(
@@ -183,16 +181,8 @@ class TCN(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = (
-                torch.from_numpy(x_train_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_train_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
+            feature = torch.from_numpy(x_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
             pred = self.tcn_model(feature)
             loss = self.loss_fn(pred, label)
@@ -218,12 +208,8 @@ class TCN(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
+            feature = torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
             with torch.no_grad():
                 pred = self.tcn_model(feature)

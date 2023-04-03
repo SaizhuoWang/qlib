@@ -65,9 +65,7 @@ class PPOActor(nn.Module):
     def __init__(self, extractor: nn.Module, action_dim: int) -> None:
         super().__init__()
         self.extractor = extractor
-        self.layer_out = nn.Sequential(
-            nn.Linear(cast(int, extractor.output_dim), action_dim), nn.Softmax(dim=-1)
-        )
+        self.layer_out = nn.Sequential(nn.Linear(cast(int, extractor.output_dim), action_dim), nn.Softmax(dim=-1))
 
     def forward(
         self,

@@ -2,8 +2,7 @@ import optuna
 
 import qlib
 from qlib.constant import REG_CN
-from qlib.tests.config import (CSI300_MARKET, DATASET_ALPHA360_CLASS,
-                               get_dataset_config)
+from qlib.tests.config import CSI300_MARKET, DATASET_ALPHA360_CLASS, get_dataset_config
 from qlib.tests.data import GetData
 from qlib.utils import init_instance_by_config
 

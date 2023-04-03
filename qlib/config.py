@@ -29,9 +29,7 @@ if TYPE_CHECKING:
 
 class Config:
     def __init__(self, default_conf):
-        self.__dict__["_default_config"] = copy.deepcopy(
-            default_conf
-        )  # avoiding conflicts with __getattr__
+        self.__dict__["_default_config"] = copy.deepcopy(default_conf)  # avoiding conflicts with __getattr__
         self.reset()
 
     def __getitem__(self, key):
@@ -396,9 +394,7 @@ class QlibConfig(Config):
         for _freq in _provider_uri.keys():
             # mount_path
             _mount_path[_freq] = (
-                _mount_path[_freq]
-                if _mount_path[_freq] is None
-                else str(Path(_mount_path[_freq]).expanduser())
+                _mount_path[_freq] if _mount_path[_freq] is None else str(Path(_mount_path[_freq]).expanduser())
             )
         self["provider_uri"] = _provider_uri
         self["mount_path"] = _mount_path
@@ -468,8 +464,7 @@ class QlibConfig(Config):
         from .data.ops import register_all_ops  # pylint: disable=C0415
         from .utils import init_instance_by_config  # pylint: disable=C0415
         from .workflow import QlibRecorder, R  # pylint: disable=C0415
-        from .workflow.utils import \
-            experiment_exit_handler  # pylint: disable=C0415
+        from .workflow.utils import experiment_exit_handler  # pylint: disable=C0415
 
         register_all_ops(self)
         register_all_wrappers(self)

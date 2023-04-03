@@ -7,8 +7,7 @@ import inspect
 import logging
 from collections import OrderedDict
 from functools import lru_cache
-from typing import (Any, Callable, Dict, Iterable, List, Optional, Text, Union,
-                    cast)
+from typing import Any, Callable, Dict, Iterable, List, Optional, Text, Union, cast
 
 import numpy as np
 import pandas as pd
@@ -123,9 +122,7 @@ class PandasQuote(BaseQuote):
         elif isinstance(stock_data, pd.Series):
             return idd.SingleData(stock_data)
         else:
-            raise ValueError(
-                f"stock data from resam_ts_data must be a number, pd.Series or pd.DataFrame"
-            )
+            raise ValueError(f"stock data from resam_ts_data must be a number, pd.Series or pd.DataFrame")
 
 
 class NumpyQuote(BaseQuote):
@@ -142,9 +139,7 @@ class NumpyQuote(BaseQuote):
         quote_dict = {}
         for stock_id, stock_val in quote_df.groupby(level="instrument"):
             quote_dict[stock_id] = idd.MultiData(stock_val.droplevel(level="instrument"))
-            quote_dict[
-                stock_id
-            ].sort_index()  # To support more flexible slicing, we must sort data first
+            quote_dict[stock_id].sort_index()  # To support more flexible slicing, we must sort data first
         self.data = quote_dict
 
         n, unit = Freq.parse(freq)

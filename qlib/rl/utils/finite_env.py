@@ -15,8 +15,7 @@ from typing import Any, Callable, Dict, Generator, List, Optional, Set, Tuple, T
 
 import gym
 import numpy as np
-from tianshou.env import (BaseVectorEnv, DummyVectorEnv, ShmemVectorEnv,
-                          SubprocVectorEnv)
+from tianshou.env import BaseVectorEnv, DummyVectorEnv, ShmemVectorEnv, SubprocVectorEnv
 
 from qlib.typehint import Literal
 

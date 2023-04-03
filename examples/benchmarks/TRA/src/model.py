@@ -58,16 +58,12 @@ class TRAModel(Model):
             for param in self.model.parameters():
                 param.requires_grad_(False)
         else:
-            self.logger.info(
-                "# model params: %d" % sum([p.numel() for p in self.model.parameters()])
-            )
+            self.logger.info("# model params: %d" % sum([p.numel() for p in self.model.parameters()]))
 
         self.tra = TRA(self.model.output_size, **tra_config).to(device)
         self.logger.info("# tra params: %d" % sum([p.numel() for p in self.tra.parameters()]))
 
-        self.optimizer = optim.Adam(
-            list(self.model.parameters()) + list(self.tra.parameters()), lr=lr
-        )
+        self.optimizer = optim.Adam(list(self.model.parameters()) + list(self.tra.parameters()), lr=lr)
 
         self.model_config = model_config
         self.tra_config = tra_config

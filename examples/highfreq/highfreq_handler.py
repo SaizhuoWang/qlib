@@ -51,9 +51,7 @@ class HighFreqHandler(DataHandlerLP):
             if shift == 0:
                 template_norm = "Cut({0}/Ref(DayLast({1}), 240), 240, None)"
             else:
-                template_norm = (
-                    "Cut(Ref({0}, " + str(shift) + ")/Ref(DayLast({1}), 240), 240, None)"
-                )
+                template_norm = "Cut(Ref({0}, " + str(shift) + ")/Ref(DayLast({1}), 240), 240, None)"
 
             feature_ops = template_norm.format(
                 template_if.format(

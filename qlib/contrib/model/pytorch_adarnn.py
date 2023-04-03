@@ -82,9 +82,7 @@ class ADARNN(Model):
         self.optimizer = optimizer.lower()
         self.loss = loss
         self.n_splits = n_splits
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
         self.logger.info(
@@ -235,9 +233,7 @@ class ADARNN(Model):
         """pred is a pandas dataframe that has two attributes: score (pred) and label (real)"""
         res = {}
         ic = pred.groupby(level="datetime").apply(lambda x: x.label.corr(x.score))
-        rank_ic = pred.groupby(level="datetime").apply(
-            lambda x: x.label.corr(x.score, method="spearman")
-        )
+        rank_ic = pred.groupby(level="datetime").apply(lambda x: x.label.corr(x.score, method="spearman"))
         res["ic"] = ic.mean()
         res["icir"] = ic.mean() / ic.std()
         res["ric"] = rank_ic.mean()
@@ -423,9 +419,7 @@ class AdaRNN(nn.Module):
         self.model_type = model_type
         self.trans_loss = trans_loss
         self.len_seq = len_seq
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         in_size = self.n_input
 
         features = nn.ModuleList()
@@ -552,9 +546,7 @@ class AdaRNN(nn.Module):
         out_list_s, out_list_t = self.get_features(out_list_all)
         loss_transfer = torch.zeros((1,)).to(self.device)
         if weight_mat is None:
-            weight = (1.0 / self.len_seq * torch.ones(self.num_layers, self.len_seq)).to(
-                self.device
-            )
+            weight = (1.0 / self.len_seq * torch.ones(self.num_layers, self.len_seq)).to(self.device)
         else:
             weight = weight_mat
         dist_mat = torch.zeros(self.num_layers, self.len_seq).to(self.device)
@@ -595,9 +587,7 @@ class TransferLoss:
         """
         self.loss_type = loss_type
         self.input_dim = input_dim
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
 
     def compute(self, X, Y):
         """Compute adaptation loss
@@ -675,9 +665,7 @@ def adv(source, target, device, input_dim=256, hidden_dim=512):
     adv_net = Discriminator(input_dim, hidden_dim).to(device)
     domain_src = torch.ones(len(source)).to(device)
     domain_tar = torch.zeros(len(target)).to(device)
-    domain_src, domain_tar = domain_src.view(domain_src.shape[0], 1), domain_tar.view(
-        domain_tar.shape[0], 1
-    )
+    domain_src, domain_tar = domain_src.view(domain_src.shape[0], 1), domain_tar.view(domain_tar.shape[0], 1)
     reverse_src = ReverseLayerF.apply(source, 1)
     reverse_tar = ReverseLayerF.apply(target, 1)
     pred_src = adv_net(reverse_src)
@@ -718,12 +706,8 @@ class MMD_loss(nn.Module):
     def guassian_kernel(source, target, kernel_mul=2.0, kernel_num=5, fix_sigma=None):
         n_samples = int(source.size()[0]) + int(target.size()[0])
         total = torch.cat([source, target], dim=0)
-        total0 = total.unsqueeze(0).expand(
-            int(total.size(0)), int(total.size(0)), int(total.size(1))
-        )
-        total1 = total.unsqueeze(1).expand(
-            int(total.size(0)), int(total.size(0)), int(total.size(1))
-        )
+        total0 = total.unsqueeze(0).expand(int(total.size(0)), int(total.size(0)), int(total.size(1)))
+        total1 = total.unsqueeze(1).expand(int(total.size(0)), int(total.size(0)), int(total.size(1)))
         L2_distance = ((total0 - total1) ** 2).sum(2)
         if fix_sigma:
             bandwidth = fix_sigma

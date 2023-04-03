@@ -96,9 +96,7 @@ def get_position_list_value(positions):
     # return dict for time:position_value
     value_dict = OrderedDict()
     for day, position in positions.items():
-        value = _get_position_value_from_df(
-            evaluate_date=day, position=position, close_data_df=close_data_df
-        )
+        value = _get_position_value_from_df(evaluate_date=day, position=position, close_data_df=close_data_df)
         value_dict[day] = value
     return value_dict
 

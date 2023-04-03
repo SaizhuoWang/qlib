@@ -79,9 +79,7 @@ class Pipeline:
     def save_tuner_exp_info(self):
 
         TimeInspector.set_time_mark()
-        save_path = os.path.join(
-            self.pipeline_ex_config.tuner_ex_dir, Pipeline.GLOBAL_BEST_PARAMS_NAME
-        )
+        save_path = os.path.join(self.pipeline_ex_config.tuner_ex_dir, Pipeline.GLOBAL_BEST_PARAMS_NAME)
         with open(save_path, "w") as fp:
             json.dump(self.global_best_params, fp)
         TimeInspector.log_cost_time("Finished save global best tuner parameters.")

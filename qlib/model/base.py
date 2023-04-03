@@ -30,7 +30,7 @@ class Model(BaseModel):
 
     def load_checkpoint(self):
         self._load_checkpoint()
-    
+
     @abstractmethod
     def _load_checkpoint(self):
         raise NotImplementedError("Please implement this method in your model class")

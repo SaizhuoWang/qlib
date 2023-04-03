@@ -43,9 +43,7 @@ class SingleAssetOrderExecution(Simulator[Order, SAOEState, float]):
     ) -> None:
         super().__init__(initial=order)
 
-        assert (
-            order.start_time.date() == order.end_time.date()
-        ), "Start date and end date must be the same."
+        assert order.start_time.date() == order.end_time.date(), "Start date and end date must be the same."
 
         strategy_config = {
             "class": "SingleOrderStrategy",

@@ -105,18 +105,14 @@ class RollingDataWorkflow:
             if rolling_offset:
                 dataset.config(
                     handler_kwargs={
-                        "start_time": datetime(
-                            train_start_time[0] + rolling_offset, *train_start_time[1:]
-                        ),
+                        "start_time": datetime(train_start_time[0] + rolling_offset, *train_start_time[1:]),
                         "end_time": datetime(test_end_time[0] + rolling_offset, *test_end_time[1:]),
                         "processor_kwargs": {
                             "fit_start_time": datetime(
                                 train_start_time[0] + rolling_offset,
                                 *train_start_time[1:],
                             ),
-                            "fit_end_time": datetime(
-                                train_end_time[0] + rolling_offset, *train_end_time[1:]
-                            ),
+                            "fit_end_time": datetime(train_end_time[0] + rolling_offset, *train_end_time[1:]),
                         },
                     },
                     segments={

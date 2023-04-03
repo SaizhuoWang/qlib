@@ -8,8 +8,7 @@ import fire
 import pandas as pd
 
 from qlib import auto_init
-from qlib.contrib.meta.data_selection.dataset import (InternalData,
-                                                      MetaDatasetDS)
+from qlib.contrib.meta.data_selection.dataset import InternalData, MetaDatasetDS
 from qlib.contrib.meta.data_selection.model import MetaModelDS
 from qlib.data.dataset.handler import DataHandlerLP
 from qlib.model.meta.task import MetaTask
@@ -20,8 +19,7 @@ from qlib.workflow import R
 
 DIRNAME = Path(__file__).absolute().resolve().parent
 sys.path.append(str(DIRNAME.parent / "baseline"))
-from rolling_benchmark import \
-    RollingBenchmark  # NOTE: sys.path is changed for import RollingBenchmark
+from rolling_benchmark import RollingBenchmark  # NOTE: sys.path is changed for import RollingBenchmark
 
 
 class DDGDA:
@@ -75,18 +73,14 @@ class DDGDA:
         rb = RollingBenchmark(model_type=self.sim_task_model)
         task = rb.basic_task()
         dataset = init_instance_by_config(task["dataset"])
-        prep_ds = dataset.prepare(
-            slice(None), col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
-        )
+        prep_ds = dataset.prepare(slice(None), col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
 
         feature_df = prep_ds["feature"]
         label_df = prep_ds["label"]
 
         feature_selected = feature_df.loc[:, col_selected.index]
 
-        feature_selected = feature_selected.groupby("datetime").apply(
-            lambda df: (df - df.mean()).div(df.std())
-        )
+        feature_selected = feature_selected.groupby("datetime").apply(lambda df: (df - df.mean()).div(df.std()))
         feature_selected = feature_selected.fillna(0.0)
 
         df_all = {
@@ -119,9 +113,7 @@ class DDGDA:
         sim_task = rb.basic_task()
 
         if self.sim_task_model == "gbdt":
-            sim_task["model"].setdefault("kwargs", {}).update(
-                {"early_stopping_rounds": None, "num_boost_round": 150}
-            )
+            sim_task["model"].setdefault("kwargs", {}).update({"early_stopping_rounds": None, "num_boost_round": 150})
 
         exp_name_sim = f"data_sim_s{self.step}"
 

@@ -75,9 +75,7 @@ class LSTM(Model):
         self.optimizer = optimizer.lower()
         self.loss = loss
         GPU = int(GPU)
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
         for k, v in kwargs.items():
@@ -166,9 +164,7 @@ class LSTM(Model):
 
             vx = x - torch.mean(x)
             vy = y - torch.mean(y)
-            return torch.sum(vx * vy) / (
-                torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2))
-            )
+            return torch.sum(vx * vy) / (torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2)))
 
         if self.metric == ("", "loss"):
             return -self.loss_fn(pred[mask], label[mask])
@@ -213,11 +209,11 @@ class LSTM(Model):
                     target_idx = len(indices)
                 else:
                     target_idx = i + self.batch_size
-                feature_np = x_train_values[indices[i : target_idx]]
-                label_np = y_train_values[indices[i : target_idx]]
+                feature_np = x_train_values[indices[i:target_idx]]
+                label_np = y_train_values[indices[i:target_idx]]
                 # input("Indexed ndarray! Press Enter to continue...")
-                feature = torch.tensor(feature_np, dtype=torch.float32, device=self.device) 
-                label = torch.tensor(label_np, dtype=torch.float32, device=self.device) 
+                feature = torch.tensor(feature_np, dtype=torch.float32, device=self.device)
+                label = torch.tensor(label_np, dtype=torch.float32, device=self.device)
                 # (
                 #     torch.from_numpy(feature_np)
                 #     .float()
@@ -271,12 +267,8 @@ class LSTM(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
+            feature = torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
             pred = self.lstm_model(feature)
             loss = self.loss_fn(pred, label)

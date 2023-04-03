@@ -85,9 +85,7 @@ class HIST(Model):
         self.stock2concept = stock2concept
         self.stock_index = stock_index
         GPU = int(GPU)
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
         self.logger.info(
@@ -176,9 +174,7 @@ class HIST(Model):
 
             vx = x - torch.mean(x)
             vy = y - torch.mean(y)
-            return torch.sum(vx * vy) / (
-                torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2))
-            )
+            return torch.sum(vx * vy) / (torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2)))
 
         if self.metric == ("", "loss"):
             return -self.loss_fn(pred[mask], label[mask])
@@ -212,9 +208,7 @@ class HIST(Model):
         for idx, count in zip(daily_index, daily_count):
             batch = slice(idx, idx + count)
             feature = torch.from_numpy(x_train_values[batch]).float().to(self.device)
-            concept_matrix = (
-                torch.from_numpy(stock2concept_matrix[stock_index[batch]]).float().to(self.device)
-            )
+            concept_matrix = torch.from_numpy(stock2concept_matrix[stock_index[batch]]).float().to(self.device)
             label = torch.from_numpy(y_train_values[batch]).float().to(self.device)
             pred = self.HIST_model(feature, concept_matrix)
             loss = self.loss_fn(pred, label)
@@ -243,9 +237,7 @@ class HIST(Model):
         for idx, count in zip(daily_index, daily_count):
             batch = slice(idx, idx + count)
             feature = torch.from_numpy(x_values[batch]).float().to(self.device)
-            concept_matrix = (
-                torch.from_numpy(stock2concept_matrix[stock_index[batch]]).float().to(self.device)
-            )
+            concept_matrix = torch.from_numpy(stock2concept_matrix[stock_index[batch]]).float().to(self.device)
             label = torch.from_numpy(y_values[batch]).float().to(self.device)
             with torch.no_grad():
                 pred = self.HIST_model(feature, concept_matrix)
@@ -318,9 +310,7 @@ class HIST(Model):
 
         model_dict = self.HIST_model.state_dict()
         pretrained_dict = {
-            k: v
-            for k, v in pretrained_model.state_dict().items()
-            if k in model_dict  # pylint: disable=E1135
+            k: v for k, v in pretrained_model.state_dict().items() if k in model_dict  # pylint: disable=E1135
         }
         model_dict.update(pretrained_dict)
         self.HIST_model.load_state_dict(model_dict)
@@ -391,11 +381,7 @@ class HIST(Model):
         for idx, count in zip(daily_index, daily_count):
             batch = slice(idx, idx + count)
             x_batch = torch.from_numpy(x_values[batch]).float().to(self.device)
-            concept_matrix = (
-                torch.from_numpy(stock2concept_matrix[stock_index_test[batch]])
-                .float()
-                .to(self.device)
-            )
+            concept_matrix = torch.from_numpy(stock2concept_matrix[stock_index_test[batch]]).float().to(self.device)
 
             with torch.no_grad():
                 pred = self.HIST_model(x_batch, concept_matrix).detach().cpu().numpy()
@@ -483,9 +469,7 @@ class HISTModel(nn.Module):
 
         stock_to_concept = concept_matrix
 
-        stock_to_concept_sum = (
-            torch.sum(stock_to_concept, 0).reshape(1, -1).repeat(stock_to_concept.shape[0], 1)
-        )
+        stock_to_concept_sum = torch.sum(stock_to_concept, 0).reshape(1, -1).repeat(stock_to_concept.shape[0], 1)
         stock_to_concept_sum = stock_to_concept_sum.mul(concept_matrix)
 
         stock_to_concept_sum = stock_to_concept_sum + (
@@ -519,9 +503,7 @@ class HISTModel(nn.Module):
         i_stock_to_concept[row, column] = 10
         i_stock_to_concept[i_stock_to_concept != 10] = 0
         i_stock_to_concept[row, column] = value
-        i_stock_to_concept = i_stock_to_concept + torch.diag_embed(
-            (i_stock_to_concept.sum(0) != 0).float() * diag
-        )
+        i_stock_to_concept = i_stock_to_concept + torch.diag_embed((i_stock_to_concept.sum(0) != 0).float() * diag)
         hidden = torch.t(i_shared_info).mm(i_stock_to_concept).t()
         hidden = hidden[hidden.sum(1) != 0]
 

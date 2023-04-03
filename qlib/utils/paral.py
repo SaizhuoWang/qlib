@@ -54,8 +54,7 @@ def datetime_groupby_apply(
 
     if n_jobs != 1:
         dfs = ParallelExt(n_jobs=n_jobs)(
-            delayed(_naive_group_apply)(sub_df)
-            for idx, sub_df in df.resample(resample_rule, axis=axis, level=level)
+            delayed(_naive_group_apply)(sub_df) for idx, sub_df in df.resample(resample_rule, axis=axis, level=level)
         )
         return pd.concat(dfs, axis=axis).sort_index()
     else:

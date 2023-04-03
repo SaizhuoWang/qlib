@@ -91,9 +91,7 @@ class DataHandler(Serializable):
         # what data source to load data
         self.data_loader = init_instance_by_config(
             data_loader,
-            None
-            if (isinstance(data_loader, dict) and "module_path" in data_loader)
-            else data_loader_module,
+            None if (isinstance(data_loader, dict) and "module_path" in data_loader) else data_loader_module,
             accept_types=DataLoader,
         )
 
@@ -198,9 +196,7 @@ class DataHandler(Serializable):
                     )
                     self.save_cache()
             else:
-                self._data = lazy_sort_index(
-                    self.data_loader.load(self.instruments, self.start_time, self.end_time)
-                )
+                self._data = lazy_sort_index(self.data_loader.load(self.instruments, self.start_time, self.end_time))
 
     CS_ALL = "__all"  # return all columns with single-level index column
     CS_RAW = "__raw"  # return raw data with multi-level index column
@@ -300,18 +296,14 @@ class DataHandler(Serializable):
             try:
                 selector = slice(*selector)
             except ValueError:
-                get_module_logger("DataHandlerLP").info(
-                    f"Fail to converting to query to slice. It will used directly"
-                )
+                get_module_logger("DataHandlerLP").info(f"Fail to converting to query to slice. It will used directly")
 
         if isinstance(data_storage, pd.DataFrame):
             data_df = data_storage
             if proc_func is not None:
                 # FIXME: fetching by time first will be more friendly to `proc_func`
                 # Copy in case of `proc_func` changing the data inplace....
-                data_df = proc_func(
-                    fetch_df_by_index(data_df, selector, level, fetch_orig=self.fetch_orig).copy()
-                )
+                data_df = proc_func(fetch_df_by_index(data_df, selector, level, fetch_orig=self.fetch_orig).copy())
                 data_df = fetch_df_by_col(data_df, col_set)
             else:
                 # Fetch column  first will be more friendly to SepDataFrame
@@ -320,9 +312,7 @@ class DataHandler(Serializable):
         elif isinstance(data_storage, BaseHandlerStorage):
             if not data_storage.is_proc_func_supported():
                 if proc_func is not None:
-                    raise ValueError(
-                        f"proc_func is not supported by the storage {type(data_storage)}"
-                    )
+                    raise ValueError(f"proc_func is not supported by the storage {type(data_storage)}")
                 data_df = data_storage.fetch(
                     selector=selector,
                     level=level,
@@ -338,9 +328,7 @@ class DataHandler(Serializable):
                     proc_func=proc_func,
                 )
         else:
-            raise TypeError(
-                f"data_storage should be pd.DataFrame|HashingStockStorage, not {type(data_storage)}"
-            )
+            raise TypeError(f"data_storage should be pd.DataFrame|HashingStockStorage, not {type(data_storage)}")
 
         if squeeze:
             # squeeze columns
@@ -550,9 +538,7 @@ class DataHandlerLP(DataHandler):
                 getattr(self, pname).append(
                     init_instance_by_config(
                         proc,
-                        None
-                        if (isinstance(proc, dict) and "module_path" in proc)
-                        else processor_module,
+                        None if (isinstance(proc, dict) and "module_path" in proc) else processor_module,
                         accept_types=processor_module.Processor,
                     )
                 )
@@ -615,9 +601,7 @@ class DataHandlerLP(DataHandler):
         """
         for proc in proc_l:
             if check_for_infer and not proc.is_for_infer():
-                raise TypeError(
-                    "Only processors usable for inference can be used in `infer_processors` "
-                )
+                raise TypeError("Only processors usable for inference can be used in `infer_processors` ")
             with TimeInspector.logt(f"{proc.__class__.__name__}"):
                 if with_fit:
                     proc.fit(df)
@@ -665,9 +649,7 @@ class DataHandlerLP(DataHandler):
         if not self._is_proc_readonly(self.shared_processors):  # avoid modifying the original data
             _shared_df = _shared_df.copy()
         # 2) process
-        _shared_df = self._run_proc_l(
-            _shared_df, self.shared_processors, with_fit=with_fit, check_for_infer=True
-        )
+        _shared_df = self._run_proc_l(_shared_df, self.shared_processors, with_fit=with_fit, check_for_infer=True)
 
         # data for inference
         # 1) assign
@@ -675,9 +657,7 @@ class DataHandlerLP(DataHandler):
         if not self._is_proc_readonly(self.infer_processors):  # avoid modifying the original data
             _infer_df = _infer_df.copy()
         # 2) process
-        _infer_df = self._run_proc_l(
-            _infer_df, self.infer_processors, with_fit=with_fit, check_for_infer=True
-        )
+        _infer_df = self._run_proc_l(_infer_df, self.infer_processors, with_fit=with_fit, check_for_infer=True)
 
         self._infer = _infer_df
 
@@ -693,9 +673,7 @@ class DataHandlerLP(DataHandler):
         if not self._is_proc_readonly(self.learn_processors):  # avoid modifying the original  data
             _learn_df = _learn_df.copy()
         # 2) process
-        _learn_df = self._run_proc_l(
-            _learn_df, self.learn_processors, with_fit=with_fit, check_for_infer=False
-        )
+        _learn_df = self._run_proc_l(_learn_df, self.learn_processors, with_fit=with_fit, check_for_infer=False)
 
         self._learn = _learn_df
 
@@ -755,8 +733,6 @@ class DataHandlerLP(DataHandler):
                 self.fit_process_data()
             else:
                 raise NotImplementedError(f"This type of input is not supported")
-
-
 
     def _get_df_by_key(self, data_key: str = DK_I) -> pd.DataFrame:
         if data_key == self.DK_R and self.drop_raw:

@@ -18,9 +18,7 @@ class TimeWeightMeta(SingleMetaBase):
     def forward(self, time_perf, time_belong=None, return_preds=False):
         hist_step_n = self.linear.in_features
         # NOTE: the reshape order is very important
-        time_perf = time_perf.reshape(
-            hist_step_n, time_perf.shape[0] // hist_step_n, *time_perf.shape[1:]
-        )
+        time_perf = time_perf.reshape(hist_step_n, time_perf.shape[0] // hist_step_n, *time_perf.shape[1:])
         time_perf = torch.mean(time_perf, dim=1, keepdim=False)
 
         preds = []
@@ -46,9 +44,7 @@ class PredNet(nn.Module):
     def __init__(self, step, hist_step_n, clip_weight=None, clip_method="tanh"):
         super().__init__()
         self.step = step
-        self.twm = TimeWeightMeta(
-            hist_step_n=hist_step_n, clip_weight=clip_weight, clip_method=clip_method
-        )
+        self.twm = TimeWeightMeta(hist_step_n=hist_step_n, clip_weight=clip_weight, clip_method=clip_method)
         self.init_paramters(hist_step_n)
 
     def get_sample_weights(self, X, time_perf, time_belong, ignore_weight=False):

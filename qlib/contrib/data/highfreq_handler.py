@@ -84,9 +84,7 @@ class HighFreqHandler(DataHandlerLP):
         fields += [
             template_gzero.format(
                 template_paused.format(
-                    "If(IsNull({0}), 0, {0})".format(
-                        "{0}/Ref(DayLast(Mean({0}, 7200)), 240)".format("$volume")
-                    )
+                    "If(IsNull({0}), 0, {0})".format("{0}/Ref(DayLast(Mean({0}, 7200)), 240)".format("$volume"))
                 )
             )
         ]
@@ -424,9 +422,7 @@ class HighFreqOrderHandler(DataHandlerLP):
                     template_paused.format(
                         "If(IsInf({0}), 0, {0})".format(
                             "If(IsNull({0}), 0, {0})".format(
-                                f"Ref({{0}}, {shift})/Ref(DayLast(Mean({{0}}, 7200)), 240)".format(
-                                    volume_field
-                                )
+                                f"Ref({{0}}, {shift})/Ref(DayLast(Mean({{0}}, 7200)), 240)".format(volume_field)
                             )
                         )
                     )

@@ -26,12 +26,8 @@ class DailyBatchSampler(Sampler):
     def __init__(self, data_source):
         self.data_source = data_source
         # calculate number of samples in each batch
-        self.daily_count = (
-            pd.Series(index=self.data_source.get_index()).groupby("datetime").size().values
-        )
-        self.daily_index = np.roll(
-            np.cumsum(self.daily_count), 1
-        )  # calculate begin index of each batch
+        self.daily_count = pd.Series(index=self.data_source.get_index()).groupby("datetime").size().values
+        self.daily_index = np.roll(np.cumsum(self.daily_count), 1)  # calculate begin index of each batch
         self.daily_index[0] = 0
 
     def __iter__(self):
@@ -96,9 +92,7 @@ class GATs(Model):
         self.loss = loss
         self.base_model = base_model
         self.model_path = model_path
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.n_jobs = n_jobs
         self.seed = seed
 
@@ -246,12 +240,8 @@ class GATs(Model):
         save_path=None,
     ):
 
-        dl_train = dataset.prepare(
-            "train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
-        )
-        dl_valid = dataset.prepare(
-            "valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
-        )
+        dl_train = dataset.prepare("train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
+        dl_valid = dataset.prepare("valid", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
         if dl_train.empty or dl_valid.empty:
             raise ValueError("Empty data from dataset, please check your dataset config.")
 
@@ -261,12 +251,8 @@ class GATs(Model):
         sampler_train = DailyBatchSampler(dl_train)
         sampler_valid = DailyBatchSampler(dl_valid)
 
-        train_loader = DataLoader(
-            dl_train, sampler=sampler_train, num_workers=self.n_jobs, drop_last=True
-        )
-        valid_loader = DataLoader(
-            dl_valid, sampler=sampler_valid, num_workers=self.n_jobs, drop_last=True
-        )
+        train_loader = DataLoader(dl_train, sampler=sampler_train, num_workers=self.n_jobs, drop_last=True)
+        valid_loader = DataLoader(dl_valid, sampler=sampler_valid, num_workers=self.n_jobs, drop_last=True)
 
         save_path = get_or_create_path(save_path)
 
@@ -299,9 +285,7 @@ class GATs(Model):
 
         model_dict = self.GAT_model.state_dict()
         pretrained_dict = {
-            k: v
-            for k, v in pretrained_model.state_dict().items()
-            if k in model_dict  # pylint: disable=E1135
+            k: v for k, v in pretrained_model.state_dict().items() if k in model_dict  # pylint: disable=E1135
         }
         model_dict.update(pretrained_dict)
         self.GAT_model.load_state_dict(model_dict)

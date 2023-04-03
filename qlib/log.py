@@ -57,7 +57,10 @@ class _QLibLoggerManager:
             logger.setLevel(level)
 
     def __call__(
-        self, module_name,  level: Optional[int] = None, prefix: str = "qlib",
+        self,
+        module_name,
+        level: Optional[int] = None,
+        prefix: str = "qlib",
     ) -> QlibLogger:
         """
         Get a logger for a specific module.

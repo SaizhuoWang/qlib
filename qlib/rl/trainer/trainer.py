@@ -13,8 +13,7 @@ import torch
 
 from qlib.log import get_module_logger
 from qlib.rl.simulator import InitialStateType
-from qlib.rl.utils import (EnvWrapper, FiniteEnvType, LogBuffer, LogCollector,
-                           LogLevel, LogWriter, vectorize_env)
+from qlib.rl.utils import EnvWrapper, FiniteEnvType, LogBuffer, LogCollector, LogLevel, LogWriter, vectorize_env
 from qlib.rl.utils.finite_env import FiniteVectorEnv
 from qlib.typehint import Literal
 
@@ -144,9 +143,7 @@ class Trainer:
         """
         return {
             "vessel": self.vessel.state_dict(),
-            "callbacks": {
-                name: callback.state_dict() for name, callback in self.named_callbacks().items()
-            },
+            "callbacks": {name: callback.state_dict() for name, callback in self.named_callbacks().items()},
             "loggers": {name: logger.state_dict() for name, logger in self.named_loggers().items()},
             "should_stop": self.should_stop,
             "current_iter": self.current_iter,
@@ -224,10 +221,7 @@ class Trainer:
 
             self._call_callback_hooks("on_train_end")
 
-            if (
-                self.val_every_n_iters is not None
-                and (self.current_iter + 1) % self.val_every_n_iters == 0
-            ):
+            if self.val_every_n_iters is not None and (self.current_iter + 1) % self.val_every_n_iters == 0:
                 # Implementation of validation loop
                 self.current_stage = "val"
                 self._call_callback_hooks("on_validate_start")

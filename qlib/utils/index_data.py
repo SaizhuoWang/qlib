@@ -208,9 +208,7 @@ class LocIndexer:
         assert self._bind_id.data.ndim == len(self._indices)
 
     @staticmethod
-    def proc_idx_l(
-        indices: List[Union[List, pd.Index, Index]], data_shape: Tuple = None
-    ) -> List[Index]:
+    def proc_idx_l(indices: List[Union[List, pd.Index, Index]], data_shape: Tuple = None) -> List[Index]:
         """process the indices from user and output a list of `Index`"""
         res = []
         for i, idx in enumerate(indices):
@@ -234,9 +232,7 @@ class LocIndexer:
             the integer based slicing
         """
         if index.is_sorted():
-            int_start = (
-                None if indexing.start is None else bisect.bisect_left(index, indexing.start)
-            )
+            int_start = None if indexing.start is None else bisect.bisect_left(index, indexing.start)
             int_stop = None if indexing.stop is None else bisect.bisect_right(index, indexing.stop)
         else:
             int_start = None if indexing.start is None else index.index(indexing.start)
@@ -475,9 +471,7 @@ class IndexData(metaclass=index_data_ops_creator):
         return len(self.data)
 
     def sum(self, axis=None, dtype=None, out=None):
-        assert (
-            out is None and dtype is None
-        ), "`out` is just for compatible with numpy's aggregating function"
+        assert out is None and dtype is None, "`out` is just for compatible with numpy's aggregating function"
         # FIXME: weird logic and not general
         if axis is None:
             return np.nansum(self.data)
@@ -491,9 +485,7 @@ class IndexData(metaclass=index_data_ops_creator):
             raise ValueError(f"axis must be None, 0 or 1")
 
     def mean(self, axis=None, dtype=None, out=None):
-        assert (
-            out is None and dtype is None
-        ), "`out` is just for compatible with numpy's aggregating function"
+        assert out is None and dtype is None, "`out` is just for compatible with numpy's aggregating function"
         # FIXME: weird logic and not general
         if axis is None:
             return np.nanmean(self.data)

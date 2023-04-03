@@ -10,8 +10,7 @@ import pandas as pd
 
 from qlib.config import C
 from qlib.data.cache import H
-from qlib.data.storage import (CalendarStorage, CalVT, FeatureStorage, InstKT,
-                               InstrumentStorage, InstVT)
+from qlib.data.storage import CalendarStorage, CalVT, FeatureStorage, InstKT, InstrumentStorage, InstVT
 from qlib.log import get_module_logger
 from qlib.utils.resam import resam_calendar
 from qlib.utils.time import Freq
@@ -31,11 +30,7 @@ class FileStorageMixin:
 
     @property
     def provider_uri(self):
-        return (
-            C["provider_uri"]
-            if getattr(self, "_provider_uri", None) is None
-            else self._provider_uri
-        )
+        return C["provider_uri"] if getattr(self, "_provider_uri", None) is None else self._provider_uri
 
     @property
     def dpm(self):
@@ -67,9 +62,7 @@ class FileStorageMixin:
     @property
     def uri(self) -> Path:
         if self.freq not in self.support_freq:
-            raise ValueError(
-                f"{self.storage_name}: {self.provider_uri} does not contain data for {self.freq}"
-            )
+            raise ValueError(f"{self.storage_name}: {self.provider_uri} does not contain data for {self.freq}")
         return self.dpm.get_data_uri(self.freq).joinpath(f"{self.storage_name}s", self.file_name)
 
     def check(self):
@@ -87,9 +80,7 @@ class FileCalendarStorage(FileStorageMixin, CalendarStorage):
     def __init__(self, freq: str, future: bool, provider_uri: dict = None, **kwargs):
         super(FileCalendarStorage, self).__init__(freq, future, **kwargs)
         self.future = future
-        self._provider_uri = (
-            None if provider_uri is None else C.DataPathManager.format_provider_uri(provider_uri)
-        )
+        self._provider_uri = None if provider_uri is None else C.DataPathManager.format_provider_uri(provider_uri)
         self.enable_read_cache = True  # TODO: make it configurable
         self.region = C["region"]
 
@@ -110,9 +101,7 @@ class FileCalendarStorage(FileStorageMixin, CalendarStorage):
 
                 freq = Freq.get_recent_freq(freq, self.support_freq)
                 if freq is None:
-                    raise ValueError(
-                        f"can't find a freq from {self.support_freq} that can resample to {self.freq}!"
-                    )
+                    raise ValueError(f"can't find a freq from {self.support_freq} that can resample to {self.freq}!")
             self._freq_file_cache = freq
         return self._freq_file_cache
 
@@ -139,9 +128,7 @@ class FileCalendarStorage(FileStorageMixin, CalendarStorage):
 
     @property
     def uri(self) -> Path:
-        return self.dpm.get_data_uri(self._freq_file).joinpath(
-            f"{self.storage_name}s", self.file_name
-        )
+        return self.dpm.get_data_uri(self._freq_file).joinpath(f"{self.storage_name}s", self.file_name)
 
     @property
     def data(self) -> List[CalVT]:
@@ -217,9 +204,7 @@ class FileInstrumentStorage(FileStorageMixin, InstrumentStorage):
 
     def __init__(self, market: str, freq: str, provider_uri: dict = None, **kwargs):
         super(FileInstrumentStorage, self).__init__(market, freq, **kwargs)
-        self._provider_uri = (
-            None if provider_uri is None else C.DataPathManager.format_provider_uri(provider_uri)
-        )
+        self._provider_uri = None if provider_uri is None else C.DataPathManager.format_provider_uri(provider_uri)
         self.file_name = f"{market.lower()}.txt"
 
     def _read_instrument(self) -> Dict[InstKT, InstVT]:
@@ -251,9 +236,7 @@ class FileInstrumentStorage(FileStorageMixin, InstrumentStorage):
 
         res = []
         for inst, v_list in data.items():
-            _df = pd.DataFrame(
-                v_list, columns=[self.INSTRUMENT_START_FIELD, self.INSTRUMENT_END_FIELD]
-            )
+            _df = pd.DataFrame(v_list, columns=[self.INSTRUMENT_START_FIELD, self.INSTRUMENT_END_FIELD])
             _df[self.SYMBOL_FIELD_NAME] = inst
             res.append(_df)
 
@@ -326,9 +309,7 @@ class FileFeatureStorage(FileStorageMixin, FeatureStorage):
         **kwargs,
     ):
         super(FileFeatureStorage, self).__init__(instrument, field, freq, **kwargs)
-        self._provider_uri = (
-            None if provider_uri is None else C.DataPathManager.format_provider_uri(provider_uri)
-        )
+        self._provider_uri = None if provider_uri is None else C.DataPathManager.format_provider_uri(provider_uri)
         self.file_name = f"{instrument.lower()}/{field.lower()}.{freq.lower()}.bin"
 
     def clear(self):
@@ -356,9 +337,7 @@ class FileFeatureStorage(FileStorageMixin, FeatureStorage):
                 # append
                 index = 0 if index is None else index
                 with self.uri.open("ab+") as fp:
-                    np.hstack([[np.nan] * (index - self.end_index - 1), data_array]).astype(
-                        "<f"
-                    ).tofile(fp)
+                    np.hstack([[np.nan] * (index - self.end_index - 1), data_array]).astype("<f").tofile(fp)
             else:
                 # rewrite
                 with self.uri.open("rb+") as fp:

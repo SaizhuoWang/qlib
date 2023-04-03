@@ -4,8 +4,7 @@
 from __future__ import annotations
 
 import weakref
-from typing import (TYPE_CHECKING, Any, Callable, ContextManager, Dict,
-                    Generic, Iterable, Sequence, TypeVar, cast)
+from typing import TYPE_CHECKING, Any, Callable, ContextManager, Dict, Generic, Iterable, Sequence, TypeVar, cast
 
 import numpy as np
 from tianshou.data import Collector, VectorReplayBuffer
@@ -14,8 +13,7 @@ from tianshou.policy import BasePolicy
 
 from qlib.constant import INF
 from qlib.log import get_module_logger
-from qlib.rl.interpreter import (ActionInterpreter, ActType, ObsType,
-                                 PolicyActType, StateInterpreter, StateType)
+from qlib.rl.interpreter import ActionInterpreter, ActType, ObsType, PolicyActType, StateInterpreter, StateType
 from qlib.rl.reward import Reward
 from qlib.rl.simulator import InitialStateType, Simulator
 from qlib.rl.utils import DataQueue
@@ -156,9 +154,7 @@ class TrainingVessel(TrainingVesselBase):
                 len(self.train_initial_states),
             )
             # Implement fast_dev_run here.
-            train_initial_states = self._random_subset(
-                "train", self.train_initial_states, self.trainer.fast_dev_run
-            )
+            train_initial_states = self._random_subset("train", self.train_initial_states, self.trainer.fast_dev_run)
             return DataQueue(train_initial_states, repeat=-1, shuffle=True)
         return super().train_seed_iterator()
 
@@ -170,9 +166,7 @@ class TrainingVessel(TrainingVesselBase):
                 "Validation initial states collection size: %d",
                 len(self.val_initial_states),
             )
-            val_initial_states = self._random_subset(
-                "val", self.val_initial_states, self.trainer.fast_dev_run
-            )
+            val_initial_states = self._random_subset("val", self.val_initial_states, self.trainer.fast_dev_run)
             return DataQueue(val_initial_states, repeat=1)
         return super().val_seed_iterator()
 
@@ -184,9 +178,7 @@ class TrainingVessel(TrainingVesselBase):
                 "Testing initial states collection size: %d",
                 len(self.test_initial_states),
             )
-            test_initial_states = self._random_subset(
-                "test", self.test_initial_states, self.trainer.fast_dev_run
-            )
+            test_initial_states = self._random_subset("test", self.test_initial_states, self.trainer.fast_dev_run)
             return DataQueue(test_initial_states, repeat=1)
         return super().test_seed_iterator()
 
@@ -210,9 +202,7 @@ class TrainingVessel(TrainingVesselBase):
                 episodes = self.episode_per_iter
 
             col_result = collector.collect(n_episode=episodes)
-            update_result = self.policy.update(
-                sample_size=0, buffer=collector.buffer, **self.update_kwargs
-            )
+            update_result = self.policy.update(sample_size=0, buffer=collector.buffer, **self.update_kwargs)
             res = {**col_result, **update_result}
             self.log_dict(res)
             return res

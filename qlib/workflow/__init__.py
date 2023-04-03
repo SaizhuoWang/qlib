@@ -13,20 +13,19 @@ from .expm import ExpManager
 from .recorder import Recorder
 import os
 
+
 class QlibRecorder:
     """
     A global system that helps to manage the experiments.
     """
 
-    suffix: str = ""    # suffix represents sub-dir in the experiment directory
+    suffix: str = ""  # suffix represents sub-dir in the experiment directory
 
     def __init__(self, exp_manager: ExpManager):
         self.exp_manager: ExpManager = exp_manager
 
     def __repr__(self):
-        return "{name}(manager={manager})".format(
-            name=self.__class__.__name__, manager=self.exp_manager
-        )
+        return "{name}(manager={manager})".format(name=self.__class__.__name__, manager=self.exp_manager)
 
     @contextmanager
     def start(
@@ -231,9 +230,7 @@ class QlibRecorder:
         -------
         A dictionary (id -> recorder) of recorder information that being stored.
         """
-        return self.get_exp(
-            experiment_id=experiment_id, experiment_name=experiment_name
-        ).list_recorders()
+        return self.get_exp(experiment_id=experiment_id, experiment_name=experiment_name).list_recorders()
 
     def get_exp(
         self,
@@ -322,12 +319,14 @@ class QlibRecorder:
             create=create,
             start=start,
         )
-    
+
     def set(self, experiment_name: str, recorder_name: str):
         """Set the active experiment and recorder.
         Will set `active_experiment` for self.exp_manager and `active_recorder` for self.exp_manager.active_experiment.
         """
-        active_experiment: Experiment = self.exp_manager.get_exp(experiment_name=experiment_name, start=False, create=False)
+        active_experiment: Experiment = self.exp_manager.get_exp(
+            experiment_name=experiment_name, start=False, create=False
+        )
         active_recorder = active_experiment.get_recorder(recorder_name=recorder_name, create=False)
         active_experiment.active_recorder = active_recorder
         self.exp_manager.active_experiment = active_experiment
@@ -464,9 +463,9 @@ class QlibRecorder:
         -------
         A recorder instance.
         """
-        return self.get_exp(
-            experiment_name=experiment_name, experiment_id=experiment_id, create=False
-        ).get_recorder(recorder_id, recorder_name, create=False, start=False)
+        return self.get_exp(experiment_name=experiment_name, experiment_id=experiment_id, create=False).get_recorder(
+            recorder_id, recorder_name, create=False, start=False
+        )
 
     def delete_recorder(self, recorder_id=None, recorder_name=None):
         """

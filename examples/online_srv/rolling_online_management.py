@@ -15,10 +15,8 @@ import os
 import fire
 
 import qlib
-from qlib.model.trainer import (DelayTrainerR, DelayTrainerRM, TrainerR,
-                                TrainerRM, end_task_train, task_train)
-from qlib.tests.config import (CSI100_RECORD_LGB_TASK_CONFIG_ROLLING,
-                               CSI100_RECORD_XGBOOST_TASK_CONFIG_ROLLING)
+from qlib.model.trainer import DelayTrainerR, DelayTrainerRM, TrainerR, TrainerRM, end_task_train, task_train
+from qlib.tests.config import CSI100_RECORD_LGB_TASK_CONFIG_ROLLING, CSI100_RECORD_XGBOOST_TASK_CONFIG_ROLLING
 from qlib.workflow import R
 from qlib.workflow.online.manager import OnlineManager
 from qlib.workflow.online.strategy import RollingStrategy
@@ -52,9 +50,7 @@ class RollingOnlineExample:
         self.rolling_step = rolling_step
         strategies = []
         for task in tasks:
-            name_id = task["model"][
-                "class"
-            ]  # NOTE: Assumption: The model class can specify only one strategy
+            name_id = task["model"]["class"]  # NOTE: Assumption: The model class can specify only one strategy
             strategies.append(
                 RollingStrategy(
                     name_id,
@@ -65,7 +61,9 @@ class RollingOnlineExample:
         self.trainer = trainer
         self.rolling_online_manager = OnlineManager(strategies, trainer=self.trainer)
 
-    _ROLLING_MANAGER_PATH = ".RollingOnlineExample"  # the OnlineManager will dump to this file, for it can be loaded when calling routine.
+    _ROLLING_MANAGER_PATH = (
+        ".RollingOnlineExample"  # the OnlineManager will dump to this file, for it can be loaded when calling routine.
+    )
 
     def worker(self):
         # train tasks by other progress or machines for multiprocessing
@@ -117,9 +115,7 @@ class RollingOnlineExample:
         print("========== add strategy ==========")
         strategies = []
         for task in self.add_tasks:
-            name_id = task["model"][
-                "class"
-            ]  # NOTE: Assumption: The model class can specify only one strategy
+            name_id = task["model"]["class"]  # NOTE: Assumption: The model class can specify only one strategy
             strategies.append(
                 RollingStrategy(
                     name_id,

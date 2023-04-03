@@ -34,9 +34,7 @@ class TestStructuredCovEstimator(unittest.TestCase):
         NUM_OBSERVATION = 200
         EPS = 1e-6
 
-        estimator = StructuredCovEstimator(
-            scale_return=False, assume_centered=True, nan_option="fill"
-        )
+        estimator = StructuredCovEstimator(scale_return=False, assume_centered=True, nan_option="fill")
 
         X = np.random.rand(NUM_OBSERVATION, NUM_VARIABLE)
 
@@ -53,9 +51,7 @@ class TestStructuredCovEstimator(unittest.TestCase):
         NUM_VARIABLE = 10
         NUM_OBSERVATION = 200
 
-        estimator = StructuredCovEstimator(
-            scale_return=False, assume_centered=True, nan_option="fill"
-        )
+        estimator = StructuredCovEstimator(scale_return=False, assume_centered=True, nan_option="fill")
 
         X = np.random.rand(NUM_OBSERVATION, NUM_VARIABLE)
 
@@ -70,9 +66,7 @@ class TestStructuredCovEstimator(unittest.TestCase):
         NUM_OBSERVATION = 500
         EPS = 0.1
 
-        estimator = StructuredCovEstimator(
-            scale_return=False, assume_centered=True, num_factors=NUM_VARIABLE - 1
-        )
+        estimator = StructuredCovEstimator(scale_return=False, assume_centered=True, num_factors=NUM_VARIABLE - 1)
 
         sqrt_cov = None
         while sqrt_cov is None or (np.iscomplex(sqrt_cov)).any():
@@ -98,9 +92,7 @@ class TestStructuredCovEstimator(unittest.TestCase):
         NUM_FACTOR = 10
         EPS = 0.1
 
-        estimator = StructuredCovEstimator(
-            scale_return=False, assume_centered=True, num_factors=NUM_FACTOR
-        )
+        estimator = StructuredCovEstimator(scale_return=False, assume_centered=True, num_factors=NUM_FACTOR)
 
         F = np.random.rand(NUM_VARIABLE, NUM_FACTOR)
         B = np.random.rand(NUM_FACTOR, NUM_OBSERVATION)

@@ -30,9 +30,7 @@ def _get_risk_analysis_data_with_report(
     #     analysis["pred_long_short"] = risk_analysis(report_long_short_df["long_short"])
 
     if not report_normal_df.empty:
-        analysis["excess_return_without_cost"] = risk_analysis(
-            report_normal_df["return"] - report_normal_df["bench"]
-        )
+        analysis["excess_return_without_cost"] = risk_analysis(report_normal_df["return"] - report_normal_df["bench"])
         analysis["excess_return_with_cost"] = risk_analysis(
             report_normal_df["return"] - report_normal_df["bench"] - report_normal_df["cost"]
         )
@@ -65,9 +63,7 @@ def _get_monthly_risk_analysis_with_report(
     """
 
     # Group by month
-    report_normal_gp = report_normal_df.groupby(
-        [report_normal_df.index.year, report_normal_df.index.month]
-    )
+    report_normal_gp = report_normal_df.groupby([report_normal_df.index.year, report_normal_df.index.month])
     # report_long_short_gp = report_long_short_df.groupby(
     #     [report_long_short_df.index.year, report_long_short_df.index.month]
     # )
@@ -94,9 +90,7 @@ def _get_monthly_risk_analysis_with_report(
     return _monthly_df
 
 
-def _get_monthly_analysis_with_feature(
-    monthly_df: pd.DataFrame, feature: str = "annualized_return"
-) -> pd.DataFrame:
+def _get_monthly_analysis_with_feature(monthly_df: pd.DataFrame, feature: str = "annualized_return") -> pd.DataFrame:
     """
 
     :param monthly_df:

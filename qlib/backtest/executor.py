@@ -16,8 +16,7 @@ from ..strategy.base import BaseStrategy
 from ..utils import init_instance_by_config
 from .decision import BaseTradeDecision, Order
 from .exchange import Exchange
-from .utils import (CommonInfrastructure, LevelInfrastructure,
-                    TradeCalendarManager, get_start_end_idx)
+from .utils import CommonInfrastructure, LevelInfrastructure, TradeCalendarManager, get_start_end_idx
 
 
 class BaseExecutor:
@@ -125,9 +124,7 @@ class BaseExecutor:
         self.dealt_order_amount: Dict[str, float] = defaultdict(float)
         self.deal_day = None
 
-    def reset_common_infra(
-        self, common_infra: CommonInfrastructure, copy_trade_account: bool = False
-    ) -> None:
+    def reset_common_infra(self, common_infra: CommonInfrastructure, copy_trade_account: bool = False) -> None:
         """
         reset infrastructure for trading
             - reset trade_account
@@ -176,9 +173,7 @@ class BaseExecutor:
         if "start_time" in kwargs or "end_time" in kwargs:
             start_time = kwargs.get("start_time")
             end_time = kwargs.get("end_time")
-            self.level_infra.reset_cal(
-                freq=self.time_per_step, start_time=start_time, end_time=end_time
-            )
+            self.level_infra.reset_cal(freq=self.time_per_step, start_time=start_time, end_time=end_time)
         if common_infra is not None:
             self.reset_common_infra(common_infra)
 
@@ -379,9 +374,7 @@ class NestedExecutor(BaseExecutor):
             **kwargs,
         )
 
-    def reset_common_infra(
-        self, common_infra: CommonInfrastructure, copy_trade_account: bool = False
-    ) -> None:
+    def reset_common_infra(self, common_infra: CommonInfrastructure, copy_trade_account: bool = False) -> None:
         """
         reset infrastructure for trading
             - reset inner_strategy and inner_executor common infra
@@ -389,9 +382,7 @@ class NestedExecutor(BaseExecutor):
         # NOTE: please refer to the docs of BaseExecutor.reset_common_infra for the meaning of `copy_trade_account`
 
         # The first level follow the `copy_trade_account` from the upper level
-        super(NestedExecutor, self).reset_common_infra(
-            common_infra, copy_trade_account=copy_trade_account
-        )
+        super(NestedExecutor, self).reset_common_infra(common_infra, copy_trade_account=copy_trade_account)
 
         # The lower level have to copy the trade_account
         self.inner_executor.reset_common_infra(common_infra, copy_trade_account=True)
@@ -467,9 +458,7 @@ class NestedExecutor(BaseExecutor):
 
                 _inner_trade_decision: BaseTradeDecision = res
 
-                trade_decision.mod_inner_decision(
-                    _inner_trade_decision
-                )  # propagate part of decision information
+                trade_decision.mod_inner_decision(_inner_trade_decision)  # propagate part of decision information
 
                 # NOTE sub_cal.get_step_time() must be called before collect_data in case of step shifting
                 decision_list.append((_inner_trade_decision, *sub_cal.get_step_time()))
@@ -484,9 +473,7 @@ class NestedExecutor(BaseExecutor):
                 execute_result.extend(_inner_execute_result)
 
                 inner_order_indicators.append(
-                    self.inner_executor.trade_account.get_trade_indicator().get_order_indicator(
-                        raw=True
-                    ),
+                    self.inner_executor.trade_account.get_trade_indicator().get_order_indicator(raw=True),
                 )
             else:
                 # do nothing and just step forward
@@ -611,9 +598,7 @@ class SimulatorExecutor(BaseExecutor):
             self.deal_day = now_deal_day
         self.dealt_order_amount[order.stock_id] += order.deal_amount
 
-    def _collect_data(
-        self, trade_decision: BaseTradeDecision, level: int = 0
-    ) -> Tuple[List[object], dict]:
+    def _collect_data(self, trade_decision: BaseTradeDecision, level: int = 0) -> Tuple[List[object], dict]:
         trade_start_time, _ = self.trade_calendar.get_step_time()
         execute_result: list = []
 

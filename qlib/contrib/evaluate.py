@@ -347,9 +347,7 @@ def long_short_backtest(
         for stock in long_stocks:
             if not trade_exchange.is_stock_tradable(stock_id=stock, trade_date=date):
                 continue
-            profit = trade_exchange.get_quote_info(
-                stock_id=stock, start_time=date, end_time=date, field=profit_str
-            )
+            profit = trade_exchange.get_quote_info(stock_id=stock, start_time=date, end_time=date, field=profit_str)
             if np.isnan(profit):
                 long_profit.append(0)
             else:
@@ -358,9 +356,7 @@ def long_short_backtest(
         for stock in short_stocks:
             if not trade_exchange.is_stock_tradable(stock_id=stock, trade_date=date):
                 continue
-            profit = trade_exchange.get_quote_info(
-                stock_id=stock, start_time=date, end_time=date, field=profit_str
-            )
+            profit = trade_exchange.get_quote_info(stock_id=stock, start_time=date, end_time=date, field=profit_str)
             if np.isnan(profit):
                 short_profit.append(0)
             else:
@@ -370,9 +366,7 @@ def long_short_backtest(
             # exclude the suspend stock
             if trade_exchange.check_stock_suspended(stock_id=stock, trade_date=date):
                 continue
-            profit = trade_exchange.get_quote_info(
-                stock_id=stock, start_time=date, end_time=date, field=profit_str
-            )
+            profit = trade_exchange.get_quote_info(stock_id=stock, start_time=date, end_time=date, field=profit_str)
             if np.isnan(profit):
                 all_profit.append(0)
             else:
@@ -401,9 +395,7 @@ def t_run():
         "n_drop": 5,
         "signal": pred,
     }
-    report_df, positions = backtest_daily(
-        start_time="2017-01-01", end_time="2020-08-01", strategy=strategy_config
-    )
+    report_df, positions = backtest_daily(start_time="2017-01-01", end_time="2020-08-01", strategy=strategy_config)
     print(report_df.head())
     print(positions.keys())
     print(positions[list(positions.keys())[0]])

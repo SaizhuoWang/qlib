@@ -123,9 +123,7 @@ def get_record_xgboost_config(dataset_kwargs={}, handler_kwargs={"instruments": 
 CSI300_DATASET_CONFIG = get_dataset_config(handler_kwargs={"instruments": CSI300_MARKET})
 CSI300_GBDT_TASK = get_gbdt_task(handler_kwargs={"instruments": CSI300_MARKET})
 
-CSI100_RECORD_XGBOOST_TASK_CONFIG = get_record_xgboost_config(
-    handler_kwargs={"instruments": CSI100_MARKET}
-)
+CSI100_RECORD_XGBOOST_TASK_CONFIG = get_record_xgboost_config(handler_kwargs={"instruments": CSI100_MARKET})
 CSI100_RECORD_LGB_TASK_CONFIG = get_record_lgb_config(handler_kwargs={"instruments": CSI100_MARKET})
 
 # use for rolling_online_managment.py

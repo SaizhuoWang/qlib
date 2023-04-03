@@ -272,9 +272,7 @@ def backtest(
         exchange_kwargs,
         pos_type=pos_type,
     )
-    portfolio_metrics, indicator = backtest_loop(
-        start_time, end_time, trade_strategy, trade_executor
-    )
+    portfolio_metrics, indicator = backtest_loop(start_time, end_time, trade_strategy, trade_executor)
     return portfolio_metrics, indicator
 
 
@@ -308,9 +306,7 @@ def collect_data(
         exchange_kwargs,
         pos_type=pos_type,
     )
-    yield from collect_data_loop(
-        start_time, end_time, trade_strategy, trade_executor, return_value=return_value
-    )
+    yield from collect_data_loop(start_time, end_time, trade_strategy, trade_executor, return_value=return_value)
 
 
 def format_decisions(

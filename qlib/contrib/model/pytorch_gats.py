@@ -77,9 +77,7 @@ class GATs(Model):
         self.base_model = base_model
         self.model_path = model_path
         GPU = int(GPU)
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
         self.logger.info(
@@ -167,9 +165,7 @@ class GATs(Model):
 
             vx = x - torch.mean(x)
             vy = y - torch.mean(y)
-            return torch.sum(vx * vy) / (
-                torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2))
-            )
+            return torch.sum(vx * vy) / (torch.sqrt(torch.sum(vx**2)) * torch.sqrt(torch.sum(vy**2)))
 
         if self.metric == ("", "loss"):
             return -self.loss_fn(pred[mask], label[mask])
@@ -281,9 +277,7 @@ class GATs(Model):
 
         model_dict = self.GAT_model.state_dict()
         pretrained_dict = {
-            k: v
-            for k, v in pretrained_model.state_dict().items()
-            if k in model_dict  # pylint: disable=E1135
+            k: v for k, v in pretrained_model.state_dict().items() if k in model_dict  # pylint: disable=E1135
         }
         model_dict.update(pretrained_dict)
         self.GAT_model.load_state_dict(model_dict)

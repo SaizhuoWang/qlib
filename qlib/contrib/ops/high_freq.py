@@ -258,9 +258,7 @@ class Cut(ElemOperator):
     def __init__(self, feature, left=None, right=None):
         self.left = left
         self.right = right
-        if (self.left is not None and self.left <= 0) or (
-            self.right is not None and self.right >= 0
-        ):
+        if (self.left is not None and self.left <= 0) or (self.right is not None and self.right >= 0):
             raise ValueError("Cut operator l shoud > 0 and r should < 0")
 
         super(Cut, self).__init__(feature)

@@ -15,9 +15,7 @@ from ..graph import ScatterGraph, SubplotsGraph, BarGraph, HeatmapGraph
 from ..utils import guess_plotly_rangebreaks
 
 
-def _group_return(
-    pred_label: pd.DataFrame = None, reverse: bool = False, N: int = 5, **kwargs
-) -> tuple:
+def _group_return(pred_label: pd.DataFrame = None, reverse: bool = False, N: int = 5, **kwargs) -> tuple:
     """
 
     :param pred_label:
@@ -220,9 +218,7 @@ def _pred_ic(
 def _pred_autocorr(pred_label: pd.DataFrame, lag=1, **kwargs) -> tuple:
     pred = pred_label.copy()
     pred["score_last"] = pred.groupby(level="instrument")["score"].shift(lag)
-    ac = pred.groupby(level="datetime").apply(
-        lambda x: x["score"].rank(pct=True).corr(x["score_last"].rank(pct=True))
-    )
+    ac = pred.groupby(level="datetime").apply(lambda x: x["score"].rank(pct=True).corr(x["score_last"].rank(pct=True)))
     # FIXME: support HIGH-FREQ
     _df = ac.to_frame("value")
     ac_figure = ScatterGraph(
@@ -240,9 +236,7 @@ def _pred_turnover(pred_label: pd.DataFrame, N=5, lag=1, **kwargs) -> tuple:
     pred["score_last"] = pred.groupby(level="instrument")["score"].shift(lag)
     top = pred.groupby(level="datetime").apply(
         lambda x: 1
-        - x.nlargest(len(x) // N, columns="score")
-        .index.isin(x.nlargest(len(x) // N, columns="score_last").index)
-        .sum()
+        - x.nlargest(len(x) // N, columns="score").index.isin(x.nlargest(len(x) // N, columns="score_last").index).sum()
         / (len(x) // N)
     )
     bottom = pred.groupby(level="datetime").apply(

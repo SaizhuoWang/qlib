@@ -21,8 +21,7 @@ import pathlib
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.python.tools.inspect_checkpoint import \
-    print_tensors_in_checkpoint_file
+from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 
 
 # Generic.
@@ -53,11 +52,7 @@ def extract_cols_from_data_type(data_type, column_definition, excluded_input_typ
     Returns:
       List of names for columns with data type specified.
     """
-    return [
-        tup[0]
-        for tup in column_definition
-        if tup[1] == data_type and tup[2] not in excluded_input_types
-    ]
+    return [tup[0] for tup in column_definition if tup[1] == data_type and tup[2] not in excluded_input_types]
 
 
 # Loss functions.
@@ -78,9 +73,7 @@ def tensorflow_quantile_loss(y, y_pred, quantile):
 
     # Checks quantile
     if quantile < 0 or quantile > 1:
-        raise ValueError(
-            "Illegal quantile value={}! Values should be between 0 and 1.".format(quantile)
-        )
+        raise ValueError("Illegal quantile value={}! Values should be between 0 and 1.".format(quantile))
 
     prediction_underflow = y - y_pred
     q_loss = quantile * tf.maximum(prediction_underflow, 0.0) + (1.0 - quantile) * tf.maximum(
@@ -105,9 +98,9 @@ def numpy_normalised_quantile_loss(y, y_pred, quantile):
       Float for normalised quantile loss.
     """
     prediction_underflow = y - y_pred
-    weighted_errors = quantile * np.maximum(prediction_underflow, 0.0) + (
-        1.0 - quantile
-    ) * np.maximum(-prediction_underflow, 0.0)
+    weighted_errors = quantile * np.maximum(prediction_underflow, 0.0) + (1.0 - quantile) * np.maximum(
+        -prediction_underflow, 0.0
+    )
 
     quantile_loss = weighted_errors.mean()
     normaliser = y.abs().mean()
@@ -228,6 +221,4 @@ def print_weights_in_checkpoint(model_folder, cp_name):
     """
     load_path = os.path.join(model_folder, "{0}.ckpt".format(cp_name))
 
-    print_tensors_in_checkpoint_file(
-        file_name=load_path, tensor_name="", all_tensors=True, all_tensor_names=True
-    )
+    print_tensors_in_checkpoint_file(file_name=load_path, tensor_name="", all_tensors=True, all_tensor_names=True)

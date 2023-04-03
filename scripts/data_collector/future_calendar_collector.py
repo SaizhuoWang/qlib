@@ -35,11 +35,7 @@ class CollectorFutureCalendar:
         self._calendar_list = self.calendar_list
         _latest_date = self._calendar_list[-1]
         self.start_date = _latest_date if start_date is None else pd.Timestamp(start_date)
-        self.end_date = (
-            _latest_date + pd.Timedelta(days=365 * 2)
-            if end_date is None
-            else pd.Timestamp(end_date)
-        )
+        self.end_date = _latest_date + pd.Timedelta(days=365 * 2) if end_date is None else pd.Timestamp(end_date)
 
     @property
     def calendar_list(self) -> List[pd.Timestamp]:

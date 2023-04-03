@@ -9,6 +9,7 @@
 
 import pandas as pd
 import pymongo
+
 # FIXME: So if you want to use arctic-based provider, please install arctic manually
 # `pip install arctic` may not be enough.
 from arctic import Arctic
@@ -45,9 +46,7 @@ class ArcticFeatureProvider(FeatureProvider):
                 # instruments does not exist
                 return pd.Series()
             else:
-                df = arctic[freq].read(
-                    instrument, columns=[field], chunk_range=(start_index, end_index)
-                )
+                df = arctic[freq].read(instrument, columns=[field], chunk_range=(start_index, end_index))
                 s = df[field]
 
                 if not s.empty:

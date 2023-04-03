@@ -160,16 +160,8 @@ class TCTS(Model):
                 if len(indices) - i < self.batch_size:
                     break
 
-                feature = (
-                    torch.from_numpy(x_train_values[indices[i : i + self.batch_size]])
-                    .float()
-                    .to(self.device)
-                )
-                label = (
-                    torch.from_numpy(y_train_values[indices[i : i + self.batch_size]])
-                    .float()
-                    .to(self.device)
-                )
+                feature = torch.from_numpy(x_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
+                label = torch.from_numpy(y_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
                 init_pred = init_fore_model(feature)
                 pred = self.fore_model(feature)
@@ -209,16 +201,8 @@ class TCTS(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = (
-                torch.from_numpy(x_valid_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_valid_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
+            feature = torch.from_numpy(x_valid_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_valid_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
             pred = self.fore_model(feature)
             dis = pred - label.transpose(0, 1)
@@ -253,12 +237,8 @@ class TCTS(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
+            feature = torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
             pred = self.fore_model(feature)
             loss = torch.mean((pred - label[:, abs(self.target_label)]) ** 2)
@@ -343,9 +323,7 @@ class TCTS(Model):
         elif self._weight_optimizer.lower() == "gd":
             self.weight_optimizer = optim.SGD(self.weight_model.parameters(), lr=self.weight_lr)
         else:
-            raise NotImplementedError(
-                "optimizer {} is not supported!".format(self._weight_optimizer)
-            )
+            raise NotImplementedError("optimizer {} is not supported!".format(self._weight_optimizer))
 
         self.fitted = False
         self.fore_model.to(self.device)
@@ -439,9 +417,7 @@ class MLPModel(nn.Module):
         for i in range(num_layers):
             if i > 0:
                 self.mlp.add_module("drop_%d" % i, nn.Dropout(dropout))
-            self.mlp.add_module(
-                "fc_%d" % i, nn.Linear(d_feat if i == 0 else hidden_size, hidden_size)
-            )
+            self.mlp.add_module("fc_%d" % i, nn.Linear(d_feat if i == 0 else hidden_size, hidden_size))
             self.mlp.add_module("relu_%d" % i, nn.ReLU())
 
         self.mlp.add_module("fc_out", nn.Linear(hidden_size, output_dim))

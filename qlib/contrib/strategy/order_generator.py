@@ -117,9 +117,7 @@ class OrderGenWInteract(OrderGenerator):
             # value. Then just sell all the stocks
             target_amount_dict = copy.deepcopy(current_amount_dict.copy())
             for stock_id in list(target_amount_dict.keys()):
-                if trade_exchange.is_stock_tradable(
-                    stock_id, start_time=trade_start_time, end_time=trade_end_time
-                ):
+                if trade_exchange.is_stock_tradable(stock_id, start_time=trade_start_time, end_time=trade_end_time):
                     del target_amount_dict[stock_id]
         else:
             # consider cost rate
@@ -201,18 +199,14 @@ class OrderGenWOInteract(OrderGenerator):
                 amount_dict[stock_id] = (
                     risk_total_value
                     * target_weight_position[stock_id]
-                    / trade_exchange.get_close(
-                        stock_id, start_time=pred_start_time, end_time=pred_end_time
-                    )
+                    / trade_exchange.get_close(stock_id, start_time=pred_start_time, end_time=pred_end_time)
                 )
                 # TODO: Qlib use None to represent trading suspension.
                 #  So last close price can't be the estimated trading price.
                 # Maybe a close price with forward fill will be a better solution.
             elif stock_id in current_stock:
                 amount_dict[stock_id] = (
-                    risk_total_value
-                    * target_weight_position[stock_id]
-                    / current.get_stock_price(stock_id)
+                    risk_total_value * target_weight_position[stock_id] / current.get_stock_price(stock_id)
                 )
             else:
                 continue

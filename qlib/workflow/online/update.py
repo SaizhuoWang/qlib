@@ -198,11 +198,7 @@ class DSBasedUpdater(RecordUpdater, metaclass=ABCMeta):
         """
         # automatically getting the historical dependency if not specified
         if self.hist_ref is None:
-            dataset: DatasetH = (
-                self.record.load_object("dataset")
-                if unprepared_dataset is None
-                else unprepared_dataset
-            )
+            dataset: DatasetH = self.record.load_object("dataset") if unprepared_dataset is None else unprepared_dataset
             # Special treatment of historical dependencies
             if isinstance(dataset, TSDatasetH):
                 hist_ref = dataset.step_len - 1
@@ -226,9 +222,7 @@ class DSBasedUpdater(RecordUpdater, metaclass=ABCMeta):
             unprepared_dataset=unprepared_dataset,
         )
 
-    def update(
-        self, dataset: DatasetH = None, write: bool = True, ret_new: bool = False
-    ) -> Optional[object]:
+    def update(self, dataset: DatasetH = None, write: bool = True, ret_new: bool = False) -> Optional[object]:
         """
         Parameters
         ----------
@@ -297,9 +291,7 @@ class PredUpdater(DSBasedUpdater):
         model = self.rmdl.get_model()
         new_pred: pd.Series = model.predict(dataset)
         data = _replace_range(self.old_data, new_pred.to_frame("score"))
-        self.logger.info(
-            f"Finish updating new {new_pred.shape[0]} predictions in {self.record.info['id']}."
-        )
+        self.logger.info(f"Finish updating new {new_pred.shape[0]} predictions in {self.record.info['id']}.")
         return data
 
 

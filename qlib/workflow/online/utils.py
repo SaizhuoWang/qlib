@@ -154,11 +154,7 @@ class OnlineToolR(OnlineTool):
             list: a list of `online` models.
         """
         exp_name = self._get_exp_name(exp_name)
-        return list(
-            list_recorders(
-                exp_name, lambda rec: self.get_online_tag(rec) == self.ONLINE_TAG
-            ).values()
-        )
+        return list(list_recorders(exp_name, lambda rec: self.get_online_tag(rec) == self.ONLINE_TAG).values())
 
     def update_online_pred(self, to_date=None, from_date=None, exp_name: str = None):
         """
@@ -179,9 +175,7 @@ class OnlineToolR(OnlineTool):
                 continue
             updater.update()
 
-        self.logger.info(
-            f"Finished updating {len(online_models)} online model predictions of {exp_name}."
-        )
+        self.logger.info(f"Finished updating {len(online_models)} online model predictions of {exp_name}.")
 
     def _get_exp_name(self, exp_name):
         if exp_name is None:

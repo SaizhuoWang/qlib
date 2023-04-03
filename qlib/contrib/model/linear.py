@@ -61,9 +61,7 @@ class LinearModel(Model):
         self.coef_ = None
 
     def fit(self, dataset: DatasetH, reweighter: Reweighter = None):
-        df_train = dataset.prepare(
-            "train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L
-        )
+        df_train = dataset.prepare("train", col_set=["feature", "label"], data_key=DataHandlerLP.DK_L)
         if df_train.empty:
             raise ValueError("Empty data from dataset, please check your dataset config.")
         if reweighter is not None:

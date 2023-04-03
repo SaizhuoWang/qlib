@@ -71,9 +71,7 @@ class Collector(Serializable):
             value = collected_dict[artifact]
             for process in process_list:
                 if not callable(process):
-                    raise NotImplementedError(
-                        f"{type(process)} is not supported in `process_collect`."
-                    )
+                    raise NotImplementedError(f"{type(process)} is not supported in `process_collect`.")
                 value = process(value, *args, **kwargs)
             result[artifact] = value
         return result
@@ -222,8 +220,7 @@ class RecorderCollector(Collector):
             rec
             for rec in recs
             if (
-                (self.status is None or rec.status in self.status)
-                and (rec_filter_func is None or rec_filter_func(rec))
+                (self.status is None or rec.status in self.status) and (rec_filter_func is None or rec_filter_func(rec))
             )
         ]
 
@@ -243,9 +240,7 @@ class RecorderCollector(Collector):
                     except LoadObjectError as e:
                         if only_exist:
                             # only collect existing artifact
-                            logger.warning(
-                                f"Fail to load {self.artifacts_path[key]} and it is ignored."
-                            )
+                            logger.warning(f"Fail to load {self.artifacts_path[key]} and it is ignored.")
                             continue
                         raise e
                 # give user some warning if the values are overridden

@@ -17,18 +17,14 @@ class TestDataset(TestAutoData):
         print(size_desc)
         print(cnt_desc)
 
-        self.assertLessEqual(
-            size_desc.loc["max"], 305, "Excessive number of CSI300 constituent stocks"
-        )
+        self.assertLessEqual(size_desc.loc["max"], 305, "Excessive number of CSI300 constituent stocks")
         self.assertGreaterEqual(
             size_desc.loc["80%"],
             290,
             "Insufficient number of CSI300 constituent stocks",
         )
 
-        self.assertLessEqual(
-            cnt_desc.loc["max"], 305, "Excessive number of CSI300 constituent stocks"
-        )
+        self.assertLessEqual(cnt_desc.loc["max"], 305, "Excessive number of CSI300 constituent stocks")
         # FIXME: Due to the low quality of data. Hard to make sure there are enough data
         # self.assertEqual(cnt_desc.loc["80%"], 300, "Insufficient number of CSI300 constituent stocks")
 

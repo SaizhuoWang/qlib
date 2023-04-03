@@ -17,12 +17,7 @@ class BaseGraph:
     _name = None
 
     def __init__(
-        self,
-        df: pd.DataFrame = None,
-        layout: dict = None,
-        graph_kwargs: dict = None,
-        name_dict: dict = None,
-        **kwargs
+        self, df: pd.DataFrame = None, layout: dict = None, graph_kwargs: dict = None, name_dict: dict = None, **kwargs
     ):
         """
 
@@ -124,11 +119,7 @@ class BaseGraph:
 
         _data = [
             self.get_instance_with_graph_parameters(
-                graph_type=self._graph_type,
-                x=self._df.index,
-                y=self._df[_col],
-                name=_name,
-                **self._graph_kwargs
+                graph_type=self._graph_type, x=self._df.index, y=self._df[_col], name=_name, **self._graph_kwargs
             )
             for _col, _name in self._name_dict.items()
         ]

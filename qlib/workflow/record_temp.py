@@ -194,11 +194,7 @@ class SignalRecord(RecordTemp):
         #         raw_label = None
         data: DataPackage = dataset.prepare(segments="test", data_key=DataHandlerLP.DK_R)
         label = data["y"][dataset.window_size - 1 :].squeeze().flatten()
-        indices = [
-            (tick, ticker)
-            for tick in data["ticks"][dataset.window_size - 1 :]
-            for ticker in data["tickers"]
-        ]
+        indices = [(tick, ticker) for tick in data["ticks"][dataset.window_size - 1 :] for ticker in data["tickers"]]
         indices = pd.MultiIndex.from_tuples(indices, names=["datetime", "instrument"])
         raw_label = pd.DataFrame(label, index=indices)
         return raw_label
@@ -267,9 +263,7 @@ class HFSignalRecord(SignalRecord):
     def generate(self):
         pred = self.load("pred.pkl")
         raw_label = self.load("label.pkl")
-        long_pre, short_pre = calc_long_short_prec(
-            pred.iloc[:, 0], raw_label.iloc[:, 0], is_alpha=True
-        )
+        long_pre, short_pre = calc_long_short_prec(pred.iloc[:, 0], raw_label.iloc[:, 0], is_alpha=True)
         ic, ric = calc_ic(pred.iloc[:, 0], raw_label.iloc[:, 0])
         metrics = {
             "IC": ic.mean(),
@@ -355,19 +349,13 @@ class SigAnaRecord(ACRecordTemp):
         }
         objects = {"ic.pkl": ic, "ric.pkl": ric}
         if self.ana_long_short:
-            long_short_r, long_avg_r = calc_long_short_return(
-                pred.iloc[:, 0], label.iloc[:, self.label_col]
-            )
+            long_short_r, long_avg_r = calc_long_short_return(pred.iloc[:, 0], label.iloc[:, self.label_col])
             metrics.update(
                 {
                     "Long-Short Ann Return": long_short_r.mean() * self.ann_scaler,
-                    "Long-Short Ann Sharpe": long_short_r.mean()
-                    / long_short_r.std()
-                    * self.ann_scaler**0.5,
+                    "Long-Short Ann Sharpe": long_short_r.mean() / long_short_r.std() * self.ann_scaler**0.5,
                     "Long-Avg Ann Return": long_avg_r.mean() * self.ann_scaler,
-                    "Long-Avg Ann Sharpe": long_avg_r.mean()
-                    / long_avg_r.std()
-                    * self.ann_scaler**0.5,
+                    "Long-Avg Ann Sharpe": long_avg_r.mean() / long_avg_r.std() * self.ann_scaler**0.5,
                 }
             )
             objects.update(
@@ -481,8 +469,7 @@ class PortAnaRecord(ACRecordTemp):
             "{0}{1}".format(*Freq.parse(_analysis_freq)) for _analysis_freq in risk_analysis_freq
         ]
         self.indicator_analysis_freq = [
-            "{0}{1}".format(*Freq.parse(_analysis_freq))
-            for _analysis_freq in indicator_analysis_freq
+            "{0}{1}".format(*Freq.parse(_analysis_freq)) for _analysis_freq in indicator_analysis_freq
         ]
         self.indicator_analysis_method = indicator_analysis_method
 
@@ -546,9 +533,7 @@ class PortAnaRecord(ACRecordTemp):
                 analysis_df = pd.concat(analysis)  # type: pd.DataFrame
                 # log metrics
                 analysis_dict = flatten_dict(analysis_df["risk"].unstack().T.to_dict())
-                self.recorder.log_metrics(
-                    **{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()}
-                )
+                self.recorder.log_metrics(**{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()})
                 # save results
                 self.save(**{f"port_analysis_{_analysis_freq}.pkl": analysis_df})
                 logger.info(
@@ -557,13 +542,9 @@ class PortAnaRecord(ACRecordTemp):
                 # print out results
                 pprint(f"The following are analysis results of benchmark return({_analysis_freq}).")
                 pprint(risk_analysis(report_normal["bench"], freq=_analysis_freq))
-                pprint(
-                    f"The following are analysis results of the excess return without cost({_analysis_freq})."
-                )
+                pprint(f"The following are analysis results of the excess return without cost({_analysis_freq}).")
                 pprint(analysis["excess_return_without_cost"])
-                pprint(
-                    f"The following are analysis results of the excess return with cost({_analysis_freq})."
-                )
+                pprint(f"The following are analysis results of the excess return with cost({_analysis_freq}).")
                 pprint(analysis["excess_return_with_cost"])
 
         for _analysis_freq in self.indicator_analysis_freq:
@@ -574,14 +555,10 @@ class PortAnaRecord(ACRecordTemp):
                 if self.indicator_analysis_method is None:
                     analysis_df = indicator_analysis(indicators_normal)
                 else:
-                    analysis_df = indicator_analysis(
-                        indicators_normal, method=self.indicator_analysis_method
-                    )
+                    analysis_df = indicator_analysis(indicators_normal, method=self.indicator_analysis_method)
                 # log metrics
                 analysis_dict = analysis_df["value"].to_dict()
-                self.recorder.log_metrics(
-                    **{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()}
-                )
+                self.recorder.log_metrics(**{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()})
                 # save results
                 self.save(**{f"indicator_analysis_{_analysis_freq}.pkl": analysis_df})
                 logger.info(

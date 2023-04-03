@@ -71,9 +71,7 @@ class User:
         }
         r = (portfolio_metrics["return"] - portfolio_metrics["bench"]).dropna()
         analysis_result["excess_return_without_cost"][0] = risk_analysis(r)
-        r = (
-            portfolio_metrics["return"] - portfolio_metrics["bench"] - portfolio_metrics["cost"]
-        ).dropna()
+        r = (portfolio_metrics["return"] - portfolio_metrics["bench"] - portfolio_metrics["cost"]).dropna()
         analysis_result["excess_return_with_cost"][0] = risk_analysis(r)
         self.logger.info("Result of porfolio:")
         self.logger.info("excess_return_without_cost:")

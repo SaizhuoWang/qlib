@@ -136,13 +136,9 @@ class HyperparamOptManager:
         missing_fields = [k for k in valid_fields if k not in params]
 
         if invalid_fields:
-            raise ValueError(
-                "Invalid Fields Found {} - Valid ones are {}".format(invalid_fields, valid_fields)
-            )
+            raise ValueError("Invalid Fields Found {} - Valid ones are {}".format(invalid_fields, valid_fields))
         if missing_fields:
-            raise ValueError(
-                "Missing Fields Found {} - Valid ones are {}".format(missing_fields, valid_fields)
-            )
+            raise ValueError("Missing Fields Found {} - Valid ones are {}".format(missing_fields, valid_fields))
 
     def _get_name(self, params):
         """Returns a unique key for the supplied set of params."""
@@ -270,9 +266,7 @@ class DistributedHyperparamOptManager(HyperparamOptManager):
         # Sanity checks
         if worker_number > max_workers:
             raise ValueError(
-                "Worker number ({}) cannot be larger than the total number of workers!".format(
-                    max_workers
-                )
+                "Worker number ({}) cannot be larger than the total number of workers!".format(max_workers)
             )
         if worker_number > search_iterations:
             raise ValueError(
@@ -284,9 +278,7 @@ class DistributedHyperparamOptManager(HyperparamOptManager):
         print("*** Creating hyperparameter manager for worker {} ***".format(worker_number))
 
         hyperparam_folder = os.path.join(root_model_folder, str(worker_number))
-        super().__init__(
-            param_ranges, fixed_params, hyperparam_folder, override_w_fixed_params=True
-        )
+        super().__init__(param_ranges, fixed_params, hyperparam_folder, override_w_fixed_params=True)
 
         serialised_ranges_folder = os.path.join(root_model_folder, "hyperparams")
         if clear_serialised_params:
@@ -296,9 +288,7 @@ class DistributedHyperparamOptManager(HyperparamOptManager):
 
         utils.create_folder_if_not_exist(serialised_ranges_folder)
 
-        self.serialised_ranges_path = os.path.join(
-            serialised_ranges_folder, "ranges_{}.csv".format(search_iterations)
-        )
+        self.serialised_ranges_path = os.path.join(serialised_ranges_folder, "ranges_{}.csv".format(search_iterations))
         self.hyperparam_folder = hyperparam_folder  # override
         self.worker_num = worker_number
         self.total_search_iterations = search_iterations
@@ -432,9 +422,7 @@ class DistributedHyperparamOptManager(HyperparamOptManager):
 
         max_worker_num = int(np.ceil(n / batch_size))
 
-        worker_idx = np.concatenate(
-            [np.tile(i + 1, self.num_iterations_per_worker) for i in range(max_worker_num)]
-        )
+        worker_idx = np.concatenate([np.tile(i + 1, self.num_iterations_per_worker) for i in range(max_worker_num)])
 
         output["worker"] = worker_idx[: len(output)]
 

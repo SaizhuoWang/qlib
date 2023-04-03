@@ -21,8 +21,7 @@ import logging
 from collections import defaultdict
 from enum import IntEnum
 from pathlib import Path
-from typing import (TYPE_CHECKING, Any, Callable, Dict, Generic, List,
-                    Sequence, Set, Tuple, TypeVar)
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, List, Sequence, Set, Tuple, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -85,14 +84,10 @@ class LogCollector:
 
     def _add_metric(self, name: str, metric: Any, loglevel: int | LogLevel) -> None:
         if name in self._logged:
-            raise ValueError(
-                f"A metric with {name} is already added. Please change a name or reset the log collector."
-            )
+            raise ValueError(f"A metric with {name} is already added. Please change a name or reset the log collector.")
         self._logged[name] = (int(loglevel), metric)
 
-    def add_string(
-        self, name: str, string: str, loglevel: int | LogLevel = LogLevel.PERIODIC
-    ) -> None:
+    def add_string(self, name: str, string: str, loglevel: int | LogLevel = LogLevel.PERIODIC) -> None:
         """Add a string with name into logged contents."""
         if loglevel < self._min_loglevel:
             return
@@ -100,9 +95,7 @@ class LogCollector:
             raise TypeError(f"{string} is not a string.")
         self._add_metric(name, string, loglevel)
 
-    def add_scalar(
-        self, name: str, scalar: Any, loglevel: int | LogLevel = LogLevel.PERIODIC
-    ) -> None:
+    def add_scalar(self, name: str, scalar: Any, loglevel: int | LogLevel = LogLevel.PERIODIC) -> None:
         """Add a scalar with name into logged contents.
         Scalar will be converted into a float.
         """
@@ -247,9 +240,7 @@ class LogWriter(Generic[ObsType, ActType]):
         else:
             return array[0]
 
-    def log_episode(
-        self, length: int, rewards: List[float], contents: List[Dict[str, Any]]
-    ) -> None:
+    def log_episode(self, length: int, rewards: List[float], contents: List[Dict[str, Any]]) -> None:
         """This is triggered at the end of each trajectory.
 
         Parameters
@@ -273,9 +264,7 @@ class LogWriter(Generic[ObsType, ActType]):
             Logged contents for this step.
         """
 
-    def on_env_step(
-        self, env_id: int, obs: ObsType, rew: float, done: bool, info: InfoDict
-    ) -> None:
+    def on_env_step(self, env_id: int, obs: ObsType, rew: float, done: bool, info: InfoDict) -> None:
         """Callback for finite env, on each step."""
 
         # Update counter
@@ -375,9 +364,7 @@ class LogBuffer(LogWriter):
         self._latest_metrics: dict[str, float] | None = None
         self._aggregated_metrics: dict[str, float] = defaultdict(float)
 
-    def log_episode(
-        self, length: int, rewards: list[float], contents: list[dict[str, Any]]
-    ) -> None:
+    def log_episode(self, length: int, rewards: list[float], contents: list[dict[str, Any]]) -> None:
         # FIXME Dup of ConsoleWriter
         episode_wise_contents: dict[str, list] = defaultdict(list)
         for step_contents in contents:
@@ -407,9 +394,7 @@ class LogBuffer(LogWriter):
 
     def collect_metrics(self) -> dict[str, float]:
         """Retrieve the aggregated metrics of the latest collect."""
-        return {
-            name: value / self.episode_count for name, value in self._aggregated_metrics.items()
-        }
+        return {name: value / self.episode_count for name, value in self._aggregated_metrics.items()}
 
 
 class ConsoleWriter(LogWriter):
@@ -452,9 +437,7 @@ class ConsoleWriter(LogWriter):
         self.metric_counts: Dict[str, int] = defaultdict(int)
         self.metric_sums: Dict[str, float] = defaultdict(float)
 
-    def log_episode(
-        self, length: int, rewards: List[float], contents: List[Dict[str, Any]]
-    ) -> None:
+    def log_episode(self, length: int, rewards: List[float], contents: List[Dict[str, Any]]) -> None:
         # Aggregate step-wise to episode-wise
         episode_wise_contents: Dict[str, list] = defaultdict(list)
 
@@ -473,10 +456,7 @@ class ConsoleWriter(LogWriter):
             self.metric_counts[name] += 1
             self.metric_sums[name] += value
 
-        if (
-            self.episode_count % self.log_every_n_episode == 0
-            or self.episode_count == self.total_episodes
-        ):
+        if self.episode_count % self.log_every_n_episode == 0 or self.episode_count == self.total_episodes:
             # Only log periodically or at the end
             self.console_logger.info(self.generate_log_message(logs))
 
@@ -495,9 +475,7 @@ class ConsoleWriter(LogWriter):
         for name, value in logs.items():
             # Double-space as delimiter
             format_template = r"  {} {" + self.float_format + "} ({" + self.float_format + "})"
-            msg += format_template.format(
-                name, value, self.metric_sums[name] / self.metric_counts[name]
-            )
+            msg += format_template.format(name, value, self.metric_sums[name] / self.metric_counts[name])
 
         msg = msg_prefix + " " + msg
 
@@ -525,9 +503,7 @@ class CsvWriter(LogWriter):
         super().clear()
         self.all_records = []
 
-    def log_episode(
-        self, length: int, rewards: List[float], contents: List[Dict[str, Any]]
-    ) -> None:
+    def log_episode(self, length: int, rewards: List[float], contents: List[Dict[str, Any]]) -> None:
         # FIXME Same as ConsoleLogger, needs a refactor to eliminate code-dup
         episode_wise_contents: Dict[str, list] = defaultdict(list)
 
@@ -544,9 +520,7 @@ class CsvWriter(LogWriter):
 
     def on_env_all_done(self) -> None:
         # FIXME: this is temporary
-        pd.DataFrame.from_records(self.all_records).to_csv(
-            self.output_dir / "result.csv", index=False
-        )
+        pd.DataFrame.from_records(self.all_records).to_csv(self.output_dir / "result.csv", index=False)
 
 
 # The following are not implemented yet.

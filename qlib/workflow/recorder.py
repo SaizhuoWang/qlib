@@ -17,8 +17,7 @@ from datetime import datetime
 from pathlib import Path
 
 import mlflow
-from mlflow.store.artifact.azure_blob_artifact_repo import \
-    AzureBlobArtifactRepository
+from mlflow.store.artifact.azure_blob_artifact_repo import AzureBlobArtifactRepository
 
 from qlib.utils.exceptions import LoadObjectError
 from qlib.utils.paral import AsyncCaller
@@ -273,23 +272,17 @@ class MLflowRecorder(Recorder):
         self.client = mlflow.tracking.MlflowClient(tracking_uri=self._uri)
         # construct from mlflow run
         if mlflow_run is not None:
-            assert isinstance(
-                mlflow_run, mlflow.entities.run.Run
-            ), "Please input with a MLflow Run object."
+            assert isinstance(mlflow_run, mlflow.entities.run.Run), "Please input with a MLflow Run object."
             self.name = mlflow_run.data.tags["mlflow.runName"]
             self.id = mlflow_run.info.run_id
             self.status = mlflow_run.info.status
             self.start_time = (
-                datetime.fromtimestamp(float(mlflow_run.info.start_time) / 1000.0).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                datetime.fromtimestamp(float(mlflow_run.info.start_time) / 1000.0).strftime("%Y-%m-%d %H:%M:%S")
                 if mlflow_run.info.start_time is not None
                 else None
             )
             self.end_time = (
-                datetime.fromtimestamp(float(mlflow_run.info.end_time) / 1000.0).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                datetime.fromtimestamp(float(mlflow_run.info.end_time) / 1000.0).strftime("%Y-%m-%d %H:%M:%S")
                 if mlflow_run.info.end_time is not None
                 else None
             )
@@ -404,9 +397,7 @@ class MLflowRecorder(Recorder):
         mlflow.end_run(status)
 
     def save_objects(self, local_path=None, artifact_path=None, **kwargs):
-        assert (
-            self.uri is not None
-        ), "Please start the experiment and recorder first before using recorder directly."
+        assert self.uri is not None, "Please start the experiment and recorder first before using recorder directly."
         if local_path is not None:
             path = Path(local_path)
             if path.is_dir():
@@ -436,9 +427,7 @@ class MLflowRecorder(Recorder):
         Returns:
             object: the saved object in mlflow.
         """
-        assert (
-            self.uri is not None
-        ), "Please start the experiment and recorder first before using recorder directly."
+        assert self.uri is not None, "Please start the experiment and recorder first before using recorder directly."
 
         path = None
         try:
@@ -486,9 +475,7 @@ class MLflowRecorder(Recorder):
             )
 
     def list_artifacts(self, artifact_path=None):
-        assert (
-            self.uri is not None
-        ), "Please start the experiment and recorder first before using recorder directly."
+        assert self.uri is not None, "Please start the experiment and recorder first before using recorder directly."
         artifacts = self.client.list_artifacts(self.id, artifact_path)
         return [art.path for art in artifacts]
 

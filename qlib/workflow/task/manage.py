@@ -481,9 +481,7 @@ class TaskManager:
         last_undone_n = self._get_undone_n(task_stat)
         if last_undone_n == 0:
             return
-        self.logger.warning(
-            f"Waiting for {last_undone_n} undone tasks. Please make sure they are running."
-        )
+        self.logger.warning(f"Waiting for {last_undone_n} undone tasks. Please make sure they are running.")
         with tqdm(total=total, initial=total - last_undone_n) as pbar:
             while True:
                 time.sleep(10)

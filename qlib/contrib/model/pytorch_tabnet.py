@@ -86,18 +86,10 @@ class TabnetModel(Model):
         np.random.seed(self.seed)
         torch.manual_seed(self.seed)
 
-        self.tabnet_model = TabNet(
-            inp_dim=self.d_feat, out_dim=self.out_dim, vbs=vbs, relax=relax
-        ).to(self.device)
-        self.tabnet_decoder = TabNet_Decoder(
-            self.out_dim, self.d_feat, n_shared, n_ind, vbs, n_steps
-        ).to(self.device)
+        self.tabnet_model = TabNet(inp_dim=self.d_feat, out_dim=self.out_dim, vbs=vbs, relax=relax).to(self.device)
+        self.tabnet_decoder = TabNet_Decoder(self.out_dim, self.d_feat, n_shared, n_ind, vbs, n_steps).to(self.device)
         self.logger.info("model:\n{:}\n{:}".format(self.tabnet_model, self.tabnet_decoder))
-        self.logger.info(
-            "model size: {:.4f} MB".format(
-                count_parameters([self.tabnet_model, self.tabnet_decoder])
-            )
-        )
+        self.logger.info("model size: {:.4f} MB".format(count_parameters([self.tabnet_model, self.tabnet_decoder])))
 
         if optimizer.lower() == "adam":
             self.pretrain_optimizer = optim.Adam(
@@ -172,14 +164,10 @@ class TabnetModel(Model):
             self.logger.info("Pretrain...")
             self.pretrain_fn(dataset, self.pretrain_file)
             self.logger.info("Load Pretrain model")
-            self.tabnet_model.load_state_dict(
-                torch.load(self.pretrain_file, map_location=self.device)
-            )
+            self.tabnet_model.load_state_dict(torch.load(self.pretrain_file, map_location=self.device))
 
         # adding one more linear layer to fit the final output dimension
-        self.tabnet_model = FinetuneModel(self.out_dim, self.final_out_dim, self.tabnet_model).to(
-            self.device
-        )
+        self.tabnet_model = FinetuneModel(self.out_dim, self.final_out_dim, self.tabnet_model).to(self.device)
         df_train, df_valid = dataset.prepare(
             ["train", "valid"],
             col_set=["feature", "label"],
@@ -442,9 +430,7 @@ class TabNet_Decoder(nn.Module):
             self.shared = nn.ModuleList()
             self.shared.append(nn.Linear(inp_dim, 2 * out_dim))
             for x in range(n_shared - 1):
-                self.shared.append(
-                    nn.Linear(out_dim, 2 * out_dim)
-                )  # preset the linear function we will use
+                self.shared.append(nn.Linear(out_dim, 2 * out_dim))  # preset the linear function we will use
         else:
             self.shared = None
         self.n_steps = n_steps
@@ -491,9 +477,7 @@ class TabNet(nn.Module):
             self.shared = nn.ModuleList()
             self.shared.append(nn.Linear(inp_dim, 2 * (n_d + n_a)))
             for x in range(n_shared - 1):
-                self.shared.append(
-                    nn.Linear(n_d + n_a, 2 * (n_d + n_a))
-                )  # preset the linear function we will use
+                self.shared.append(nn.Linear(n_d + n_a, 2 * (n_d + n_a)))  # preset the linear function we will use
         else:
             self.shared = None
 

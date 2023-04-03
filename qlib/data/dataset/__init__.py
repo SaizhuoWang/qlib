@@ -8,8 +8,7 @@ import numpy as np
 import pandas as pd
 
 from ...log import get_module_logger
-from ...utils import (init_instance_by_config, lazy_sort_index, np_ffill,
-                      time_to_slc_point)
+from ...utils import init_instance_by_config, lazy_sort_index, np_ffill, time_to_slc_point
 from ...utils.serial import Serializable
 from .handler import DataHandler, DataHandlerLP
 from .utils import get_level_index
@@ -399,9 +398,7 @@ class TSDataSampler:
         if dtype is not None:
             kwargs["dtype"] = dtype
 
-        self.data_arr = np.array(
-            **kwargs
-        )  # Get index from numpy.array will much faster than DataFrame.values!
+        self.data_arr = np.array(**kwargs)  # Get index from numpy.array will much faster than DataFrame.values!
         # NOTE:
         # - append last line with full NaN for better performance in `__getitem__`
         # - Keep the same dtype will result in a better performance
@@ -680,11 +677,7 @@ class TSDatasetH(DatasetH):
     def setup_data(self, **kwargs):
         super().setup_data(**kwargs)
         # make sure the calendar is updated to latest when loading data from new config
-        cal = (
-            self.handler.fetch(col_set=self.handler.CS_RAW)
-            .index.get_level_values("datetime")
-            .unique()
-        )
+        cal = self.handler.fetch(col_set=self.handler.CS_RAW).index.get_level_values("datetime").unique()
         self.cal = sorted(cal)
 
     @staticmethod

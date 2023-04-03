@@ -24,9 +24,13 @@ from ...data.dataset.handler import DataHandlerLP
 from ...data.dataset.weight import Reweighter
 from ...log import get_module_logger
 from ...model.base import Model
-from ...utils import (auto_filter_kwargs, get_or_create_path,
-                      init_instance_by_config, save_multiple_parts_file,
-                      unpack_archive_with_buffer)
+from ...utils import (
+    auto_filter_kwargs,
+    get_or_create_path,
+    init_instance_by_config,
+    save_multiple_parts_file,
+    unpack_archive_with_buffer,
+)
 from ...workflow import R
 from .pytorch_utils import count_parameters
 
@@ -68,9 +72,7 @@ class DNNModelPytorch(Model):
         seed=None,
         weight_decay=0.0,
         data_parall=False,
-        scheduler: Optional[
-            Union[Callable]
-        ] = "default",  # when it is Callable, it accept one argument named optimizer
+        scheduler: Optional[Union[Callable]] = "default",  # when it is Callable, it accept one argument named optimizer
         init_model=None,
         eval_train_metric=False,
         pt_model_uri="qlib.contrib.model.pytorch_nn.Net",
@@ -98,9 +100,7 @@ class DNNModelPytorch(Model):
         if isinstance(GPU, str):
             self.device = torch.device(GPU)
         else:
-            self.device = torch.device(
-                "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-            )
+            self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
         self.weight_decay = weight_decay
         self.data_parall = data_parall
@@ -138,9 +138,7 @@ class DNNModelPytorch(Model):
         self._scorer = mean_squared_error if loss == "mse" else roc_auc_score
 
         if init_model is None:
-            self.dnn_model = init_instance_by_config(
-                {"class": pt_model_uri, "kwargs": pt_model_kwargs}
-            )
+            self.dnn_model = init_instance_by_config({"class": pt_model_uri, "kwargs": pt_model_kwargs})
 
             if self.data_parall:
                 self.dnn_model = DataParallel(self.dnn_model).to(self.device)
@@ -151,13 +149,9 @@ class DNNModelPytorch(Model):
         self.logger.info("model size: {:.4f} MB".format(count_parameters(self.dnn_model)))
 
         if optimizer.lower() == "adam":
-            self.train_optimizer = optim.Adam(
-                self.dnn_model.parameters(), lr=self.lr, weight_decay=self.weight_decay
-            )
+            self.train_optimizer = optim.Adam(self.dnn_model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         elif optimizer.lower() == "gd":
-            self.train_optimizer = optim.SGD(
-                self.dnn_model.parameters(), lr=self.lr, weight_decay=self.weight_decay
-            )
+            self.train_optimizer = optim.SGD(self.dnn_model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         else:
             raise NotImplementedError("optimizer {} is not supported!".format(optimizer))
 
@@ -209,13 +203,9 @@ class DNNModelPytorch(Model):
                     data_key=self.valid_key if seg == "valid" else DataHandlerLP.DK_L,
                 )
                 all_df["x"][seg] = df["feature"]
-                all_df["y"][seg] = df[
-                    "label"
-                ].copy()  # We have to use copy to remove the reference to release mem
+                all_df["y"][seg] = df["label"].copy()  # We have to use copy to remove the reference to release mem
                 if reweighter is None:
-                    all_df["w"][seg] = pd.DataFrame(
-                        np.ones_like(all_df["y"][seg].values), index=df.index
-                    )
+                    all_df["w"][seg] = pd.DataFrame(np.ones_like(all_df["y"][seg].values), index=df.index)
                 elif isinstance(reweighter, Reweighter):
                     all_df["w"][seg] = pd.DataFrame(reweighter.reweight(df))
                 else:
@@ -225,9 +215,7 @@ class DNNModelPytorch(Model):
                 for v in vars:
                     all_t[v][seg] = torch.from_numpy(all_df[v][seg].values).float()
                     # if seg == "valid": # accelerate the eval of validation
-                    all_t[v][seg] = all_t[v][seg].to(
-                        self.device
-                    )  # This will consume a lot of memory !!!!
+                    all_t[v][seg] = all_t[v][seg].to(self.device)  # This will consume a lot of memory !!!!
 
                 evals_result[seg] = []
                 # free memory
@@ -337,9 +325,7 @@ class DNNModelPytorch(Model):
                     train_loss = 0
                     # update learning rate
                     if self.scheduler is not None:
-                        auto_filter_kwargs(self.scheduler.step, warning=False)(
-                            metrics=cur_loss_val, epoch=step
-                        )
+                        auto_filter_kwargs(self.scheduler.step, warning=False)(metrics=cur_loss_val, epoch=step)
                     R.log_metrics(lr=self.get_lr(), step=step)
                 else:
                     # retraining mode
@@ -412,9 +398,9 @@ class DNNModelPytorch(Model):
     def load(self, buffer, **kwargs):
         with unpack_archive_with_buffer(buffer) as model_dir:
             # Get model name
-            _model_name = os.path.splitext(
-                list(filter(lambda x: x.startswith("model.bin"), os.listdir(model_dir)))[0]
-            )[0]
+            _model_name = os.path.splitext(list(filter(lambda x: x.startswith("model.bin"), os.listdir(model_dir)))[0])[
+                0
+            ]
             _model_path = os.path.join(model_dir, _model_name)
             # Load model
             self.dnn_model.load_state_dict(torch.load(_model_path, map_location=self.device))

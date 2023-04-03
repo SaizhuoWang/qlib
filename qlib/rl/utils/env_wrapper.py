@@ -10,8 +10,7 @@ import gym
 from gym import Space
 
 from qlib.rl.aux_info import AuxiliaryInfoCollector
-from qlib.rl.interpreter import (ActionInterpreter, ObsType, PolicyActType,
-                                 StateInterpreter)
+from qlib.rl.interpreter import ActionInterpreter, ObsType, PolicyActType, StateInterpreter
 from qlib.rl.reward import Reward
 from qlib.rl.simulator import ActType, InitialStateType, Simulator, StateType
 from qlib.typehint import TypedDict
@@ -198,18 +197,14 @@ class EnvWrapper(
             self.seed_iterator = None
             return generate_nan_observation(self.observation_space)
 
-    def step(
-        self, policy_action: PolicyActType, **kwargs: Any
-    ) -> Tuple[ObsType, float, bool, InfoDict]:
+    def step(self, policy_action: PolicyActType, **kwargs: Any) -> Tuple[ObsType, float, bool, InfoDict]:
         """Environment step.
 
         See the code along with comments to get a sequence of things happening here.
         """
 
         if self.seed_iterator is None:
-            raise RuntimeError(
-                "State queue is already exhausted, but the environment is still receiving action."
-            )
+            raise RuntimeError("State queue is already exhausted, but the environment is still receiving action.")
 
         # Clear the logged information from last step
         self.logger.reset()

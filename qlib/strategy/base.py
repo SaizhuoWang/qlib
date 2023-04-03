@@ -13,8 +13,7 @@ if TYPE_CHECKING:
 from typing import Tuple
 
 from ..backtest.decision import BaseTradeDecision
-from ..backtest.utils import (CommonInfrastructure, LevelInfrastructure,
-                              TradeCalendarManager)
+from ..backtest.utils import CommonInfrastructure, LevelInfrastructure, TradeCalendarManager
 from ..rl.interpreter import ActionInterpreter, StateInterpreter
 from ..utils import init_instance_by_config
 
@@ -208,9 +207,7 @@ class BaseStrategy:
         return None
 
     # FIXME: do not define this method as an abstract one since it is never implemented
-    def alter_outer_trade_decision(
-        self, outer_trade_decision: BaseTradeDecision
-    ) -> BaseTradeDecision:
+    def alter_outer_trade_decision(self, outer_trade_decision: BaseTradeDecision) -> BaseTradeDecision:
         """
         A method for updating the outer_trade_decision.
         The outer strategy may change its decision during updating.
@@ -291,17 +288,11 @@ class RLIntStrategy(RLStrategy, metaclass=ABCMeta):
         end_time : Union[str, pd.Timestamp], optional
             end time of trading, by default None
         """
-        super(RLIntStrategy, self).__init__(
-            policy, outer_trade_decision, level_infra, common_infra, **kwargs
-        )
+        super(RLIntStrategy, self).__init__(policy, outer_trade_decision, level_infra, common_infra, **kwargs)
 
         self.policy = policy
-        self.state_interpreter = init_instance_by_config(
-            state_interpreter, accept_types=StateInterpreter
-        )
-        self.action_interpreter = init_instance_by_config(
-            action_interpreter, accept_types=ActionInterpreter
-        )
+        self.state_interpreter = init_instance_by_config(state_interpreter, accept_types=StateInterpreter)
+        self.action_interpreter = init_instance_by_config(action_interpreter, accept_types=ActionInterpreter)
 
     def generate_trade_decision(self, execute_result: list = None) -> BaseTradeDecision:
         _interpret_state = self.state_interpreter.interpret(execute_result=execute_result)

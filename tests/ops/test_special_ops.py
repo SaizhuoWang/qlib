@@ -57,9 +57,7 @@ class TestOperatorDataSetting(TestOperatorData):
         ret = "Feature('close') / Ref(Feature('close'), 1) - 1"
         benchmark = "SH000300"
         n_period = 252
-        marketRet = (
-            f"ChangeInstrument('{benchmark}', Feature('close') / Ref(Feature('close'), 1) - 1)"
-        )
+        marketRet = f"ChangeInstrument('{benchmark}', Feature('close') / Ref(Feature('close'), 1) - 1)"
         marketVar = f"ChangeInstrument('{benchmark}', Var({marketRet}, {n_period}))"
         beta = f"Cov({ret}, {marketRet}, {n_period}) / {marketVar}"
         excess_return = f"{ret} - {beta}*({marketRet})"

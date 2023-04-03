@@ -82,9 +82,7 @@ class ADD(Model):
         self.optimizer = optimizer.lower()
         self.base_model = base_model
         self.model_path = model_path
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
         self.gamma = gamma
@@ -414,15 +412,11 @@ class ADD(Model):
             pretrained_model.load_state_dict(torch.load(self.model_path, map_location=self.device))
 
             model_dict = self.ADD_model.enc_excess.state_dict()
-            pretrained_dict = {
-                k: v for k, v in pretrained_model.rnn.state_dict().items() if k in model_dict
-            }
+            pretrained_dict = {k: v for k, v in pretrained_model.rnn.state_dict().items() if k in model_dict}
             model_dict.update(pretrained_dict)
             self.ADD_model.enc_excess.load_state_dict(model_dict)
             model_dict = self.ADD_model.enc_market.state_dict()
-            pretrained_dict = {
-                k: v for k, v in pretrained_model.rnn.state_dict().items() if k in model_dict
-            }
+            pretrained_dict = {k: v for k, v in pretrained_model.rnn.state_dict().items() if k in model_dict}
             model_dict.update(pretrained_dict)
             self.ADD_model.enc_market.load_state_dict(model_dict)
             self.logger.info("Loading pretrained model Done...")
@@ -518,9 +512,7 @@ class ADDModel(nn.Module):
             )
             for _ in range(2)
         ]
-        self.before_adv_market, self.before_adv_excess = [
-            RevGrad(gamma, gamma_clip) for _ in range(2)
-        ]
+        self.before_adv_market, self.before_adv_excess = [RevGrad(gamma, gamma_clip) for _ in range(2)]
 
     def forward(self, x):
         x = x.reshape(len(x), self.d_feat, -1)

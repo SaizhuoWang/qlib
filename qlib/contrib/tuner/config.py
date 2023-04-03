@@ -45,9 +45,7 @@ class PipelineExperimentConfig:
         if not os.path.exists(self.tuner_ex_dir):
             os.makedirs(self.tuner_ex_dir)
         # The dir of the results of all estimator experiments
-        self.estimator_ex_dir = config.get(
-            "estimator_ex_dir", os.path.join(self.tuner_ex_dir, "estimator_experiment")
-        )
+        self.estimator_ex_dir = config.get("estimator_ex_dir", os.path.join(self.tuner_ex_dir, "estimator_experiment"))
         if not os.path.exists(self.estimator_ex_dir):
             os.makedirs(self.estimator_ex_dir)
         # Get the tuner type

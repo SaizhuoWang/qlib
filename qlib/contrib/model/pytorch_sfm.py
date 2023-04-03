@@ -40,15 +40,11 @@ class SFM_Model(nn.Module):
         self.hidden_dim = hidden_size
         self.device = device
 
-        self.W_i = nn.Parameter(
-            init.xavier_uniform_(torch.empty((self.input_dim, self.hidden_dim)))
-        )
+        self.W_i = nn.Parameter(init.xavier_uniform_(torch.empty((self.input_dim, self.hidden_dim))))
         self.U_i = nn.Parameter(init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim)))
         self.b_i = nn.Parameter(torch.zeros(self.hidden_dim))
 
-        self.W_ste = nn.Parameter(
-            init.xavier_uniform_(torch.empty(self.input_dim, self.hidden_dim))
-        )
+        self.W_ste = nn.Parameter(init.xavier_uniform_(torch.empty(self.input_dim, self.hidden_dim)))
         self.U_ste = nn.Parameter(init.orthogonal_(torch.empty(self.hidden_dim, self.hidden_dim)))
         self.b_ste = nn.Parameter(torch.ones(self.hidden_dim))
 
@@ -237,9 +233,7 @@ class SFM(Model):
         self.optimizer = optimizer.lower()
         self.loss = loss
         GPU = int(GPU)
-        self.device = torch.device(
-            "cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu"
-        )
+        self.device = torch.device("cuda:%d" % (GPU) if torch.cuda.is_available() and GPU >= 0 else "cpu")
         self.seed = seed
 
         self.logger.info(
@@ -333,12 +327,8 @@ class SFM(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = (
-                torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
-            )
+            feature = torch.from_numpy(x_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
             pred = self.sfm_model(feature)
             loss = self.loss_fn(pred, label)
@@ -364,16 +354,8 @@ class SFM(Model):
             if len(indices) - i < self.batch_size:
                 break
 
-            feature = (
-                torch.from_numpy(x_train_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
-            label = (
-                torch.from_numpy(y_train_values[indices[i : i + self.batch_size]])
-                .float()
-                .to(self.device)
-            )
+            feature = torch.from_numpy(x_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
 
             pred = self.sfm_model(feature)
             loss = self.loss_fn(pred, label)

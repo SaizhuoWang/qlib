@@ -27,9 +27,7 @@ class Experiment:
         self._default_rec_name = "abstract_recorder"
 
     def __repr__(self):
-        return "{name}(id={id}, info={info})".format(
-            name=self.__class__.__name__, id=self.id, info=self.info
-        )
+        return "{name}(id={id}, info={info})".format(name=self.__class__.__name__, id=self.id, info=self.info)
 
     def __str__(self):
         return str(self.info)
@@ -41,9 +39,7 @@ class Experiment:
         output["class"] = "Experiment"
         output["id"] = self.id
         output["name"] = self.name
-        output["active_recorder"] = (
-            self.active_recorder.id if self.active_recorder is not None else None
-        )
+        output["active_recorder"] = self.active_recorder.id if self.active_recorder is not None else None
         output["recorders"] = list(recorders.keys())
         return output
 
@@ -169,9 +165,7 @@ class Experiment:
                 return self.active_recorder
             recorder_name = self._default_rec_name
         if create:
-            recorder, is_new = self._get_or_create_rec(
-                recorder_id=recorder_id, recorder_name=recorder_name
-            )
+            recorder, is_new = self._get_or_create_rec(recorder_id=recorder_id, recorder_name=recorder_name)
         else:
             recorder, is_new = (
                 self._get_recorder(recorder_id=recorder_id, recorder_name=recorder_name),
@@ -198,9 +192,7 @@ class Experiment:
         except ValueError:
             if recorder_name is None:
                 recorder_name = self._default_rec_name
-            logger.info(
-                f"No valid recorder found. Create a new recorder with name {recorder_name}."
-            )
+            logger.info(f"No valid recorder found. Create a new recorder with name {recorder_name}.")
             return self.create_recorder(recorder_name), True
 
     def _get_recorder(self, recorder_id=None, recorder_name=None):
@@ -262,9 +254,7 @@ class MLflowExperiment(Experiment):
         self._client = mlflow.tracking.MlflowClient(tracking_uri=self._uri)
 
     def __repr__(self):
-        return "{name}(id={id}, info={info})".format(
-            name=self.__class__.__name__, id=self.id, info=self.info
-        )
+        return "{name}(id={id}, info={info})".format(name=self.__class__.__name__, id=self.id, info=self.info)
 
     def start(self, *, recorder_id=None, recorder_name=None, resume=False):
         logger.info(f"Experiment {self.id} starts running ...")
@@ -273,9 +263,7 @@ class MLflowExperiment(Experiment):
             recorder_name = self._default_rec_name
         # resume the recorder
         if resume:
-            recorder, _ = self._get_or_create_rec(
-                recorder_id=recorder_id, recorder_name=recorder_name
-            )
+            recorder, _ = self._get_or_create_rec(recorder_id=recorder_id, recorder_name=recorder_name)
         # create a new recorder
         else:
             recorder = self.create_recorder(recorder_name)
@@ -326,9 +314,7 @@ class MLflowExperiment(Experiment):
             for rid in recorders:
                 if recorders[rid].name == recorder_name:
                     return recorders[rid]
-            raise ValueError(
-                "No valid recorder has been found, please make sure the input recorder name is correct."
-            )
+            raise ValueError("No valid recorder has been found, please make sure the input recorder name is correct.")
 
     def search_records(self, **kwargs):
         filter_string = "" if kwargs.get("filter_string") is None else kwargs.get("filter_string")
@@ -336,9 +322,7 @@ class MLflowExperiment(Experiment):
         max_results = 100000 if kwargs.get("max_results") is None else kwargs.get("max_results")
         order_by = kwargs.get("order_by")
 
-        return self._client.search_runs(
-            [self.id], filter_string, run_view_type, max_results, order_by
-        )
+        return self._client.search_runs([self.id], filter_string, run_view_type, max_results, order_by)
 
     def delete_recorder(self, recorder_id=None, recorder_name=None):
         assert (

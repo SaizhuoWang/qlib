@@ -49,23 +49,19 @@ def get_min_cal(shift: int = 0, region: str = REG_CN) -> List[time]:
 
     if region == REG_CN:
         for ts in list(
-            pd.date_range(CN_TIME[0], CN_TIME[1] - timedelta(minutes=1), freq="1min")
-            - pd.Timedelta(minutes=shift)
+            pd.date_range(CN_TIME[0], CN_TIME[1] - timedelta(minutes=1), freq="1min") - pd.Timedelta(minutes=shift)
         ) + list(
-            pd.date_range(CN_TIME[2], CN_TIME[3] - timedelta(minutes=1), freq="1min")
-            - pd.Timedelta(minutes=shift)
+            pd.date_range(CN_TIME[2], CN_TIME[3] - timedelta(minutes=1), freq="1min") - pd.Timedelta(minutes=shift)
         ):
             cal.append(ts.time())
     elif region == REG_TW:
         for ts in list(
-            pd.date_range(TW_TIME[0], TW_TIME[1] - timedelta(minutes=1), freq="1min")
-            - pd.Timedelta(minutes=shift)
+            pd.date_range(TW_TIME[0], TW_TIME[1] - timedelta(minutes=1), freq="1min") - pd.Timedelta(minutes=shift)
         ):
             cal.append(ts.time())
     elif region == REG_US:
         for ts in list(
-            pd.date_range(US_TIME[0], US_TIME[1] - timedelta(minutes=1), freq="1min")
-            - pd.Timedelta(minutes=shift)
+            pd.date_range(US_TIME[0], US_TIME[1] - timedelta(minutes=1), freq="1min") - pd.Timedelta(minutes=shift)
         ):
             cal.append(ts.time())
     else:
@@ -232,9 +228,7 @@ class Freq:
         return left_minutes - right_minutes
 
     @staticmethod
-    def get_recent_freq(
-        base_freq: Union[str, "Freq"], freq_list: List[Union[str, "Freq"]]
-    ) -> Optional["Freq"]:
+    def get_recent_freq(base_freq: Union[str, "Freq"], freq_list: List[Union[str, "Freq"]]) -> Optional["Freq"]:
         """Get the closest freq to base_freq from freq_list
 
         Parameters

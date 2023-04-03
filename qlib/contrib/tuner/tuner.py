@@ -52,9 +52,7 @@ class Tuner:
         )
         self.logger.info("Local best params: {} ".format(self.best_params))
         TimeInspector.log_cost_time(
-            "Finished searching best parameters in Tuner {}.".format(
-                self.tuner_config["experiment"]["id"]
-            )
+            "Finished searching best parameters in Tuner {}.".format(self.tuner_config["experiment"]["id"])
         )
 
         self.save_local_best_params()

@@ -133,9 +133,7 @@ class MTSDatasetH(DatasetH):
 
         assert num_states == 0 or horizon > 0, "please specify `horizon` to avoid data leakage"
         assert memory_mode in ["sample", "daily"], "unsupported memory mode"
-        assert (
-            memory_mode == "sample" or batch_size < 0
-        ), "daily memory requires daily sampling (`batch_size < 0`)"
+        assert memory_mode == "sample" or batch_size < 0, "daily memory requires daily sampling (`batch_size < 0`)"
         assert batch_size != 0, "invalid batch size"
 
         if batch_size > 0 and n_samples is not None:
@@ -179,19 +177,13 @@ class MTSDatasetH(DatasetH):
 
         # convert to numpy
         self._data = df["feature"].values.astype("float32")
-        np.nan_to_num(
-            self._data, copy=False
-        )  # NOTE: fillna in case users forget using the fillna processor
+        np.nan_to_num(self._data, copy=False)  # NOTE: fillna in case users forget using the fillna processor
         self._label = df["label"].squeeze().values.astype("float32")
         self._index = df.index
 
         if self.input_size is not None and self.input_size != self._data.shape[1]:
-            warnings.warn(
-                "the data has different shape from input_size and the data will be reshaped"
-            )
-            assert (
-                self._data.shape[1] % self.input_size == 0
-            ), "data mismatch, please check `input_size`"
+            warnings.warn("the data has different shape from input_size and the data will be reshaped")
+            assert self._data.shape[1] % self.input_size == 0, "data mismatch, please check `input_size`"
 
         # create batch slices
         self._batch_slices = _create_ts_slices(self._index, self.seq_len)
@@ -212,9 +204,7 @@ class MTSDatasetH(DatasetH):
             raise ValueError(f"invalid memory_mode `{self.memory_mode}`")
 
         # padding tensor
-        self._zeros = np.zeros(
-            (self.seq_len, max(self.num_states, self._data.shape[1])), dtype=np.float32
-        )
+        self._zeros = np.zeros((self.seq_len, max(self.num_states, self._data.shape[1])), dtype=np.float32)
 
     def _prepare_seg(self, slc, **kwargs):
         fn = _get_date_parse_fn(self._index[0][1])
@@ -235,9 +225,7 @@ class MTSDatasetH(DatasetH):
         obj._zeros = self._zeros
         # update index for this batch
         date_index = self._index.get_level_values(1)
-        obj._batch_slices = self._batch_slices[
-            (date_index >= start_date) & (date_index <= end_date)
-        ]
+        obj._batch_slices = self._batch_slices[(date_index >= start_date) & (date_index <= end_date)]
         mask = (self._daily_index.values >= start_date) & (self._daily_index.values <= end_date)
         obj._daily_slices = self._daily_slices[mask]
         obj._daily_index = self._daily_index[mask]
@@ -316,9 +304,7 @@ class MTSDatasetH(DatasetH):
                 if self.batch_size < 0:
 
                     # store daily index
-                    idx = self._daily_index.index[
-                        j
-                    ]  # daily_index.index is the index of the original data
+                    idx = self._daily_index.index[j]  # daily_index.index is the index of the original data
                     daily_index.append(idx)
 
                     # store daily memory if specified
@@ -331,12 +317,8 @@ class MTSDatasetH(DatasetH):
                         state.append(_maybe_padding(self._memory[slc], self.seq_len, self._zeros))
 
                     # down-sample stocks and store count
-                    if self.n_samples and 0 < self.n_samples < len(
-                        slices_subset
-                    ):  # intraday subsample
-                        slices_subset = np.random.choice(
-                            slices_subset, self.n_samples, replace=False
-                        )
+                    if self.n_samples and 0 < self.n_samples < len(slices_subset):  # intraday subsample
+                        slices_subset = np.random.choice(slices_subset, self.n_samples, replace=False)
                     daily_count.append(len(slices_subset))
 
                 # normal sampling
@@ -354,11 +336,7 @@ class MTSDatasetH(DatasetH):
                         data.append(_maybe_padding(self._data[slc], self.seq_len, self._zeros))
 
                     if self.memory_mode == "sample":
-                        state.append(
-                            _maybe_padding(self._memory[slc], self.seq_len, self._zeros)[
-                                : -self.horizon
-                            ]
-                        )
+                        state.append(_maybe_padding(self._memory[slc], self.seq_len, self._zeros)[: -self.horizon])
 
                     label.append(self._label[slc.stop - 1])
                     index.append(slc.stop - 1)

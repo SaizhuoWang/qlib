@@ -36,12 +36,8 @@ class TestDumpData(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         GetData().csv_data_cn(SOURCE_DIR)
-        TestDumpData.DUMP_DATA = DumpDataAll(
-            csv_path=SOURCE_DIR, qlib_dir=QLIB_DIR, include_fields=cls.FIELDS
-        )
-        TestDumpData.STOCK_NAMES = list(
-            map(lambda x: x.name[:-4].upper(), SOURCE_DIR.glob("*.csv"))
-        )
+        TestDumpData.DUMP_DATA = DumpDataAll(csv_path=SOURCE_DIR, qlib_dir=QLIB_DIR, include_fields=cls.FIELDS)
+        TestDumpData.STOCK_NAMES = list(map(lambda x: x.name[:-4].upper(), SOURCE_DIR.glob("*.csv")))
         provider_uri = str(QLIB_DIR.resolve())
         qlib.init(
             provider_uri=provider_uri,
@@ -60,15 +56,11 @@ class TestDumpData(unittest.TestCase):
         ori_calendars = set(
             map(
                 pd.Timestamp,
-                pd.read_csv(QLIB_DIR.joinpath("calendars", "day.txt"), header=None)
-                .loc[:, 0]
-                .values,
+                pd.read_csv(QLIB_DIR.joinpath("calendars", "day.txt"), header=None).loc[:, 0].values,
             )
         )
         res_calendars = set(D.calendar())
-        assert (
-            len(ori_calendars - res_calendars) == len(res_calendars - ori_calendars) == 0
-        ), "dump calendars failed"
+        assert len(ori_calendars - res_calendars) == len(res_calendars - ori_calendars) == 0, "dump calendars failed"
 
     def test_2_dump_instruments(self):
         ori_ins = set(map(lambda x: x.name[:-4].upper(), SOURCE_DIR.glob("*.csv")))

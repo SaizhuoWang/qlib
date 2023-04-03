@@ -51,9 +51,9 @@ class StructuredCovEstimator(RiskModel):
             kwargs: see `RiskModel` for more information
         """
         if "nan_option" in kwargs:
-            assert kwargs["nan_option"] in [
-                self.DEFAULT_NAN_OPTION
-            ], "nan_option={} is not supported".format(kwargs["nan_option"])
+            assert kwargs["nan_option"] in [self.DEFAULT_NAN_OPTION], "nan_option={} is not supported".format(
+                kwargs["nan_option"]
+            )
         else:
             kwargs["nan_option"] = self.DEFAULT_NAN_OPTION
 
@@ -67,9 +67,7 @@ class StructuredCovEstimator(RiskModel):
 
         self.num_factors = num_factors
 
-    def _predict(
-        self, X: np.ndarray, return_decomposed_components=False
-    ) -> Union[np.ndarray, tuple]:
+    def _predict(self, X: np.ndarray, return_decomposed_components=False) -> Union[np.ndarray, tuple]:
         """
         covariance estimation implementation
 

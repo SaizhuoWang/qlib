@@ -99,9 +99,7 @@ class SingleAssetOrderExecutionSimple(Simulator[Order, SAOEState, float]):
         self.cur_step = 0
         # NOTE: astype(float) is necessary in some systems.
         # this will align the precision with `.to_numpy()` in `_split_exec_vol`
-        self.twap_price = float(
-            self.backtest_data.get_deal_price().loc[self.ticks_for_order].astype(float).mean()
-        )
+        self.twap_price = float(self.backtest_data.get_deal_price().loc[self.ticks_for_order].astype(float).mean())
 
         self.position = order.amount
 
@@ -135,9 +133,7 @@ class SingleAssetOrderExecutionSimple(Simulator[Order, SAOEState, float]):
 
         self.position -= exec_vol.sum()
         if self.position < -EPS or (exec_vol < -EPS).any():
-            raise ValueError(
-                f"Execution volume is invalid: {exec_vol} (position = {self.position})"
-            )
+            raise ValueError(f"Execution volume is invalid: {exec_vol} (position = {self.position})")
 
         # Get time index available for this step
         time_index = self._get_ticks_slice(self.cur_time, self._next_time())
@@ -166,18 +162,12 @@ class SingleAssetOrderExecutionSimple(Simulator[Order, SAOEState, float]):
 
         self.history_steps = self._dataframe_append(
             self.history_steps,
-            [
-                self._metrics_collect(
-                    self.cur_time, self.market_vol, self.market_price, amount, exec_vol
-                )
-            ],
+            [self._metrics_collect(self.cur_time, self.market_vol, self.market_price, amount, exec_vol)],
         )
 
         if self.done():
             if self.env is not None:
-                self.env.logger.add_any(
-                    "history_steps", self.history_steps, loglevel=LogLevel.DEBUG
-                )
+                self.env.logger.add_any("history_steps", self.history_steps, loglevel=LogLevel.DEBUG)
                 self.env.logger.add_any("history_exec", self.history_exec, loglevel=LogLevel.DEBUG)
 
             self.metrics = self._metrics_collect(
@@ -260,9 +250,7 @@ class SingleAssetOrderExecutionSimple(Simulator[Order, SAOEState, float]):
         exec_vol = np.repeat(exec_vol_sum / len(self.market_price), len(self.market_price))
 
         # apply the volume threshold
-        market_vol_limit = (
-            self.vol_threshold * self.market_vol if self.vol_threshold is not None else np.inf
-        )
+        market_vol_limit = self.vol_threshold * self.market_vol if self.vol_threshold is not None else np.inf
         exec_vol = np.minimum(exec_vol, market_vol_limit)  # type: ignore
 
         # Complete all the order amount at the last moment.
@@ -305,9 +293,7 @@ class SingleAssetOrderExecutionSimple(Simulator[Order, SAOEState, float]):
             pa=price_advantage(exec_avg_price, self.twap_price, self.order.direction),
         )
 
-    def _get_ticks_slice(
-        self, start: pd.Timestamp, end: pd.Timestamp, include_end: bool = False
-    ) -> pd.DatetimeIndex:
+    def _get_ticks_slice(self, start: pd.Timestamp, end: pd.Timestamp, include_end: bool = False) -> pd.DatetimeIndex:
         if not include_end:
             end = end - EPS_T
         return self.ticks_index[self.ticks_index.slice_indexer(start, end)]

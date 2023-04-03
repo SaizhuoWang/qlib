@@ -18,9 +18,7 @@ class ScoreFileModel(Model):
     """
 
     def __init__(self, score_path):
-        pred_test = pd.read_csv(
-            score_path, index_col=[0, 1], parse_dates=True, infer_datetime_format=True
-        )
+        pred_test = pd.read_csv(score_path, index_col=[0, 1], parse_dates=True, infer_datetime_format=True)
         self.pred = pred_test
 
     def get_data_with_date(self, date, **kwargs):

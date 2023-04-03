@@ -22,9 +22,7 @@ quarter_dict = {"1Q": "01-03", "2Q": "05-01", "3Q": "09-01"}
 
 class IBOVIndex(IndexBase):
 
-    ibov_index_composition = (
-        "https://raw.githubusercontent.com/igor17400/IBOV-HCI/main/historic_composition/{}.csv"
-    )
+    ibov_index_composition = "https://raw.githubusercontent.com/igor17400/IBOV-HCI/main/historic_composition/{}.csv"
     years_4_month_periods = []
 
     def __init__(
@@ -130,9 +128,7 @@ class IBOVIndex(IndexBase):
         logger.info("Formatting Datetime")
         if self.freq != "day":
             inst_df[self.END_DATE_FIELD] = inst_df[self.END_DATE_FIELD].apply(
-                lambda x: (pd.Timestamp(x) + pd.Timedelta(hours=23, minutes=59)).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                lambda x: (pd.Timestamp(x) + pd.Timedelta(hours=23, minutes=59)).strftime("%Y-%m-%d %H:%M:%S")
             )
         else:
             inst_df[self.START_DATE_FIELD] = inst_df[self.START_DATE_FIELD].apply(
@@ -277,9 +273,7 @@ class IBOVIndex(IndexBase):
                 on_bad_lines="skip",
             )
             df_date_first_added = pd.read_csv(
-                self.ibov_index_composition.format(
-                    "date_first_added_" + self.year + "_" + self.current_4_month_period
-                ),
+                self.ibov_index_composition.format("date_first_added_" + self.year + "_" + self.current_4_month_period),
                 on_bad_lines="skip",
             )
             df = df_index.merge(df_date_first_added, on="symbol")[["symbol", "Date First Added"]]

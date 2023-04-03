@@ -103,9 +103,7 @@ class DumpPitData:
         self._exclude_fields = tuple(filter(lambda x: len(x) > 0, map(str.strip, exclude_fields)))
         self._include_fields = tuple(filter(lambda x: len(x) > 0, map(str.strip, include_fields)))
         self.file_suffix = file_suffix
-        self.csv_files = sorted(
-            csv_path.glob(f"*{self.file_suffix}") if csv_path.is_dir() else [csv_path]
-        )
+        self.csv_files = sorted(csv_path.glob(f"*{self.file_suffix}") if csv_path.is_dir() else [csv_path])
         if limit_nums is not None:
             self.csv_files = self.csv_files[: int(limit_nums)]
         self.qlib_dir = Path(qlib_dir).expanduser()
@@ -187,9 +185,7 @@ class DumpPitData:
             logger.warning(f"{symbol} file is empty")
             return
         for field in self.get_dump_fields(df):
-            df_sub = df.query(f'{self.field_column_name}=="{field}"').sort_values(
-                self.date_column_name
-            )
+            df_sub = df.query(f'{self.field_column_name}=="{field}"').sort_values(self.date_column_name)
             if df_sub.empty:
                 logger.warning(f"field {field} of {symbol} is empty")
                 continue
@@ -205,9 +201,7 @@ class DumpPitData:
             # adjust `first_year` if existing data found
             if not overwrite and index_file.exists():
                 with open(index_file, "rb") as fi:
-                    (first_year,) = struct.unpack(
-                        self.PERIOD_DTYPE, fi.read(self.PERIOD_DTYPE_SIZE)
-                    )
+                    (first_year,) = struct.unpack(self.PERIOD_DTYPE, fi.read(self.PERIOD_DTYPE_SIZE))
                     n_years = len(fi.read()) // self.INDEX_DTYPE_SIZE
                     if interval == self.INTERVAL_quarterly:
                         n_years //= 4
@@ -248,9 +242,7 @@ class DumpPitData:
                 # update index if needed
                 for i, row in df_sub.iterrows():
                     # get index
-                    offset = get_period_offset(
-                        first_year, row.period, interval == self.INTERVAL_quarterly
-                    )
+                    offset = get_period_offset(first_year, row.period, interval == self.INTERVAL_quarterly)
 
                     fi.seek(self.PERIOD_DTYPE_SIZE + self.INDEX_DTYPE_SIZE * offset)
                     (cur_index,) = struct.unpack(self.INDEX_DTYPE, fi.read(self.INDEX_DTYPE_SIZE))
@@ -266,9 +258,7 @@ class DumpPitData:
                         while cur_index != self.NA_INDEX:  # NOTE: first iter always != NA_INDEX
                             fd.seek(cur_index + self.DATA_DTYPE_SIZE - self.INDEX_DTYPE_SIZE)
                             prev_index = cur_index
-                            (cur_index,) = struct.unpack(
-                                self.INDEX_DTYPE, fd.read(self.INDEX_DTYPE_SIZE)
-                            )
+                            (cur_index,) = struct.unpack(self.INDEX_DTYPE, fd.read(self.INDEX_DTYPE_SIZE))
                         fd.seek(prev_index + self.DATA_DTYPE_SIZE - self.INDEX_DTYPE_SIZE)
                         fd.write(struct.pack(self.INDEX_DTYPE, _cur_fd))  # NOTE: add _next pointer
                         fd.seek(_cur_fd)
