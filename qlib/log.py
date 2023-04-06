@@ -13,12 +13,12 @@ from .config import C
 
 
 class MetaLogger(type):
-    def __new__(mcs, name, bases, attrs):  # pylint: disable=C0204
+    def __new__(cls, name, bases, attrs):  # pylint: disable=C0204
         wrapper_dict = logging.Logger.__dict__.copy()
         for key, val in wrapper_dict.items():
             if key not in attrs and key != "__reduce__":
                 attrs[key] = val
-        return type.__new__(mcs, name, bases, attrs)
+        return type.__new__(cls, name, bases, attrs)
 
 
 class QlibLogger(metaclass=MetaLogger):
