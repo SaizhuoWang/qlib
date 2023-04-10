@@ -21,7 +21,7 @@ from ..utils import class_casting, fill_placeholder, flatten_dict, get_date_by_s
 from ..utils.data import deepcopy_basic_type
 from ..utils.time import Freq
 
-from wszlib.type_hints import DataPackage
+from q4l.type_hints import DataPackage
 
 logger = get_module_logger("workflow", logging.INFO)
 

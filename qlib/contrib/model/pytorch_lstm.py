@@ -23,7 +23,7 @@ from ...workflow import R
 from torch.profiler import profile, record_function, ProfilerActivity
 from datetime import datetime
 import viztracer
-from wszlib.constants import PROJECT_ROOT
+from q4l.constants import PROJECT_ROOT
 
 
 class LSTM(Model):

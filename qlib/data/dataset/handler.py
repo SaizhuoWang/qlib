@@ -59,12 +59,15 @@ class DataHandler(Serializable):
     - Fetching data with `col_set=CS_RAW` will return the raw data and may avoid pandas from copying the data when calling `loc`
     """
 
+    CS_ALL = "__all"  # return all columns with single-level index column
+    CS_RAW = "__raw"  # return raw data with multi-level index column
+
     def __init__(
         self,
         instruments=None,
         start_time=None,
         end_time=None,
-        data_loader: Union[dict, str, DataLoader] = None,
+        dataloader_config: Union[dict, str, DataLoader] = None,
         init_data=True,
         fetch_orig=True,
     ):
@@ -86,12 +89,15 @@ class DataHandler(Serializable):
         """
 
         # Setup data loader
-        assert data_loader is not None  # to make start_time end_time could have None default value
-        self.logger = get_module_logger(self.__class__.__name__)
+        assert dataloader_config is not None  # to make start_time end_time could have None default value
+        if not hasattr(self, "logger"):
+            self.logger = get_module_logger(self.__class__.__name__)
         # what data source to load data
         self.data_loader = init_instance_by_config(
-            data_loader,
-            None if (isinstance(data_loader, dict) and "module_path" in data_loader) else data_loader_module,
+            config=dataloader_config,
+            default_module=None
+            if (isinstance(dataloader_config, dict) and "module_path" in dataloader_config)
+            else data_loader_module,
             accept_types=DataLoader,
         )
 
@@ -100,8 +106,9 @@ class DataHandler(Serializable):
         self.instruments = instruments
         self.start_time = start_time
         self.end_time = end_time
-
+        self.dataloader_config = dataloader_config
         self.fetch_orig = fetch_orig
+
         if init_data:
             with TimeInspector.logt("Init data"):
                 self.setup_data()
@@ -197,9 +204,6 @@ class DataHandler(Serializable):
                     self.save_cache()
             else:
                 self._data = lazy_sort_index(self.data_loader.load(self.instruments, self.start_time, self.end_time))
-
-    CS_ALL = "__all"  # return all columns with single-level index column
-    CS_RAW = "__raw"  # return raw data with multi-level index column
 
     def fetch(
         self,
@@ -435,15 +439,22 @@ class DataHandlerLP(DataHandler):
     # - self._learn will be processed by shared_processors + infer_processors + learn_processors
     #   - (e.g. self._infer processed by learn_processors )
 
+    # init type
+    IT_FIT_SEQ = "fit_seq"  # the input of `fit` will be the output of the previous processor
+    IT_FIT_IND = "fit_ind"  # the input of `fit` will be the original df
+    IT_LS = "load_state"  # The state of the object has been load by pickle
+
     def __init__(
         self,
-        instruments=None,
-        start_time=None,
-        end_time=None,
+        instruments,
+        start_time,
+        end_time,
+        fit_start_time: str,
+        fit_end_time: str,
         data_loader: Union[dict, str, DataLoader] = None,
-        infer_processors: List = [],
-        learn_processors: List = [],
-        shared_processors: List = [],
+        infer_processors: List = None,
+        learn_processors: List = None,
+        shared_processors: List = None,
         process_type=PTYPE_A,
         drop_raw=False,
         **kwargs,
@@ -491,64 +502,43 @@ class DataHandlerLP(DataHandler):
             Whether to drop the raw data
         """
 
-        def format_config_dict(d: Union[Dict, List[Dict]]):
-            """Recursively change the datetime instances in the dictionary to string"""
-            if isinstance(d, list):
-                for element in d:
-                    format_config_dict(element)
-            elif isinstance(d, dict):
-                for k, v in d.items():
-                    if isinstance(v, dict) or isinstance(v, list):
-                        format_config_dict(v)
-                    elif isinstance(v, datetime.date):
-                        d[k] = v.strftime("%Y-%m-%d")
-            else:
-                return
+        if infer_processors is None:
+            infer_processors = []
+        if learn_processors is None:
+            learn_processors = []
+        if shared_processors is None:
+            shared_processors = []
 
-        def recursive_sort_dict(d: Dict):
-            """Recursively sort the dictionary"""
-            if isinstance(d, dict):
-                return {k: recursive_sort_dict(v) for k, v in sorted(d.items())}
-            elif isinstance(d, list):
-                return [recursive_sort_dict(v) for v in d]
-            else:
-                return d
-
-        # Make config dict
-        config_dict = {
-            "instruments": instruments,
-            "start_time": start_time,
-            "end_time": end_time,
-            "process_type": process_type,
+        self.preprocessor_config = {
             "infer_processors": infer_processors,
             "learn_processors": learn_processors,
             "shared_processors": shared_processors,
-            "handler_name": self.__class__.__name__,
-            **kwargs,
         }
-        format_config_dict(config_dict)
-        self._config_dict = recursive_sort_dict(config_dict)
 
         # Setup preprocessor
         self.infer_processors = []  # for lint
         self.learn_processors = []  # for lint
         self.shared_processors = []  # for lint
-        for pname in "infer_processors", "learn_processors", "shared_processors":
-            for proc in locals()[pname]:
-                getattr(self, pname).append(
-                    init_instance_by_config(
-                        proc,
-                        None if (isinstance(proc, dict) and "module_path" in proc) else processor_module,
-                        accept_types=processor_module.Processor,
-                    )
-                )
+        self.fit_start_time = fit_start_time
+        self.fit_end_time = fit_end_time
         self.process_type = process_type
         self.drop_raw = drop_raw
-        super().__init__(instruments, start_time, end_time, data_loader, **kwargs)
 
-    @property
-    def config_dict(self):
-        return self._config_dict
+        for pname in "infer_processors", "learn_processors", "shared_processors":
+            for proc in self.preprocessor_config[pname]:
+                getattr(self, pname).append(
+                    init_instance_by_config(
+                        config=proc,
+                        default_module=None if (isinstance(proc, dict) and "module_path" in proc) else processor_module,
+                        accept_types=processor_module.Processor,
+                        try_kwargs={
+                            "fit_start_time": self.fit_start_time,
+                            "fit_end_time": self.fit_end_time,
+                        },
+                    )
+                )
+
+        super().__init__(instruments, start_time, end_time, data_loader, **kwargs)
 
     def get_all_processors(self):
         return self.shared_processors + self.infer_processors + self.learn_processors
@@ -693,16 +683,6 @@ class DataHandlerLP(DataHandler):
         if processor_kwargs is not None:
             for processor in self.get_all_processors():
                 processor.config(**processor_kwargs)
-
-    # init type
-    IT_FIT_SEQ = "fit_seq"  # the input of `fit` will be the output of the previous processor
-    IT_FIT_IND = "fit_ind"  # the input of `fit` will be the original df
-    IT_LS = "load_state"  # The state of the object has been load by pickle
-
-    @property
-    def digest(self) -> str:
-        config_str = repr(self.config_dict)
-        return hashlib.md5(config_str.encode("utf-8")).hexdigest()[0:8]
 
     def setup_data(self, init_type: str = IT_FIT_SEQ, **kwargs):
         """

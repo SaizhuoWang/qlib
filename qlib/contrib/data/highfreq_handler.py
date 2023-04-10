@@ -220,7 +220,7 @@ class HighFreqBacktestHandler(DataHandler):
             instruments=instruments,
             start_time=start_time,
             end_time=end_time,
-            data_loader=data_loader,
+            dataloader_config=data_loader,
         )
 
     def get_feature_config(self):
@@ -275,7 +275,7 @@ class HighFreqGeneralBacktestHandler(DataHandler):
             instruments=instruments,
             start_time=start_time,
             end_time=end_time,
-            data_loader=data_loader,
+            dataloader_config=data_loader,
         )
 
     def get_feature_config(self):
@@ -495,7 +495,7 @@ class HighFreqBacktestOrderHandler(DataHandler):
             instruments=instruments,
             start_time=start_time,
             end_time=end_time,
-            data_loader=data_loader,
+            dataloader_config=data_loader,
         )
 
     def get_feature_config(self):

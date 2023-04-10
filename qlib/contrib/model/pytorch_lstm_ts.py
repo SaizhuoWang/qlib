@@ -22,7 +22,7 @@ from ...model.utils import ConcatDataset
 from ...utils import get_or_create_path
 from datetime import datetime
 import viztracer
-from wszlib.constants import PROJECT_ROOT
+from q4l.constants import PROJECT_ROOT
 
 
 class LSTM(Model):
