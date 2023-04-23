@@ -165,7 +165,7 @@ class DatasetH(Dataset):
         """
         super().setup_data(**kwargs)
         if handler_kwargs is not None:
-            self.logger.info(f"Let the handler setup the data .......")
+            self.logger.info("Let the handler setup the data .......")
             self.handler.setup_data(**handler_kwargs)
 
     def __repr__(self):
