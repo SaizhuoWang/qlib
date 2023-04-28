@@ -12,6 +12,7 @@ import filelock
 # coding=utf-8
 from typing import Callable, Dict, Iterator, List, Optional, OrderedDict, Tuple, Union, TypedDict
 
+from qlib.typehint import Literal
 import filelock
 import numpy as np
 import SharedArray as sa
@@ -58,6 +59,8 @@ class DataHandler(Serializable):
     Tips for improving the performance of datahandler
     - Fetching data with `col_set=CS_RAW` will return the raw data and may avoid pandas from copying the data when calling `loc`
     """
+
+    _data: pd.DataFrame  # underlying data.
 
     CS_ALL = "__all"  # return all columns with single-level index column
     CS_RAW = "__raw"  # return raw data with multi-level index column
@@ -215,6 +218,11 @@ class DataHandler(Serializable):
     ) -> pd.DataFrame:
         """
         fetch data from underlying data source
+
+        Design motivation:
+        - providing a unified interface for underlying data.
+        - Potential to make the interface more friendly.
+        - User can improve performance when fetching data in this extra layer
 
         Parameters
         ----------
@@ -396,6 +404,9 @@ class DataHandler(Serializable):
             yield cur_date, self.fetch(selector, **kwargs)
 
 
+DATA_KEY_TYPE = Literal["raw", "infer", "learn"]
+
+
 class DataHandlerLP(DataHandler):
     """
     DataHandler with **(L)earnable (P)rocessor**
@@ -414,17 +425,28 @@ class DataHandlerLP(DataHandler):
 
         - These processors only apply to the learning phase.
 
-    Tips to improve the performance of data handler
+    Tips for data handler
 
     - To reduce the memory cost
 
         - `drop_raw=True`: this will modify the data inplace on raw data;
+
+    - Please note processed data like `self._infer` or `self._learn` are concepts different from `segments` in Qlib's `Dataset` like "train" and "test"
+
+        - Processed data like `self._infer` or `self._learn` are underlying data processed with different processors
+        - `segments` in Qlib's `Dataset` like "train" and "test" are simply the time segmentations when querying data("train" are often before "test" in time-series).
+        - For example, you can query `data._infer` processed by `infer_processors` in the "train" time segmentation.
     """
 
+    # based on `self._data`, _infer and _learn are genrated after processors
+    _infer: pd.DataFrame  # data for inference
+    _learn: pd.DataFrame  # data for learning models
+
     # data key
-    DK_R = "raw"
-    DK_I = "infer"
-    DK_L = "learn"
+    DK_R: DATA_KEY_TYPE = "raw"
+    DK_I: DATA_KEY_TYPE = "infer"
+    DK_L: DATA_KEY_TYPE = "learn"
+    # map data_key to attribute name
     ATTR_MAP = {DK_R: "_data", DK_I: "_infer", DK_L: "_learn"}
 
     # process type
@@ -659,7 +681,7 @@ class DataHandlerLP(DataHandler):
             # based on `infer_df` and append the processor
             _learn_df = _infer_df
         else:
-            raise NotImplementedError(f"This type of input is not supported")
+            raise NotImplementedError("This type of input is not supported")
         if not self._is_proc_readonly(self.learn_processors):  # avoid modifying the original  data
             _learn_df = _learn_df.copy()
         # 2) process
@@ -712,9 +734,9 @@ class DataHandlerLP(DataHandler):
             elif init_type == DataHandlerLP.IT_FIT_SEQ:
                 self.fit_process_data()
             else:
-                raise NotImplementedError(f"This type of input is not supported")
+                raise NotImplementedError("This type of input is not supported")
 
-    def _get_df_by_key(self, data_key: str = DK_I) -> pd.DataFrame:
+    def _get_df_by_key(self, data_key: DATA_KEY_TYPE = DK_I) -> pd.DataFrame:
         if data_key == self.DK_R and self.drop_raw:
             raise AttributeError(
                 "DataHandlerLP has not attribute _data, please set drop_raw = False if you want to use raw data"
@@ -727,7 +749,7 @@ class DataHandlerLP(DataHandler):
         selector: Union[pd.Timestamp, slice, str] = slice(None, None),
         level: Union[str, int] = "datetime",
         col_set=DataHandler.CS_ALL,
-        data_key: str = DK_I,
+        data_key: DATA_KEY_TYPE = DK_I,
         squeeze: bool = False,
         proc_func: Callable = None,
     ) -> pd.DataFrame:
@@ -761,7 +783,7 @@ class DataHandlerLP(DataHandler):
             proc_func=proc_func,
         )
 
-    def get_cols(self, col_set=DataHandler.CS_ALL, data_key: str = DK_I) -> list:
+    def get_cols(self, col_set=DataHandler.CS_ALL, data_key: DATA_KEY_TYPE = DK_I) -> list:
         """
         get the column names
 
@@ -769,7 +791,7 @@ class DataHandlerLP(DataHandler):
         ----------
         col_set : str
             select a set of meaningful columns.(e.g. features, columns).
-        data_key : str
+        data_key : DATA_KEY_TYPE
             the data to fetch:  DK_*.
 
         Returns
@@ -812,3 +834,26 @@ class DataHandlerLP(DataHandler):
         ]:
             setattr(new_hd, key, getattr(handler, key, None))
         return new_hd
+
+    @classmethod
+    def from_df(cls, df: pd.DataFrame) -> "DataHandlerLP":
+        """
+        Motivation:
+        - When user want to get a quick data handler.
+
+        The created data handler will have only one shared Dataframe without processors.
+        After creating the handler, user may often want to dump the handler for reuse
+        Here is a typical use case
+
+        .. code-block:: python
+
+            from qlib.data.dataset import DataHandlerLP
+            dh = DataHandlerLP.from_df(df)
+            dh.to_pickle(fname, dump_all=True)
+
+        TODO:
+        - The StaticDataLoader is quite slow. It don't have to copy the data again...
+
+        """
+        loader = data_loader_module.StaticDataLoader(df)
+        return cls(data_loader=loader)

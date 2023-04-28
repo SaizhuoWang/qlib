@@ -154,7 +154,7 @@ class QlibDataLoader(DLWParser):
         filter_pipe: List = None,
         swap_level: bool = True,
         freq: Union[str, dict] = "day",
-        inst_processor: dict = None,
+        inst_processors: Union[dict, list] = None,
     ):
         """
         Parameters
@@ -168,16 +168,19 @@ class QlibDataLoader(DLWParser):
         freq:  dict or str
             If type(config) == dict and type(freq) == str, load config data using freq.
             If type(config) == dict and type(freq) == dict, load config[<group_name>] data using freq[<group_name>]
-        inst_processor: dict
-            If inst_processor is not None and type(config) == dict; load config[<group_name>] data using inst_processor[<group_name>]
+        inst_processors: dict | list
+            If inst_processors is not None and type(config) == dict; load config[<group_name>] data using inst_processors[<group_name>]
+            If inst_processors is a list, then it will be applied to all groups.
         """
         self.filter_pipe = filter_pipe
         self.swap_level = swap_level
         self.freq = freq
 
         # sample
-        self.inst_processor = inst_processor if inst_processor is not None else {}
-        assert isinstance(self.inst_processor, dict), f"inst_processor(={self.inst_processor}) must be dict"
+        self.inst_processors = inst_processors if inst_processors is not None else {}
+        assert isinstance(
+            self.inst_processors, (dict, list)
+        ), f"inst_processors(={self.inst_processors}) must be dict or list"
 
         super().__init__(config)
 
@@ -188,8 +191,8 @@ class QlibDataLoader(DLWParser):
                     if _gp not in freq:
                         raise ValueError(f"freq(={freq}) missing group(={_gp})")
                 assert (
-                    self.inst_processor
-                ), f"freq(={self.freq}), inst_processor(={self.inst_processor}) cannot be None/empty"
+                    self.inst_processors
+                ), f"freq(={self.freq}), inst_processors(={self.inst_processors}) cannot be None/empty"
 
     def load_group_df(
         self,
@@ -209,6 +212,9 @@ class QlibDataLoader(DLWParser):
             warnings.warn("`filter_pipe` is not None, but it will not be used with `instruments` as list")
 
         freq = self.freq[gp_name] if isinstance(self.freq, dict) else self.freq
+        inst_processors = (
+            self.inst_processors if isinstance(self.inst_processors, list) else self.inst_processors.get(gp_name, [])
+        )
         self.logger.info('Loading data for group "%s" with freq "%s" from disk', gp_name, freq)
 
         df = D.features(
@@ -219,6 +225,7 @@ class QlibDataLoader(DLWParser):
             freq=freq,
             inst_processors=self.inst_processor.get(gp_name, []),
         )
+        df = D.features(instruments, exprs, start_time, end_time, freq=freq, inst_processors=inst_processors)
         df.columns = names
         self.logger.info('Loaded data for group "%s" with freq "%s" from disk', gp_name, freq)
         if self.swap_level:

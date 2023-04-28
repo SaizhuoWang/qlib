@@ -83,7 +83,16 @@ def _find_pickle(filename_without_suffix: Path) -> Path:
 
 @lru_cache(maxsize=10)  # 10 * 40M = 400MB
 def _read_pickle(filename_without_suffix: Path) -> pd.DataFrame:
-    return pd.read_pickle(_find_pickle(filename_without_suffix))
+    df = pd.read_pickle(_find_pickle(filename_without_suffix))
+    index_cols = df.index.names
+
+    df = df.reset_index()
+    for date_col_name in ["date", "datetime"]:
+        if date_col_name in df:
+            df[date_col_name] = pd.to_datetime(df[date_col_name])
+    df = df.set_index(index_cols)
+
+    return df
 
 
 class SimpleIntradayBacktestData(BaseIntradayBacktestData):
@@ -95,7 +104,7 @@ class SimpleIntradayBacktestData(BaseIntradayBacktestData):
         stock_id: str,
         date: pd.Timestamp,
         deal_price: DealPriceType = "close",
-        order_dir: int = None,
+        order_dir: int | None = None,
     ) -> None:
         super(SimpleIntradayBacktestData, self).__init__()
 
@@ -156,8 +165,8 @@ class SimpleIntradayBacktestData(BaseIntradayBacktestData):
         return cast(pd.DatetimeIndex, self.data.index)
 
 
-class IntradayProcessedData(BaseIntradayProcessedData):
-    """Subclass of IntradayProcessedData. Used to handle Dataset Handler style data."""
+class PickleIntradayProcessedData(BaseIntradayProcessedData):
+    """Subclass of IntradayProcessedData. Used to handle pickle-styled data."""
 
     def __init__(
         self,
@@ -168,6 +177,7 @@ class IntradayProcessedData(BaseIntradayProcessedData):
         time_index: pd.Index,
     ) -> None:
         proc = _read_pickle((data_dir if isinstance(data_dir, Path) else Path(data_dir)) / stock_id)
+
         # We have to infer the names here because,
         # unfortunately they are not included in the original data.
         cnames = _infer_processed_data_column_names(feature_dim)
@@ -212,7 +222,7 @@ def load_simple_intraday_backtest_data(
     stock_id: str,
     date: pd.Timestamp,
     deal_price: DealPriceType = "close",
-    order_dir: int = None,
+    order_dir: int | None = None,
 ) -> SimpleIntradayBacktestData:
     return SimpleIntradayBacktestData(data_dir, stock_id, date, deal_price, order_dir)
 
@@ -221,14 +231,14 @@ def load_simple_intraday_backtest_data(
     cache=cachetools.LRUCache(100),  # 100 * 50K = 5MB
     key=lambda data_dir, stock_id, date, feature_dim, time_index: hashkey(data_dir, stock_id, date),
 )
-def load_pickled_intraday_processed_data(
+def load_pickle_intraday_processed_data(
     data_dir: Path,
     stock_id: str,
     date: pd.Timestamp,
     feature_dim: int,
     time_index: pd.Index,
 ) -> BaseIntradayProcessedData:
-    return IntradayProcessedData(data_dir, stock_id, date, feature_dim, time_index)
+    return PickleIntradayProcessedData(data_dir, stock_id, date, feature_dim, time_index)
 
 
 class PickleProcessedDataProvider(ProcessedDataProvider):
@@ -244,7 +254,7 @@ class PickleProcessedDataProvider(ProcessedDataProvider):
         feature_dim: int,
         time_index: pd.Index,
     ) -> BaseIntradayProcessedData:
-        return load_pickled_intraday_processed_data(
+        return load_pickle_intraday_processed_data(
             data_dir=self._data_dir,
             stock_id=stock_id,
             date=date,

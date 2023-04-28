@@ -52,6 +52,7 @@ class MetaModelDS(MetaTaskModel):
         lr=0.0001,
         max_epoch=100,
         seed=43,
+        alpha=0.0,
     ):
         self.step = step
         self.hist_step_n = hist_step_n
@@ -61,6 +62,7 @@ class MetaModelDS(MetaTaskModel):
         self.lr = lr
         self.max_epoch = max_epoch
         self.fitted = False
+        self.alpha = alpha
         torch.manual_seed(seed)
 
     def run_epoch(self, phase, task_list, epoch, opt, loss_l, ignore_weight=False):
@@ -161,6 +163,7 @@ class MetaModelDS(MetaTaskModel):
             hist_step_n=self.hist_step_n,
             clip_weight=self.clip_weight,
             clip_method=self.clip_method,
+            alpha=self.alpha,
         )
 
         opt = optim.Adam(self.tn.parameters(), lr=self.lr)

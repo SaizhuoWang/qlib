@@ -28,14 +28,14 @@ from qlib.typehint import Literal
 
 def _get_multi_level_executor_config(
     strategy_config: dict,
-    cash_limit: float = None,
+    cash_limit: float | None = None,
     generate_report: bool = False,
 ) -> dict:
     executor_config = {
         "class": "SimulatorExecutor",
         "module_path": "qlib.backtest.executor",
         "kwargs": {
-            "time_per_step": "1min",
+            "time_per_step": "5min",  # FIXME: move this into config
             "verbose": False,
             "trade_type": SimulatorExecutor.TT_PARAL if cash_limit is not None else SimulatorExecutor.TT_SERIAL,
             "generate_report": generate_report,
@@ -127,7 +127,7 @@ def single_with_simulator(
     backtest_config: dict,
     orders: pd.DataFrame,
     split: Literal["stock", "day"] = "stock",
-    cash_limit: float = None,
+    cash_limit: float | None = None,
     generate_report: bool = False,
 ) -> Union[Tuple[pd.DataFrame, dict], pd.DataFrame]:
     """Run backtest in a single thread with SingleAssetOrderExecution simulator. The orders will be executed day by day.
@@ -154,12 +154,7 @@ def single_with_simulator(
     -------
         If generate_report is True, return execution records and the generated report. Otherwise, return only records.
     """
-    if split == "stock":
-        stock_id = orders.iloc[0].instrument
-        init_qlib(backtest_config["qlib"], part=stock_id)
-    else:
-        day = orders.iloc[0].datetime
-        init_qlib(backtest_config["qlib"], part=day)
+    init_qlib(backtest_config["qlib"])
 
     stocks = orders.instrument.unique().tolist()
 
@@ -187,7 +182,7 @@ def single_with_simulator(
         exchange_config.update(
             {
                 "codes": stocks,
-                "freq": "1min",
+                "freq": "5min",  # FIXME: move this into config
             }
         )
 
@@ -226,7 +221,7 @@ def single_with_collect_data_loop(
     backtest_config: dict,
     orders: pd.DataFrame,
     split: Literal["stock", "day"] = "stock",
-    cash_limit: float = None,
+    cash_limit: float | None = None,
     generate_report: bool = False,
 ) -> Union[Tuple[pd.DataFrame, dict], pd.DataFrame]:
     """Run backtest in a single thread with collect_data_loop.
@@ -253,12 +248,7 @@ def single_with_collect_data_loop(
         If generate_report is True, return execution records and the generated report. Otherwise, return only records.
     """
 
-    if split == "stock":
-        stock_id = orders.iloc[0].instrument
-        init_qlib(backtest_config["qlib"], part=stock_id)
-    else:
-        day = orders.iloc[0].datetime
-        init_qlib(backtest_config["qlib"], part=day)
+    init_qlib(backtest_config["qlib"])
 
     trade_start_time = orders["datetime"].min()
     trade_end_time = orders["datetime"].max()
@@ -286,7 +276,7 @@ def single_with_collect_data_loop(
     exchange_config.update(
         {
             "codes": stocks,
-            "freq": "1min",
+            "freq": "5min",  # FIXME: move this into config
         }
     )
 
@@ -357,7 +347,10 @@ def backtest(backtest_config: dict, with_simulator: bool = False) -> pd.DataFram
 
     if not output_path.exists():
         os.makedirs(output_path)
-    res.to_csv(output_path / "summary.csv")
+
+    if "pa" in res.columns:
+        res["pa"] = res["pa"] * 10000.0  # align with training metrics
+    res.to_csv(output_path / "backtest_result.csv")
     return res
 
 
