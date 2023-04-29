@@ -8,11 +8,11 @@ from typing import Dict, List, Text, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from qlib.backtest.decision import Order, OrderDir, TradeDecisionWO
+from qlib.backtest.decision import Order, OrderDirection, TradeDecisionWO
 from qlib.backtest.position import Position
 from qlib.backtest.signal import Signal, create_signal_from
 from qlib.contrib.strategy.optimizer import EnhancedIndexingOptimizer
-from qlib.contrib.strategy.order_generator import OrderGenWOInteractfrom
+from qlib.contrib.strategy.order_generator import OrderGenWOInteract
 from abc import ABC
 
 from qlib.data import D
@@ -246,7 +246,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
                 stock_id=code,
                 start_time=trade_start_time,
                 end_time=trade_end_time,
-                direction=None if self.forbid_all_trade_at_limit else OrderDir.SELL,
+                direction=None if self.forbid_all_trade_at_limit else OrderDirection.SELL,
             ):
                 continue
             if code in sell:
@@ -286,7 +286,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
                 stock_id=code,
                 start_time=trade_start_time,
                 end_time=trade_end_time,
-                direction=None if self.forbid_all_trade_at_limit else OrderDir.BUY,
+                direction=None if self.forbid_all_trade_at_limit else OrderDirection.BUY,
             ):
                 continue
             # buy order
@@ -294,7 +294,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
                 stock_id=code,
                 start_time=trade_start_time,
                 end_time=trade_end_time,
-                direction=OrderDir.BUY,
+                direction=OrderDirection.BUY,
             )
             buy_amount = value / buy_price
             factor = self.trade_exchange.get_factor(stock_id=code, start_time=trade_start_time, end_time=trade_end_time)

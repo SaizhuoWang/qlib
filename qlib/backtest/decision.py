@@ -27,7 +27,7 @@ import pandas as pd
 DecisionType = TypeVar("DecisionType")
 
 
-class OrderDir(IntEnum):
+class OrderDirection(IntEnum):
     # Order direction
     SELL = 0
     BUY = 1
@@ -52,7 +52,7 @@ class Order:
     # - they are set by users and is time-invariant.
     stock_id: str
     amount: float  # `amount` is a non-negative and adjusted value
-    direction: OrderDir
+    direction: OrderDirection
 
     # 2) time variant values:
     # - Users may want to set these values when using lower level APIs
@@ -77,8 +77,8 @@ class Order:
     # FIXME:
     # for compatible now.
     # Please remove them in the future
-    SELL: ClassVar[OrderDir] = OrderDir.SELL
-    BUY: ClassVar[OrderDir] = OrderDir.BUY
+    SELL: ClassVar[OrderDirection] = OrderDirection.SELL
+    BUY: ClassVar[OrderDirection] = OrderDirection.BUY
 
     def __post_init__(self) -> None:
         if self.direction not in {Order.SELL, Order.BUY}:
@@ -114,17 +114,19 @@ class Order:
         return self.direction * 2 - 1
 
     @staticmethod
-    def parse_dir(direction: Union[str, int, np.integer, OrderDir, np.ndarray]) -> Union[OrderDir, np.ndarray]:
-        if isinstance(direction, OrderDir):
+    def parse_dir(
+        direction: Union[str, int, np.integer, OrderDirection, np.ndarray]
+    ) -> Union[OrderDirection, np.ndarray]:
+        if isinstance(direction, OrderDirection):
             return direction
         elif isinstance(direction, (int, float, np.integer, np.floating)):
             return Order.BUY if direction > 0 else Order.SELL
         elif isinstance(direction, str):
             dl = direction.lower().strip()
             if dl == "sell":
-                return OrderDir.SELL
+                return OrderDirection.SELL
             elif dl == "buy":
-                return OrderDir.BUY
+                return OrderDirection.BUY
             else:
                 raise NotImplementedError(f"This type of input is not supported")
         elif isinstance(direction, np.ndarray):
@@ -166,7 +168,7 @@ class OrderHelper:
     def create(
         code: str,
         amount: float,
-        direction: OrderDir,
+        direction: OrderDirection,
         start_time: Union[str, pd.Timestamp] = None,
         end_time: Union[str, pd.Timestamp] = None,
     ) -> Order:
@@ -586,6 +588,7 @@ class TradeDecisionWithDetails(TradeDecisionWO):
     """
     Decision with detail information.
     Detail information is used to generate execution reports.
+    Used for RL-based strategies.
     """
 
     def __init__(

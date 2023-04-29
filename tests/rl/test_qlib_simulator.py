@@ -8,7 +8,7 @@ from typing import Tuple
 import pandas as pd
 import pytest
 
-from qlib.backtest.decision import Order, OrderDir
+from qlib.backtest.decision import Order, OrderDirection
 from qlib.backtest.executor import SimulatorExecutor
 from qlib.rl.order_execution import CategoricalActionInterpreter
 from qlib.rl.order_execution.simulator_qlib import SingleAssetOrderExecution
@@ -26,7 +26,7 @@ def get_order() -> Order:
     return Order(
         stock_id="SH600000",
         amount=TOTAL_POSITION,
-        direction=OrderDir.BUY,
+        direction=OrderDirection.BUY,
         start_time=pd.Timestamp("2019-03-04 09:30:00"),
         end_time=pd.Timestamp("2019-03-04 14:29:00"),
     )
@@ -146,7 +146,7 @@ def test_simulator_first_step():
     assert state.history_steps["deal_amount"].iloc[0] == AMOUNT
     assert state.history_steps["ffr"].iloc[0] == AMOUNT / TOTAL_POSITION
     assert is_close(
-        state.history_steps["pa"].iloc[0] * (1.0 if order.direction == OrderDir.SELL else -1.0),
+        state.history_steps["pa"].iloc[0] * (1.0 if order.direction == OrderDirection.SELL else -1.0),
         (state.history_steps["trade_price"].iloc[0] / simulator.twap_price - 1) * 10000,
     )
 

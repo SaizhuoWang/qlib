@@ -28,7 +28,7 @@ import numpy as np
 import pandas as pd
 from cachetools.keys import hashkey
 
-from qlib.backtest.decision import Order, OrderDir
+from qlib.backtest.decision import Order, OrderDirection
 from qlib.rl.data.base import BaseIntradayBacktestData, BaseIntradayProcessedData, ProcessedDataProvider
 from qlib.typehint import Literal
 
@@ -138,7 +138,7 @@ class SimpleIntradayBacktestData(BaseIntradayBacktestData):
         if self.deal_price_type in ("bid_or_ask", "bid_or_ask_fill"):
             if self.order_dir is None:
                 raise ValueError("Order direction cannot be none when deal_price_type is not close.")
-            if self.order_dir == OrderDir.SELL:
+            if self.order_dir == OrderDirection.SELL:
                 col = "$bid0"
             else:  # BUY
                 col = "$ask0"
@@ -149,7 +149,7 @@ class SimpleIntradayBacktestData(BaseIntradayBacktestData):
         price = self.data[col]
 
         if self.deal_price_type == "bid_or_ask_fill":
-            if self.order_dir == OrderDir.SELL:
+            if self.order_dir == OrderDirection.SELL:
                 fill_col = "$ask0"
             else:
                 fill_col = "$bid0"
@@ -301,7 +301,7 @@ def load_orders(
             Order(
                 row["instrument"],
                 row["amount"],
-                OrderDir(int(row["order_type"])),
+                OrderDirection(int(row["order_type"])),
                 row["datetime"].replace(
                     hour=start_time.hour,
                     minute=start_time.minute,

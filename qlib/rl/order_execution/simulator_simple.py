@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 from pathlib import Path
-from qlib.backtest.decision import Order, OrderDir
+from qlib.backtest.decision import Order, OrderDirection
 from qlib.constant import EPS, EPS_T, float_or_ndarray
 from qlib.rl.data.base import BaseIntradayBacktestData
 from qlib.rl.data.native import DataframeIntradayBacktestData, load_handler_intraday_processed_data
@@ -342,16 +342,16 @@ class SingleAssetOrderExecutionSimple(Simulator[Order, SAOEState, float]):
 def price_advantage(
     exec_price: float_or_ndarray,
     baseline_price: float,
-    direction: OrderDir | int,
+    direction: OrderDirection | int,
 ) -> float_or_ndarray:
     if baseline_price == 0:  # something is wrong with data. Should be nan here
         if isinstance(exec_price, float):
             return 0.0
         else:
             return np.zeros_like(exec_price)
-    if direction == OrderDir.BUY:
+    if direction == OrderDirection.BUY:
         res = (1 - exec_price / baseline_price) * 10000
-    elif direction == OrderDir.SELL:
+    elif direction == OrderDirection.SELL:
         res = (exec_price / baseline_price - 1) * 10000
     else:
         raise ValueError(f"Unexpected order direction: {direction}")

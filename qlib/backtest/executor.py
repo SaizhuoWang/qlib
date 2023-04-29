@@ -312,8 +312,7 @@ class BaseExecutor:
 class NestedExecutor(BaseExecutor):
     """
     Nested Executor with inner strategy and executor
-    - At each time `execute` is called, it will call the inner strategy and executor to execute the `trade_decision`
-        in a higher frequency env.
+    - At each time `execute` is called, it will call the inner strategy and executor to execute the `trade_decision` in a higher frequency env.
     """
 
     def __init__(
@@ -586,7 +585,7 @@ class SimulatorExecutor(BaseExecutor):
             # It equals to parallel trading after sorting the order by direction
             order_it = sorted(orders, key=lambda order: -order.direction)
         else:
-            raise NotImplementedError(f"This type of input is not supported")
+            raise NotImplementedError("This type of input is not supported")
         return order_it
 
     def _update_dealt_order_amount(self, order: Order) -> None:

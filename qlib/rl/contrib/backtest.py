@@ -16,7 +16,7 @@ import torch
 from joblib import Parallel, delayed
 
 from qlib.backtest import INDICATOR_METRIC_TYPE, collect_data_loop, get_strategy_executor
-from qlib.backtest.decision import BaseTradeDecision, Order, OrderDir, TradeRangeByTime
+from qlib.backtest.decision import BaseTradeDecision, Order, OrderDirection, TradeRangeByTime
 from qlib.backtest.executor import SimulatorExecutor
 from qlib.backtest.high_performance_ds import BaseOrderIndicator
 from qlib.rl.contrib.naive_config_parser import get_backtest_config_fromfile
@@ -167,7 +167,7 @@ def single_with_simulator(
         order = Order(
             stock_id=row["instrument"],
             amount=row["amount"],
-            direction=OrderDir(row["direction"]),
+            direction=OrderDirection(row["direction"]),
             start_time=start_time,
             end_time=end_time,
         )

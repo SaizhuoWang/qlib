@@ -7,7 +7,7 @@ from typing import cast
 
 import numpy as np
 
-from qlib.backtest.decision import OrderDir
+from qlib.backtest.decision import OrderDirection
 from qlib.rl.order_execution.state import SAOEMetrics, SAOEState
 from qlib.rl.reward import Reward
 
@@ -85,7 +85,7 @@ class PPOReward(Reward[SAOEState]):
                 )
             twap_price = simulator_state.backtest_data.get_deal_price().mean()
 
-            if simulator_state.order.direction == OrderDir.SELL:
+            if simulator_state.order.direction == OrderDirection.SELL:
                 ratio = vwap_price / twap_price if twap_price != 0 else 1.0
             else:
                 ratio = twap_price / vwap_price if vwap_price != 0 else 1.0

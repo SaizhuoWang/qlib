@@ -21,8 +21,6 @@ from ..utils import class_casting, fill_placeholder, flatten_dict, get_date_by_s
 from ..utils.data import deepcopy_basic_type
 from ..utils.time import Freq
 
-from q4l.type_hints import DataPackage
-
 logger = get_module_logger("workflow", logging.INFO)
 
 
@@ -192,7 +190,7 @@ class SignalRecord(RecordTemp):
         #         # So raw_label is not available
         #         logger.warning(f"Exception: {e}")
         #         raw_label = None
-        data: DataPackage = dataset.prepare(segments="test", data_key=DataHandlerLP.DK_R)
+        data: pd.DataFrame = dataset.prepare(segments="test", data_key=DataHandlerLP.DK_R)
         label = data["y"][dataset.window_size - 1 :].squeeze().flatten()
         indices = [(tick, ticker) for tick in data["ticks"][dataset.window_size - 1 :] for ticker in data["tickers"]]
         indices = pd.MultiIndex.from_tuples(indices, names=["datetime", "instrument"])
@@ -485,7 +483,9 @@ class PortAnaRecord(ACRecordTemp):
     def _generate(self, **kwargs):
         if "recorder" in kwargs:
             self._recorder = kwargs["recorder"]
-        pred = self.load("pred.pkl")
+
+        # Make it possible to pass in alpha for backtest
+        pred = kwargs["pred"] if "pred" in kwargs else self.load("pred.pkl")
 
         # replace the "<PRED>" with prediction saved before
         placeholder_value = {"<PRED>": pred}

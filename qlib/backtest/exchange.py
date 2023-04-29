@@ -21,7 +21,7 @@ from ..config import C
 from ..constant import REG_CN, REG_TW
 from ..data.data import D
 from ..log import get_module_logger
-from .decision import Order, OrderDir, OrderHelper
+from .decision import Order, OrderDirection, OrderHelper
 from .high_performance_ds import BaseQuote, NumpyQuote
 
 
@@ -519,12 +519,12 @@ class Exchange:
         stock_id: str,
         start_time: pd.Timestamp,
         end_time: pd.Timestamp,
-        direction: OrderDir,
+        direction: OrderDirection,
         method: Optional[str] = "ts_data_last",
     ) -> Union[None, int, float, bool, IndexData]:
-        if direction == OrderDir.SELL:
+        if direction == OrderDirection.SELL:
             pstr = self.sell_price
-        elif direction == OrderDir.BUY:
+        elif direction == OrderDirection.BUY:
             pstr = self.buy_price
         else:
             raise NotImplementedError(f"This type of input is not supported")
@@ -560,7 +560,7 @@ class Exchange:
         cash: float,
         start_time: pd.Timestamp,
         end_time: pd.Timestamp,
-        direction: OrderDir = OrderDir.BUY,
+        direction: OrderDirection = OrderDirection.BUY,
     ) -> dict:
         """
         Generates the target position according to the weight and the cash.
@@ -706,7 +706,7 @@ class Exchange:
         start_time: pd.Timestamp,
         end_time: pd.Timestamp,
         only_tradable: bool = False,
-        direction: OrderDir = OrderDir.SELL,
+        direction: OrderDirection = OrderDirection.SELL,
     ) -> float:
         """Parameter
         position : Position()

@@ -8,7 +8,7 @@ from typing import Any, cast
 import numpy as np
 import pandas as pd
 
-from qlib.backtest.decision import OrderDir
+from qlib.backtest.decision import OrderDirection
 from qlib.backtest.executor import BaseExecutor, NestedExecutor, SimulatorExecutor
 from qlib.constant import float_or_ndarray
 
@@ -25,16 +25,16 @@ def dataframe_append(df: pd.DataFrame, other: Any) -> pd.DataFrame:
 def price_advantage(
     exec_price: float_or_ndarray,
     baseline_price: float,
-    direction: OrderDir | int,
+    direction: OrderDirection | int,
 ) -> float_or_ndarray:
     if baseline_price == 0:  # something is wrong with data. Should be nan here
         if isinstance(exec_price, float):
             return 0.0
         else:
             return np.zeros_like(exec_price)
-    if direction == OrderDir.BUY:
+    if direction == OrderDirection.BUY:
         res = (1 - exec_price / baseline_price) * 10000
-    elif direction == OrderDir.SELL:
+    elif direction == OrderDirection.SELL:
         res = (exec_price / baseline_price - 1) * 10000
     else:
         raise ValueError(f"Unexpected order direction: {direction}")

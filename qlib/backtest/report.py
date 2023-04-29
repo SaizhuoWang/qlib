@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 import qlib.utils.index_data as idd
-from qlib.backtest.decision import BaseTradeDecision, Order, OrderDir
+from qlib.backtest.decision import BaseTradeDecision, Order, OrderDirection
 from qlib.backtest.exchange import Exchange
 
 from ..tests.config import CSI300_BENCH
@@ -385,7 +385,7 @@ class Indicator:
         inst: str,
         trade_start_time: pd.Timestamp,
         trade_end_time: pd.Timestamp,
-        direction: OrderDir,
+        direction: OrderDirection,
         decision: BaseTradeDecision,
         trade_exchange: Exchange,
         pa_config: dict = {},

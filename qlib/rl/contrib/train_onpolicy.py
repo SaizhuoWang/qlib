@@ -14,7 +14,7 @@ import pandas as pd
 import torch
 import yaml
 from qlib.backtest import Order
-from qlib.backtest.decision import OrderDir
+from qlib.backtest.decision import OrderDirection
 from qlib.constant import ONE_MIN
 from qlib.rl.data.native import load_handler_intraday_processed_data
 from qlib.rl.interpreter import ActionInterpreter, StateInterpreter
@@ -88,7 +88,7 @@ class LazyLoadDataset(Dataset):
         order = Order(
             stock_id=row["instrument"],
             amount=row["amount"],
-            direction=OrderDir(int(row["order_type"])),
+            direction=OrderDirection(int(row["order_type"])),
             start_time=date + self._ticks_index[self._default_start_time_index],
             end_time=date + self._ticks_index[self._default_end_time_index - 1] + ONE_MIN,
         )
