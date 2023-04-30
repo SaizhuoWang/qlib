@@ -51,6 +51,7 @@ class Exchange:
         impact_cost: float = 0.0,
         extra_quote: pd.DataFrame = None,
         quote_cls: Type[BaseQuote] = NumpyQuote,
+        is_qlib: bool = False,
         **kwargs: Any,
     ) -> None:
         """__init__
@@ -163,9 +164,10 @@ class Exchange:
         else:
             raise NotImplementedError(f"This type of input is not supported")
 
-        if isinstance(codes, str):
+        if isinstance(codes, str) and is_qlib:
             codes = D.instruments(codes)
         self.codes = codes
+
         # Necessary fields
         # $close is for calculating the total value at end of each day.
         # - if $close is None, the stock on that day is regarded as suspended.
@@ -199,11 +201,13 @@ class Exchange:
         self.limit_threshold: Union[Tuple[str, str], float, None] = limit_threshold
         self.volume_threshold = volume_threshold
         self.extra_quote = extra_quote
-        self.get_quote_from_qlib()
+
+        if is_qlib:
+            self.get_quote_from_qlib()
+            self.quote: BaseQuote = self.quote_cls(self.quote_df, freq)
 
         # init quote by quote_df
         self.quote_cls = quote_cls
-        self.quote: BaseQuote = self.quote_cls(self.quote_df, freq)
 
     def get_quote_from_qlib(self) -> None:
         # get stock data from qlib

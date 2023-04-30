@@ -28,7 +28,7 @@ rtn & earning in the Account
     **is consider cost**
         while earning is the difference of two position value, so it considers cost, it is the true return rate
         in the specific accomplishment for rtn, it does not consider cost, in other words, rtn - cost = earning
-
+What the fark is this? Can you write normal English?
 """
 
 
@@ -296,7 +296,7 @@ class Account:
             stock_value=now_stock_value,
         )
 
-    def update_hist_positions(self, trade_start_time: pd.Timestamp) -> None:
+    def update_history_positions(self, trade_start_time: pd.Timestamp) -> None:
         """update history position"""
         now_account_value = self.current_position.calculate_value()
         # set now_account_value to position
@@ -394,7 +394,7 @@ class Account:
         if self.is_port_metr_enabled():
             # portfolio_metrics is portfolio related analysis
             self.update_portfolio_metrics(trade_start_time, trade_end_time)
-            self.update_hist_positions(trade_start_time)
+            self.update_history_positions(trade_start_time)
 
         # update indicator in each bar end
         self.update_indicator(

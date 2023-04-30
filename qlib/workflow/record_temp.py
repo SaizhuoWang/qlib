@@ -485,7 +485,7 @@ class PortAnaRecord(ACRecordTemp):
             self._recorder = kwargs["recorder"]
 
         # Make it possible to pass in alpha for backtest
-        pred = kwargs["pred"] if "pred" in kwargs else self.load("pred.pkl")
+        pred: pd.Series = kwargs["pred"] if "pred" in kwargs else self.load("pred.pkl")
 
         # replace the "<PRED>" with prediction saved before
         placeholder_value = {"<PRED>": pred}

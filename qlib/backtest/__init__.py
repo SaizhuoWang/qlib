@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generator, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Generator, List, Optional, Tuple, Union, Dict
 
 import pandas as pd
 
@@ -91,7 +91,6 @@ def get_exchange(
         limit_threshold = C.limit_threshold
     if exchange is None:
         logger.info("Create new exchange")
-
         exchange = Exchange(
             freq=freq,
             start_time=start_time,
@@ -113,7 +112,7 @@ def get_exchange(
 def create_account_instance(
     start_time: Union[pd.Timestamp, str],
     end_time: Union[pd.Timestamp, str],
-    benchmark: Optional[str],
+    benchmark: Optional[Union[str, Dict]],
     account: Union[float, int, dict],
     pos_type: str = "Position",
 ) -> Account:
@@ -158,17 +157,18 @@ def create_account_instance(
     else:
         raise ValueError("account must be in (int, float, dict)")
 
+    if isinstance(benchmark, str):
+        benchmark = {
+            "benchmark": benchmark,
+            "start_time": start_time,
+            "end_time": end_time,
+        }
+
     return Account(
         init_cash=init_cash,
         position_dict=position_dict,
         pos_type=pos_type,
-        benchmark_config={}
-        if benchmark is None
-        else {
-            "benchmark": benchmark,
-            "start_time": start_time,
-            "end_time": end_time,
-        },
+        benchmark_config=benchmark if benchmark is not None else {},
     )
 
 
@@ -177,7 +177,7 @@ def get_strategy_executor(
     end_time: Union[pd.Timestamp, str],
     strategy: Union[str, dict, object, Path],
     executor: Union[str, dict, object, Path],
-    benchmark: Optional[str] = "SH000300",
+    benchmark: Optional[Union[str, Dict]] = "SH000300",
     account: Union[float, int, dict] = 1e9,
     exchange_kwargs: dict = {},
     pos_type: str = "Position",
@@ -218,7 +218,7 @@ def backtest(
     end_time: Union[pd.Timestamp, str],
     strategy: Union[str, dict, object, Path],
     executor: Union[str, dict, object, Path],
-    benchmark: str = "SH000300",
+    benchmark: Union[str, Dict] = "SH000300",
     account: Union[float, int, dict] = 1e9,
     exchange_kwargs: dict = {},
     pos_type: str = "Position",
