@@ -85,18 +85,48 @@ def collect_data_loop(
     trade_executor.reset(start_time=start_time, end_time=end_time)
     trade_strategy.reset(level_infra=trade_executor.get_level_infra())
 
-    with tqdm(total=trade_executor.trade_calendar.get_trade_len(), desc="backtest loop") as bar:
-        _execute_result = None
-        while not trade_executor.finished():
-            # Get today's trading decision
-            _trade_decision: BaseTradeDecision = trade_strategy.generate_trade_decision(_execute_result)
-            # Execute all orders in the decision for 1 trading tick
-            _execute_result = yield from trade_executor.collect_data(_trade_decision, level=0)
-            # Update the strategy's state with the execution result
-            trade_strategy.post_exe_step(_execute_result)
-            # Update progress bar
-            bar.update(1)
-        trade_strategy.post_upper_level_exe_step()
+    # with tqdm(total=trade_executor.trade_calendar.get_trade_len(), desc="backtest loop") as bar:
+    #     _execute_result = None
+    #     while not trade_executor.finished():
+    #         # Get today's trading decision
+    #         _trade_decision: BaseTradeDecision = trade_strategy.generate_trade_decision(_execute_result)
+    #         # Execute all orders in the decision for 1 trading tick
+    #         _execute_result = yield from trade_executor.collect_data(_trade_decision, level=0)
+    #         # Update the strategy's state with the execution result
+    #         trade_strategy.post_exe_step(_execute_result)
+    #         # Update progress bar
+    #         bar.update(1)
+    #     trade_strategy.post_upper_level_exe_step()
+
+    import time
+
+    trade_len = trade_executor.trade_calendar.get_trade_len()
+    iteration = 0
+
+    _execute_result = None
+    while not trade_executor.finished():
+        iteration += 1
+        print(f"Running iteration {iteration}/{trade_len}")
+
+        # Get today's trading decision
+        start_time = time.time()
+        _trade_decision: BaseTradeDecision = trade_strategy.generate_trade_decision(_execute_result)
+        end_time = time.time()
+        print(f"Step 1 - generate_trade_decision took: {end_time - start_time:.4f} seconds")
+
+        # Execute all orders in the decision for 1 trading tick
+        start_time = time.time()
+        _execute_result = yield from trade_executor.collect_data(_trade_decision, level=0)
+        end_time = time.time()
+        print(f"Step 2 - collect_data took: {end_time - start_time:.4f} seconds")
+
+        # Update the strategy's state with the execution result
+        start_time = time.time()
+        trade_strategy.post_exe_step(_execute_result)
+        end_time = time.time()
+        print(f"Step 3 - post_exe_step took: {end_time - start_time:.4f} seconds")
+
+    trade_strategy.post_upper_level_exe_step()
 
     if return_value is not None:
         all_executors = trade_executor.get_all_executors()
