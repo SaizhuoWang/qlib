@@ -10,7 +10,14 @@ import pandas as pd
 
 from qlib.config import C
 from qlib.data.cache import H
-from qlib.data.storage import CalendarStorage, CalVT, FeatureStorage, InstKT, InstrumentStorage, InstVT
+from qlib.data.storage import (
+    CalendarStorage,
+    CalVT,
+    FeatureStorage,
+    InstKT,
+    InstrumentStorage,
+    InstVT,
+)
 from qlib.log import get_module_logger
 from qlib.utils.resam import resam_calendar
 from qlib.utils.time import Freq
@@ -43,6 +50,7 @@ class FileStorageMixin:
     @property
     def support_freq(self) -> List[str]:
         _v = "_support_freq"
+
         if hasattr(self, _v):
             return getattr(self, _v)
         if len(self.provider_uri) == 1 and C.DEFAULT_FREQ in self.provider_uri:
@@ -151,7 +159,14 @@ class FileCalendarStorage(FileStorageMixin, CalendarStorage):
         return _calendar
 
     def _get_storage_freq(self) -> List[str]:
-        return sorted(set(map(lambda x: x.stem.split("_")[0], self.uri.parent.glob("*.txt"))))
+        return sorted(
+            set(
+                map(
+                    lambda x: x.stem.split("_")[0],
+                    self.uri.parent.glob("*.txt"),
+                )
+            )
+        )
 
     def extend(self, values: Iterable[CalVT]) -> None:
         self._write_calendar(values, mode="ab")
@@ -222,7 +237,10 @@ class FileInstrumentStorage(FileStorageMixin, InstrumentStorage):
                 self.INSTRUMENT_END_FIELD,
             ],
             dtype={self.SYMBOL_FIELD_NAME: str},
-            parse_dates=[self.INSTRUMENT_START_FIELD, self.INSTRUMENT_END_FIELD],
+            parse_dates=[
+                self.INSTRUMENT_START_FIELD,
+                self.INSTRUMENT_END_FIELD,
+            ],
         )
         for row in df.itertuples(index=False):
             _instruments.setdefault(row[0], []).append((row[1], row[2]))
@@ -236,7 +254,13 @@ class FileInstrumentStorage(FileStorageMixin, InstrumentStorage):
 
         res = []
         for inst, v_list in data.items():
-            _df = pd.DataFrame(v_list, columns=[self.INSTRUMENT_START_FIELD, self.INSTRUMENT_END_FIELD])
+            _df = pd.DataFrame(
+                v_list,
+                columns=[
+                    self.INSTRUMENT_START_FIELD,
+                    self.INSTRUMENT_END_FIELD,
+                ],
+            )
             _df[self.SYMBOL_FIELD_NAME] = inst
             res.append(_df)
 
