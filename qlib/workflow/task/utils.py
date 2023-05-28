@@ -234,6 +234,8 @@ class TimeAdjuster:
 
     SHIFT_SD = "sliding"
     SHIFT_EX = "expanding"
+    SHIFT_ON = "only_new"
+    SHIFT_TA = "throw_away"
 
     def _add_step(self, index, step):
         if index is None:
@@ -271,6 +273,9 @@ class TimeAdjuster:
                 end_idx = self._add_step(end_idx, step)
             elif rtype == self.SHIFT_EX:
                 end_idx = self._add_step(end_idx, step)
+            elif rtype == self.SHIFT_ON:
+                start_idx = end_idx
+                end_idx = self._add_step(start_idx, step)
             else:
                 raise NotImplementedError(f"This type of input is not supported")
             if start_idx is not None and start_idx > len(self.cals):
