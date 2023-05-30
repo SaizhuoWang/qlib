@@ -10,7 +10,7 @@ from ..utils import Wrapper
 from ..utils.exceptions import RecorderInitializationError
 from .exp import Experiment
 from .expm import ExpManager
-from .recorder import Recorder
+from .recorder import Recorder, MLflowRecorder
 import os
 
 
@@ -397,6 +397,18 @@ class QlibRecorder:
             yield
         finally:
             self.exp_manager.default_uri = prev_uri
+
+    @property
+    def artifact_uri(self):
+        rec = self.get_recorder()
+        if not isinstance(rec, MLflowRecorder):
+            raise TypeError(
+                "The `artifact_uri` is only available for MLflowRecorder, "
+                "but the current recorder is {}".format(type(rec))
+            )
+        arti_root_uri = rec.get_artifact_uri()
+        artifact_uri = os.path.join(arti_root_uri, self.suffix)
+        return artifact_uri
 
     def get_recorder(
         self,
