@@ -407,7 +407,7 @@ class QlibRecorder:
                 "but the current recorder is {}".format(type(rec))
             )
         arti_root_uri = rec.get_artifact_uri()
-        artifact_uri = os.path.join(arti_root_uri, self.suffix)
+        artifact_uri = os.path.join(arti_root_uri, R.suffix)
         return artifact_uri
 
     def get_recorder(
