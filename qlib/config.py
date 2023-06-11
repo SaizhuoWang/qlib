@@ -282,6 +282,26 @@ _default_region_config = {
         "limit_threshold": 0.1,
         "deal_price": "close",
     },
+    "jp": {
+        "trade_unit": 100,
+        "limit_threshold": None,
+        "deal_price": "close",
+    },
+    "hk": {
+        "trade_unit": 100,
+        "limit_threshold": None,
+        "deal_price": "close",
+    },
+    "uk": {
+        "trade_unit": 1,
+        "limit_threshold": None,
+        "deal_price": "close",
+    },
+    "fr": {
+        "trade_unit": 1,
+        "limit_threshold": None,
+        "deal_price": "close",
+    },
 }
 
 

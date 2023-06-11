@@ -480,12 +480,13 @@ class PortAnaRecord(ACRecordTemp):
             ret_freq.extend(self._get_report_freq(executor_config["kwargs"]["inner_executor"]))
         return ret_freq
 
-    def _generate(self, **kwargs):
+    def _generate(self, pred: pd.Series = None, **kwargs):
         if "recorder" in kwargs:
             self._recorder = kwargs["recorder"]
 
         # Make it possible to pass in alpha for backtest
-        pred: pd.Series = kwargs["pred"] if "pred" in kwargs else self.load("pred.pkl")
+        if pred is None:
+            pred = self.load("pred.pkl")
 
         # replace the "<PRED>" with prediction saved before
         placeholder_value = {"<PRED>": pred}
