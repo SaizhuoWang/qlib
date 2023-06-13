@@ -20,6 +20,9 @@ from ..log import get_module_logger
 from ..utils import class_casting, fill_placeholder, flatten_dict, get_date_by_shift
 from ..utils.data import deepcopy_basic_type
 from ..utils.time import Freq
+import os
+import yaml
+import json
 
 logger = get_module_logger("workflow", logging.INFO)
 
@@ -215,7 +218,10 @@ class SignalRecord(RecordTemp):
         pprint(pred.head(5))
 
     def list(self):
-        return ["pred.pkl", "label.pkl"]
+        files = ["pred.pkl", "label.pkl"]
+        # paths = [os.path.join('pickle', file) for file in files]
+        paths = files
+        return paths
 
 
 class ACRecordTemp(RecordTemp):
@@ -313,7 +319,7 @@ class SigAnaRecord(ACRecordTemp):
     def __init__(
         self,
         recorder,
-        ana_long_short=False,
+        ana_long_short=True,
         ann_scaler=252,
         label_col=0,
         skip_existing=False,
@@ -323,7 +329,7 @@ class SigAnaRecord(ACRecordTemp):
         self.ann_scaler = ann_scaler
         self.label_col = label_col
 
-    def _generate(self, label: Optional[pd.DataFrame] = None, **kwargs):
+    def _generate(self, label: Optional[pd.Series] = None, **kwargs):
         """
         Parameters
         ----------
@@ -334,20 +340,20 @@ class SigAnaRecord(ACRecordTemp):
         if label is None:
             label = self.load("label.pkl")
 
-        if label is None or not isinstance(label, pd.DataFrame) or label.empty:
+        if label is None or label.empty:
             logger.warning(f"Empty label.")
             return
         # pred = pred.reindex(label.index)
-        ic, ric = calc_ic(pred.iloc[:, 0], label.iloc[:, self.label_col])
+        ic, ric = calc_ic(pred, label)
         metrics = {
             "IC": ic.mean(),
             "ICIR": ic.mean() / ic.std(),
             "Rank IC": ric.mean(),
             "Rank ICIR": ric.mean() / ric.std(),
         }
-        objects = {"ic.pkl": ic, "ric.pkl": ric}
+        objects = {"ic": ic, "ric": ric}
         if self.ana_long_short:
-            long_short_r, long_avg_r = calc_long_short_return(pred.iloc[:, 0], label.iloc[:, self.label_col])
+            long_short_r, long_avg_r = calc_long_short_return(pred, label)
             metrics.update(
                 {
                     "Long-Short Ann Return": long_short_r.mean() * self.ann_scaler,
@@ -358,18 +364,26 @@ class SigAnaRecord(ACRecordTemp):
             )
             objects.update(
                 {
-                    "long_short_r.pkl": long_short_r,
-                    "long_avg_r.pkl": long_avg_r,
+                    "long_short_r": long_short_r,
+                    "long_avg_r": long_avg_r,
                 }
             )
-        self.recorder.log_metrics(**metrics)
-        self.save(**objects)
-        pprint(metrics)
+
+        with open(os.path.join(R.artifact_uri, "sig_analysis", "metrics.json"), "w") as f:
+            json.dump(metrics, f)
+
+        # Dump files in both csv and pkl format
+        os.makedirs(os.path.join(R.artifact_uri, "sig_analysis", "csv"), exist_ok=True)
+        for metric_name, metric_df in objects.items():
+            metric_df.to_csv(os.path.join(R.artifact_uri, "sig_analysis", "csv", f"{metric_name}.csv"))
+            with open(os.path.join(R.artifact_uri, "sig_analysis", f"{metric_name}.pkl"), "wb") as f:
+                metric_df.to_pickle(f)
 
     def list(self):
         paths = ["ic.pkl", "ric.pkl"]
         if self.ana_long_short:
             paths.extend(["long_short_r.pkl", "long_avg_r.pkl"])
+        # paths = [os.path.join('pickle', path) for path in paths]
         return paths
 
 
@@ -508,10 +522,17 @@ class PortAnaRecord(ACRecordTemp):
         )
         for _freq, (report_normal, positions_normal) in portfolio_metric_dict.items():
             self.save(**{f"report_normal_{_freq}.pkl": report_normal})
+            report_normal.to_csv(os.path.join(R.artifact_uri, "portfolio_analysis", f"report_normal_{_freq}.csv"))
             self.save(**{f"positions_normal_{_freq}.pkl": positions_normal})
+            dd = {k.strftime("%Y-%m-%d-%H:%M:%S"): v for k, v in positions_normal.items()}
+            with open(os.path.join(R.artifact_uri, "portfolio_analysis", f"positions_normal_{_freq}.json"), "w") as f:
+                json.dump(dd, f, default=str)
 
         for _freq, indicators_normal in indicator_dict.items():
             self.save(**{f"indicators_normal_{_freq}.pkl": indicators_normal[0]})
+            indicators_normal[0].to_csv(
+                os.path.join(R.artifact_uri, "portfolio_analysis", f"indicators_normal_{_freq}.csv")
+            )
             self.save(**{f"indicators_normal_{_freq}_obj.pkl": indicators_normal[1]})
 
         for _analysis_freq in self.risk_analysis_freq:
@@ -534,9 +555,16 @@ class PortAnaRecord(ACRecordTemp):
                 analysis_df = pd.concat(analysis)  # type: pd.DataFrame
                 # log metrics
                 analysis_dict = flatten_dict(analysis_df["risk"].unstack().T.to_dict())
-                self.recorder.log_metrics(**{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()})
+                # self.recorder.log_metrics(**{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()})
+                with open(
+                    os.path.join(R.artifact_uri, "portfolio_analysis", f"risk_analysis_{_analysis_freq}.json"), "w"
+                ) as f:
+                    json.dump(analysis_dict, f, default=str)
                 # save results
                 self.save(**{f"port_analysis_{_analysis_freq}.pkl": analysis_df})
+                analysis_df.to_csv(
+                    os.path.join(R.artifact_uri, "portfolio_analysis", f"port_analysis_{_analysis_freq}.csv")
+                )
                 logger.info(
                     f"Portfolio analysis record 'port_analysis_{_analysis_freq}.pkl' has been saved as the artifact of the Experiment {self.recorder.experiment_id}"
                 )
@@ -559,9 +587,16 @@ class PortAnaRecord(ACRecordTemp):
                     analysis_df = indicator_analysis(indicators_normal, method=self.indicator_analysis_method)
                 # log metrics
                 analysis_dict = analysis_df["value"].to_dict()
-                self.recorder.log_metrics(**{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()})
+                # self.recorder.log_metrics(**{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()})
+                with open(
+                    os.path.join(R.artifact_uri, "portfolio_analysis", f"indicator_analysis_{_analysis_freq}.json"), "w"
+                ) as f:
+                    json.dump(analysis_dict, f, default=str)
                 # save results
                 self.save(**{f"indicator_analysis_{_analysis_freq}.pkl": analysis_df})
+                analysis_df.to_csv(
+                    os.path.join(R.artifact_uri, "portfolio_analysis", f"indicator_analysis_{_analysis_freq}.csv")
+                )
                 logger.info(
                     f"Indicator analysis record 'indicator_analysis_{_analysis_freq}.pkl' has been saved as the artifact of the Experiment {self.recorder.experiment_id}"
                 )
