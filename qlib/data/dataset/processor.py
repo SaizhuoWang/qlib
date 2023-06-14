@@ -5,18 +5,18 @@ import abc
 from typing import Text, Union, Optional
 import numpy as np
 import pandas as pd
-
-from qlib.utils.data import robust_zscore, zscore
+import typing as tp
+from ...utils.data import robust_zscore, zscore
 
 from ...constant import EPS
 from ...utils.paral import datetime_groupby_apply
-from qlib.data.inst_processor import InstProcessor
-from qlib.data import D
+from ..inst_processor import InstProcessor
+from ..data import D
 from ...utils.serial import Serializable
 from .utils import fetch_df_by_index
 
 
-def get_group_columns(df: pd.DataFrame, group: Union[Text, None]):
+def get_group_columns(df: pd.DataFrame, group: Union[Text, None, tp.List]):
     """
     get a group of columns from multi-index columns DataFrame
 
@@ -30,7 +30,14 @@ def get_group_columns(df: pd.DataFrame, group: Union[Text, None]):
     if group is None:
         return df.columns
     else:
-        return df.columns[df.columns.get_loc(group)]
+        if isinstance(group, list):
+            index = [i for i, x in enumerate(df.columns) if x[0] in group]
+        elif isinstance(group, str):
+            index = [i for i, x in enumerate(df.columns) if x[0] == group]
+        else:
+            raise ValueError(f"Unknown group type: {type(group)}")
+        return df.columns[index]
+        # return df.columns[df.columns.get_loc(group)]
 
 
 class Processor(Serializable):
