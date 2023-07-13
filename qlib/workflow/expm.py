@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 
 import os
-from typing import Optional, Text
+from typing import Optional, Text, Tuple
 from urllib.parse import urlparse
 
 import mlflow
@@ -222,7 +222,7 @@ class ExpManager:
             self.active_experiment.start()
         return exp
 
-    def _get_or_create_exp(self, experiment_id=None, experiment_name=None) -> (object, bool):
+    def _get_or_create_exp(self, experiment_id=None, experiment_name=None) -> Tuple[object, bool]:
         """
         Method for getting or creating an experiment. It will try to first get a valid experiment, if exception occurs, it will
         automatically create a new experiment based on the given id and name.

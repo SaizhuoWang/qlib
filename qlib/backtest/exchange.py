@@ -537,7 +537,9 @@ class Exchange:
         if method is not None and (deal_price is None or np.isnan(deal_price) or deal_price <= 1e-08):
             self.logger.warning(f"(stock_id:{stock_id}, trade_time:{(start_time, end_time)}, {pstr}): {deal_price}!!!")
             self.logger.warning(f"setting deal_price to close price")
-            deal_price = self.get_close(stock_id, start_time, end_time, method)
+            deal_price = self.get_close(
+                stock_id, start_time, end_time, method
+            )  # K-bar backtest, use close price for deal price
         return deal_price
 
     def get_factor(

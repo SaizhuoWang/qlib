@@ -339,11 +339,10 @@ class SigAnaRecord(ACRecordTemp):
         pred = self.load("pred.pkl")
         if label is None:
             label = self.load("label.pkl")
-
         if label is None or label.empty:
             logger.warning(f"Empty label.")
             return
-        # pred = pred.reindex(label.index)
+
         ic, ric = calc_ic(pred, label)
         metrics = {
             "IC": ic.mean(),
