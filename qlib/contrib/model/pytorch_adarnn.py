@@ -21,7 +21,7 @@ from qlib.utils import get_or_create_path
 from qlib.workflow import R
 
 
-class ADARNN(Model):
+class ADARNNModel(Model):
     """ADARNN Model
 
     Parameters
@@ -360,38 +360,6 @@ class ADARNN(Model):
         return weight
 
 
-class data_loader(Dataset):
-    def __init__(self, df):
-        self.df_feature = df["feature"]
-        self.df_label_reg = df["label"]
-        self.df_index = df.index
-        self.df_feature = torch.tensor(
-            self.df_feature.values.reshape(-1, 6, 60).transpose(0, 2, 1),
-            dtype=torch.float32,
-        )
-        self.df_label_reg = torch.tensor(self.df_label_reg.values.reshape(-1), dtype=torch.float32)
-
-    def __getitem__(self, index):
-        sample, label_reg = self.df_feature[index], self.df_label_reg[index]
-        return sample, label_reg
-
-    def __len__(self):
-        return len(self.df_feature)
-
-
-def get_stock_loader(df, batch_size, shuffle=True):
-    train_loader = DataLoader(data_loader(df), batch_size=batch_size, shuffle=shuffle)
-    return train_loader
-
-
-def get_index(num_domain=2):
-    index = []
-    for i in range(num_domain):
-        for j in range(i + 1, num_domain + 1):
-            index.append((i, j))
-    return index
-
-
 class AdaRNN(nn.Module):
     """
     model_type:  'Boosting', 'AdaRNN'
@@ -578,6 +546,38 @@ class AdaRNN(nn.Module):
         else:
             fc_out = self.fc_out(fea[:, -1, :]).squeeze()
         return fc_out
+
+
+class data_loader(Dataset):
+    def __init__(self, df):
+        self.df_feature = df["feature"]
+        self.df_label_reg = df["label"]
+        self.df_index = df.index
+        self.df_feature = torch.tensor(
+            self.df_feature.values.reshape(-1, 6, 60).transpose(0, 2, 1),
+            dtype=torch.float32,
+        )
+        self.df_label_reg = torch.tensor(self.df_label_reg.values.reshape(-1), dtype=torch.float32)
+
+    def __getitem__(self, index):
+        sample, label_reg = self.df_feature[index], self.df_label_reg[index]
+        return sample, label_reg
+
+    def __len__(self):
+        return len(self.df_feature)
+
+
+def get_stock_loader(df, batch_size, shuffle=True):
+    train_loader = DataLoader(data_loader(df), batch_size=batch_size, shuffle=shuffle)
+    return train_loader
+
+
+def get_index(num_domain=2):
+    index = []
+    for i in range(num_domain):
+        for j in range(i + 1, num_domain + 1):
+            index.append((i, j))
+    return index
 
 
 class TransferLoss:
