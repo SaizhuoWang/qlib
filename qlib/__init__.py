@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 from pathlib import Path
 
-__version__ = "0.9.1.99"
+__version__ = "0.9.3.99"
 __version__bak = __version__  # This version is backup for QlibConfig.reset_qlib_version
 import logging
 import os
@@ -89,7 +89,6 @@ def init(default_conf="client", **kwargs):
 
 
 def _mount_nfs_uri(provider_uri, mount_path, auto_mount: bool = False):
-
     LOG = get_module_logger("mount nfs", level=logging.INFO)
     if mount_path is None:
         raise ValueError(f"Invalid mount path: {mount_path}!")

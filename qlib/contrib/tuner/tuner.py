@@ -23,7 +23,6 @@ from ...log import TimeInspector, get_module_logger
 
 class Tuner:
     def __init__(self, tuner_config, optim_config):
-
         self.logger = get_module_logger("Tuner", sh_level=logging.INFO)
 
         self.tuner_config = tuner_config
@@ -41,7 +40,6 @@ class Tuner:
         self.space = self.setup_space()
 
     def tune(self):
-
         TimeInspector.set_time_mark()
         fmin(
             fn=self.objective,
@@ -83,7 +81,6 @@ class Tuner:
 
 
 class QLibTuner(Tuner):
-
     ESTIMATOR_CONFIG_NAME = "estimator_config.yaml"
     EXP_INFO_NAME = "exp_info.json"
     EXP_RESULT_DIR = "sacred/{}"
@@ -91,7 +88,6 @@ class QLibTuner(Tuner):
     LOCAL_BEST_PARAMS_NAME = "local_best_params.json"
 
     def objective(self, params):
-
         # 1. Setup an config for a specific estimator process
         estimator_path = self.setup_estimator_config(params)
         self.logger.info("Searching params: {} ".format(params))
@@ -119,7 +115,6 @@ class QLibTuner(Tuner):
         return {"loss": res, "status": status}
 
     def fetch_result(self):
-
         # 1. Get experiment information
         exp_info_path = os.path.join(self.ex_dir, QLibTuner.EXP_INFO_NAME)
         with open(exp_info_path) as fp:
@@ -154,7 +149,6 @@ class QLibTuner(Tuner):
             return np.abs(res.values[0] - 1)
 
     def setup_estimator_config(self, params):
-
         estimator_config = copy.deepcopy(self.tuner_config)
         estimator_config["model"].update({"args": params["model_space"]})
         estimator_config["strategy"].update({"args": params["strategy_space"]})
@@ -211,7 +205,6 @@ class QLibTuner(Tuner):
         return space
 
     def save_local_best_params(self):
-
         TimeInspector.set_time_mark()
         local_best_params_path = os.path.join(self.ex_dir, QLibTuner.LOCAL_BEST_PARAMS_NAME)
         with open(local_best_params_path, "w") as fp:

@@ -15,7 +15,6 @@ from qlib.data import D
 
 
 class CheckBin:
-
     NOT_IN_FEATURES = "not in features"
     COMPARE_FALSE = "compare False"
     COMPARE_TRUE = "compare True"

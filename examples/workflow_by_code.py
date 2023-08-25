@@ -16,7 +16,6 @@ from qlib.workflow import R
 from qlib.workflow.record_temp import PortAnaRecord, SigAnaRecord, SignalRecord
 
 if __name__ == "__main__":
-
     # use default data
     provider_uri = "~/.qlib/qlib_data/cn_data"  # target_dir
     GetData().qlib_data(target_dir=provider_uri, region=REG_CN, exists_skip=True)

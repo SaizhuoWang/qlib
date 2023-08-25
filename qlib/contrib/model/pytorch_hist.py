@@ -165,7 +165,6 @@ class HIST(Model):
         raise ValueError("unknown loss `%s`" % self.loss)
 
     def metric_fn(self, pred, label):
-
         mask = torch.isfinite(label)
 
         if self.metric == "ic":
@@ -194,7 +193,6 @@ class HIST(Model):
         return daily_index, daily_count
 
     def train_epoch(self, x_train, y_train, stock_index):
-
         stock2concept_matrix = np.load(self.stock2concept)
         x_train_values = x_train.values
         y_train_values = np.squeeze(y_train.values)
@@ -219,7 +217,6 @@ class HIST(Model):
             self.train_optimizer.step()
 
     def test_epoch(self, data_x, data_y, stock_index):
-
         # prepare training data
         stock2concept_matrix = np.load(self.stock2concept)
         x_values = data_x.values

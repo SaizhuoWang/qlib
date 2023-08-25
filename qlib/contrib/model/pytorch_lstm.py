@@ -155,7 +155,6 @@ class LSTM(Model):
         raise ValueError("unknown loss `%s`" % self.loss)
 
     def metric_fn(self, pred, label):
-
         mask = torch.isfinite(label)
 
         if self.metric == "ic":
@@ -172,7 +171,6 @@ class LSTM(Model):
         raise ValueError("unknown metric `%s`" % self.metric)
 
     def train_epoch(self, x_train, y_train):
-
         x_train_values = x_train.values
         y_train_values = np.squeeze(y_train.values)
 
@@ -181,27 +179,15 @@ class LSTM(Model):
         indices = np.arange(len(x_train_values))
         np.random.shuffle(indices)
 
-        if hasattr(self, "profiling") and getattr(self, "profiling"):
-            torch_profiler = torch.profiler.profile(
-                activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA],
-                schedule=torch.profiler.schedule(wait=2, warmup=3, active=4, repeat=3),
-                on_trace_ready=torch.profiler.tensorboard_trace_handler(
-                    f'{PROJECT_ROOT}/profiling/torch_profiler/Baseline_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
-                ),
-                record_shapes=True,
-                profile_memory=True,
-                with_stack=True,
-                with_flops=True,
-                with_modules=True,
-                use_cuda=True,
-            )
-            viz_tracer = viztracer.VizTracer(
-                output_file=f"{PROJECT_ROOT}/profiling/viztracer/trace_baseline_{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
-            )
-            viz_tracer.enable_thread_tracing()
-            torch_profiler.start()
-            viz_tracer.start()
-            viz_traced = False
+        for i in range(len(indices))[:: self.batch_size]:
+            if len(indices) - i < self.batch_size:
+                break
+
+            feature = torch.from_numpy(x_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
+            label = torch.from_numpy(y_train_values[indices[i : i + self.batch_size]]).float().to(self.device)
+
+            pred = self.lstm_model(feature)
+            loss = self.loss_fn(pred, label)
 
         for i in range(len(indices))[:: self.batch_size]:
             with record_function("Get Batch and Move to GPU"):
@@ -250,7 +236,6 @@ class LSTM(Model):
             exit(0)
 
     def test_epoch(self, data_x, data_y):
-
         # prepare training data
         x_values = data_x.values
         y_values = np.squeeze(data_y.values)
@@ -263,7 +248,6 @@ class LSTM(Model):
         indices = np.arange(len(x_values))
 
         for i in range(len(indices))[:: self.batch_size]:
-
             if len(indices) - i < self.batch_size:
                 break
 

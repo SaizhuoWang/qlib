@@ -85,7 +85,6 @@ class TRAModel(Model):
         memory_mode="sample",
         **kwargs,
     ):
-
         self.logger = get_module_logger("TRA")
 
         assert memory_mode in ["sample", "daily"], "invalid memory mode"
@@ -141,7 +140,6 @@ class TRAModel(Model):
         self._init_model()
 
     def _init_model(self):
-
         self.logger.info("init TRAModel...")
 
         self.model = eval(self.model_type)(**self.model_config).to(device)
@@ -181,7 +179,6 @@ class TRAModel(Model):
         self.global_step = -1
 
     def train_epoch(self, epoch, data_set, is_pretrain=False):
-
         self.model.train()
         self.tra.train()
         data_set.train()
@@ -284,7 +281,6 @@ class TRAModel(Model):
         return total_loss
 
     def test_epoch(self, epoch, data_set, return_pred=False, prefix="test", is_pretrain=False):
-
         self.model.eval()
         self.tra.eval()
         data_set.eval()
@@ -375,7 +371,6 @@ class TRAModel(Model):
         return metrics, preds, probs, P_all
 
     def _fit(self, train_set, valid_set, test_set, evals_result, is_pretrain=True):
-
         best_score = -1
         best_epoch = 0
         stop_rounds = 0
@@ -434,7 +429,6 @@ class TRAModel(Model):
         return best_score
 
     def fit(self, dataset, evals_result=dict()):
-
         assert isinstance(dataset, MTSDatasetH), "TRAModel only supports `qlib.contrib.data.dataset.MTSDatasetH`"
 
         train_set, valid_set, test_set = dataset.prepare(["train", "valid", "test"])
@@ -527,7 +521,6 @@ class TRAModel(Model):
                 json.dump(info, f)
 
     def predict(self, dataset, segment="test"):
-
         assert isinstance(dataset, MTSDatasetH), "TRAModel only supports `qlib.contrib.data.dataset.MTSDatasetH`"
 
         if not self.fitted:
@@ -595,7 +588,6 @@ class RNN(nn.Module):
             self.output_size = hidden_size
 
     def forward(self, x):
-
         if self.input_proj is not None:
             x = self.input_proj(x)
 
@@ -674,7 +666,6 @@ class Transformer(nn.Module):
         self.output_size = hidden_size
 
     def forward(self, x):
-
         x = x.permute(1, 0, 2).contiguous()  # the first dim need to be time
         x = self.pe(x)
 
@@ -743,7 +734,6 @@ class TRA(nn.Module):
             child.reset_parameters()
 
     def forward(self, hidden, hist_loss):
-
         preds = self.predictors(hidden)
 
         if self.num_states == 1:  # no need for router when having only one prediction

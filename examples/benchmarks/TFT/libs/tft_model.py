@@ -485,7 +485,6 @@ class TemporalFusionTransformer:
 
         embeddings = []
         for i in range(num_categorical_variables):
-
             embedding = tf.keras.Sequential(
                 [
                     tf.keras.layers.InputLayer([time_steps]),

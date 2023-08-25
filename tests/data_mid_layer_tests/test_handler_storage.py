@@ -22,7 +22,6 @@ class TestHandler(DataHandlerLP):
         fit_end_time=None,
         drop_raw=True,
     ):
-
         infer_processors = check_transform_proc(infer_processors, fit_start_time, fit_end_time)
         learn_processors = check_transform_proc(learn_processors, fit_start_time, fit_end_time)
 
@@ -59,7 +58,6 @@ class TestHandler(DataHandlerLP):
 
 
 class TestHandlerStorage(TestAutoData):
-
     market = "all"
 
     start_time = "2010-01-01"
@@ -93,7 +91,6 @@ class TestHandlerStorage(TestAutoData):
         )
 
         with TimeInspector.logt("random fetch with DataFrame Storage"):
-
             # single stock
             for i in range(100):
                 random_index = np.random.randint(len(instruments), size=1)[0]
@@ -113,7 +110,6 @@ class TestHandlerStorage(TestAutoData):
                 )
 
         with TimeInspector.logt("random fetch with HashingStock Storage"):
-
             # single stock
             for i in range(100):
                 random_index = np.random.randint(len(instruments), size=1)[0]

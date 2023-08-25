@@ -156,7 +156,6 @@ class LSTM(Model):
         raise ValueError("unknown loss `%s`" % self.loss)
 
     def metric_fn(self, pred, label):
-
         mask = torch.isfinite(label)
 
         if self.metric in ("", "loss"):
@@ -165,64 +164,27 @@ class LSTM(Model):
         raise ValueError("unknown metric `%s`" % self.metric)
 
     def train_epoch(self, data_loader):
-
         self.LSTM_model.train()
 
-        if hasattr(self, "profiling") and getattr(self, "profiling"):
-            torch_profiler = torch.profiler.profile(
-                schedule=torch.profiler.schedule(wait=2, warmup=3, active=4, repeat=3),
-                on_trace_ready=torch.profiler.tensorboard_trace_handler(
-                    f'{PROJECT_ROOT}/profiling/torch_profiler/TS_njobs{self.n_jobs}_{datetime.now().strftime("%Y%m%d-%H%M%S")}'
-                ),
-                record_shapes=True,
-                profile_memory=True,
-                with_stack=True,
-                with_flops=True,
-                with_modules=True,
-                use_cuda=True,
-            )
-            viz_tracer = viztracer.VizTracer(
-                output_file=f"{PROJECT_ROOT}/profiling/viztracer/trace_TS_njobs{self.n_jobs}_{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
-            )
-            torch_profiler.start()
-            viz_tracer.start()
-        viz_traced = False
-        loader_iter = iter(data_loader)
-        for i in range(len(data_loader)):
-            with record_function("Get Batch"):
-                data = next(loader_iter)
-            with record_function("Data Copy to GPU"):
-                feature = data[:, :, 0:-1].to(self.device)
-                label = data[:, -1, -1].to(self.device)
-            with record_function("Model Forward"):
-                pred = self.LSTM_model(feature.float())
-            with record_function("Loss Backward"):
-                loss = self.loss_fn(pred, label, weight=None)
-                self.train_optimizer.zero_grad()
-                loss.backward()
-            with record_function("Optimize Step"):
-                torch.nn.utils.clip_grad_value_(self.LSTM_model.parameters(), 3.0)
-                self.train_optimizer.step()
-            if hasattr(self, "profiling") and getattr(self, "profiling"):
-                torch_profiler.step()
-                if not viz_traced:
-                    viz_traced = True
-                    viz_tracer.stop()
-                    viz_tracer.save()
-        if hasattr(self, "profiling") and getattr(self, "profiling"):
-            torch_profiler.stop()
-            self.logger.info("Profiling finished. Program exitting")
-            exit(0)
+        for data, weight in data_loader:
+            feature = data[:, :, 0:-1].to(self.device)
+            label = data[:, -1, -1].to(self.device)
+
+            pred = self.LSTM_model(feature.float())
+            loss = self.loss_fn(pred, label, weight.to(self.device))
+
+            self.train_optimizer.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_value_(self.LSTM_model.parameters(), 3.0)
+            self.train_optimizer.step()
 
     def test_epoch(self, data_loader):
-
         self.LSTM_model.eval()
 
         scores = []
         losses = []
 
-        for (data, weight) in data_loader:
-
+        for data, weight in data_loader:
             feature = data[:, :, 0:-1].to(self.device)
             # feature[torch.isnan(feature)] = 0
             label = data[:, -1, -1].to(self.device)
@@ -328,7 +290,6 @@ class LSTM(Model):
         preds = []
 
         for data in test_loader:
-
             feature = data[:, :, 0:-1].to(self.device)
 
             with torch.no_grad():

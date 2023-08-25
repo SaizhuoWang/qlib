@@ -13,7 +13,6 @@ from plotly.subplots import make_subplots
 
 
 class BaseGraph:
-
     _name = None
 
     def __init__(

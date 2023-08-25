@@ -190,9 +190,7 @@ class TrainingVessel(TrainingVesselBase):
 
         with vector_env.collector_guard():
             collector = Collector(
-                self.policy,
-                vector_env,
-                VectorReplayBuffer(self.buffer_size, len(vector_env)),
+                self.policy, vector_env, VectorReplayBuffer(self.buffer_size, len(vector_env)), exploration_noise=True
             )
 
             # Number of episodes collected in each training iteration can be overridden by fast dev run.
