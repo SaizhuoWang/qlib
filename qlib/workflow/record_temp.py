@@ -46,11 +46,11 @@ class RecordTemp:
     # `depend_cls`
 
     @classmethod
-    def get_path(cls, path=None):
+    def get_path(cls, path=None, recorder_wrapper=R):
         names = []
 
-        if hasattr(R, "suffix") and getattr(R, "suffix") != "":
-            names.append(R.suffix)
+        if hasattr(recorder_wrapper, "suffix") and getattr(recorder_wrapper, "suffix") != "":
+            names.append(recorder_wrapper.suffix)
 
         if cls.artifact_path is not None:
             names.append(cls.artifact_path)
@@ -65,13 +65,14 @@ class RecordTemp:
         It behaves the same as self.recorder.save_objects.
         But it is an easier interface because users don't have to care about `get_path` and `artifact_path`
         """
-        art_path = self.get_path()
+        art_path = self.get_path(recorder_wrapper=self.recorder_wrapper)
         if art_path == "":
             art_path = None
         self.recorder.save_objects(artifact_path=art_path, **kwargs)
 
-    def __init__(self, recorder):
+    def __init__(self, recorder, recorder_wrapper=R):
         self._recorder = recorder
+        self.recorder_wrapper = recorder_wrapper
 
     @property
     def recorder(self):
@@ -112,7 +113,7 @@ class RecordTemp:
         The stored records.
         """
         try:
-            return self.recorder.load_object(self.get_path(name))
+            return self.recorder.load_object(self.get_path(name, recorder_wrapper=self.recorder_wrapper))
         except LoadObjectError as e:
             if parents:
                 if self.depend_cls is not None:
@@ -162,9 +163,9 @@ class RecordTemp:
                 return artifacts[dirn]
 
             for item in self.list():
-                ps = self.get_path(item).split("/")
+                ps = self.get_path(item, recorder_wrapper=self.recorder_wrapper).split("/")
                 dirn = "/".join(ps[:-1])
-                if self.get_path(item) not in _get_arts(dirn):
+                if self.get_path(item, recorder_wrapper=self.recorder_wrapper) not in _get_arts(dirn):
                     raise FileNotFoundError
         if parents:
             if self.depend_cls is not None:
@@ -179,8 +180,8 @@ class SignalRecord(RecordTemp):
 
     artifact_path = "sig_analysis"
 
-    def __init__(self, model=None, dataset=None, recorder=None):
-        super().__init__(recorder=recorder)
+    def __init__(self, model=None, dataset=None, recorder=None, recorder_wrapper=R):
+        super().__init__(recorder=recorder, recorder_wrapper=recorder_wrapper)
         self.model = model
         self.dataset = dataset
 
@@ -235,9 +236,9 @@ class SignalRecord(RecordTemp):
 class ACRecordTemp(RecordTemp):
     """Automatically checking record template"""
 
-    def __init__(self, recorder, skip_existing=False):
+    def __init__(self, recorder, skip_existing=False, recorder_wrapper=R):
         self.skip_existing = skip_existing
-        super().__init__(recorder=recorder)
+        super().__init__(recorder=recorder, recorder_wrapper=recorder_wrapper)
 
     def generate(self, *args, **kwargs):
         """automatically checking the files and then run the concrete generating task"""
@@ -276,8 +277,8 @@ class HFSignalRecord(SignalRecord):
     artifact_path = "hg_sig_analysis"
     depend_cls = SignalRecord
 
-    def __init__(self, recorder, **kwargs):
-        super().__init__(recorder=recorder)
+    def __init__(self, recorder, recorder_wrapper=R, **kwargs):
+        super().__init__(recorder=recorder, recorder_wrapper=recorder_wrapper)
 
     def generate(self):
         pred = self.load("pred.pkl")
@@ -334,12 +335,13 @@ class SigAnaRecord(ACRecordTemp):
     def __init__(
         self,
         recorder,
+        recorder_wrapper=R,
         ana_long_short=True,
         ann_scaler=252,
         label_col=0,
         skip_existing=False,
     ):
-        super().__init__(recorder=recorder, skip_existing=skip_existing)
+        super().__init__(recorder=recorder, skip_existing=skip_existing, recorder_wrapper=recorder_wrapper)
         self.ana_long_short = ana_long_short
         self.ann_scaler = ann_scaler
         self.label_col = label_col
@@ -422,6 +424,7 @@ class PortAnaRecord(ACRecordTemp):
     def __init__(
         self,
         recorder,
+        recorder_wrapper=R,
         config=None,
         risk_analysis_freq: Union[List, str] = None,
         indicator_analysis_freq: Union[List, str] = None,
@@ -443,7 +446,7 @@ class PortAnaRecord(ACRecordTemp):
         indicator_analysis_method : str, optional, default by None
             the candidate values include 'mean', 'amount_weighted', 'value_weighted'
         """
-        super().__init__(recorder=recorder, skip_existing=skip_existing, **kwargs)
+        super().__init__(recorder=recorder, recorder_wrapper=recorder_wrapper, skip_existing=skip_existing, **kwargs)
 
         if config is None:
             config = {  # Default config for daily trading

@@ -3,6 +3,7 @@
 
 from contextlib import contextmanager
 from typing import Any, Dict, Optional, Text
+import warnings
 
 from qlib.config import C
 
@@ -23,6 +24,7 @@ class QlibRecorder:
 
     def __init__(self, exp_manager: ExpManager):
         self.exp_manager: ExpManager = exp_manager
+        self.suffix = ""
 
     def __repr__(self):
         return "{name}(manager={manager})".format(name=self.__class__.__name__, manager=self.exp_manager)
@@ -407,7 +409,7 @@ class QlibRecorder:
                 "but the current recorder is {}".format(type(rec))
             )
         arti_root_uri = rec.get_artifact_uri()
-        artifact_uri = os.path.join(arti_root_uri, R.suffix)
+        artifact_uri = os.path.join(arti_root_uri, self.suffix)
         return artifact_uri
 
     def get_recorder(
@@ -655,6 +657,12 @@ class QlibRecorder:
             Local path of desired artifact.
         """
         self.get_exp(start=True).get_recorder(start=True).download_artifact(path, dst_path)
+    
+    def set_suffix(self, suffix: str):
+        self.suffix = suffix
+    
+    def get_suffix(self):
+        return self.suffix
 
     def set_tags(self, **kwargs):
         """
@@ -691,7 +699,7 @@ class RecorderWrapper(Wrapper):
         if self._provider is not None:
             expm = getattr(self._provider, "exp_manager")
             if expm.active_experiment is not None:
-                raise RecorderInitializationError(
+                warnings.warn(
                     "Please don't reinitialize Qlib if QlibRecorder is already activated. Otherwise, the experiment stored location will be modified."
                 )
         self._provider = provider

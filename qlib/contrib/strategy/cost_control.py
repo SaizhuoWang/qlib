@@ -14,8 +14,8 @@ from .signal_strategy import WeightStrategyBase
 class SoftTopkStrategy(WeightStrategyBase):
     def __init__(
         self,
-        model,
-        dataset,
+        # model,
+        # dataset,
         topk,
         order_generator_cls_or_obj=OrderGenWInteract,
         max_sold_weight=1.0,
@@ -38,8 +38,8 @@ class SoftTopkStrategy(WeightStrategyBase):
                 average_fill: assign the weight to the stocks rank high averagely.
         """
         super(SoftTopkStrategy, self).__init__(
-            model,
-            dataset,
+            # model,
+            # dataset,
             order_generator_cls_or_obj,
             trade_exchange,
             level_infra,
