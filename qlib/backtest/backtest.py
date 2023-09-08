@@ -106,25 +106,25 @@ def collect_data_loop(
     _execute_result = None
     while not trade_executor.finished():
         iteration += 1
-        print(f"Running iteration {iteration}/{trade_len}")
+        # print(f"Running iteration {iteration}/{trade_len}")
 
         # Get today's trading decision
         start_time = time.time()
         _trade_decision: BaseTradeDecision = trade_strategy.generate_trade_decision(_execute_result)
         end_time = time.time()
-        print(f"Step 1 - generate_trade_decision took: {end_time - start_time:.4f} seconds")
+        # print(f"Step 1 - generate_trade_decision took: {end_time - start_time:.4f} seconds")
 
         # Execute all orders in the decision for 1 trading tick
         start_time = time.time()
         _execute_result = yield from trade_executor.collect_data(_trade_decision, level=0)
         end_time = time.time()
-        print(f"Step 2 - collect_data took: {end_time - start_time:.4f} seconds")
+        # print(f"Step 2 - collect_data took: {end_time - start_time:.4f} seconds")
 
         # Update the strategy's state with the execution result
         start_time = time.time()
         trade_strategy.post_exe_step(_execute_result)
         end_time = time.time()
-        print(f"Step 3 - post_exe_step took: {end_time - start_time:.4f} seconds")
+        # print(f"Step 3 - post_exe_step took: {end_time - start_time:.4f} seconds")
 
     trade_strategy.post_upper_level_exe_step()
 

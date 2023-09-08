@@ -152,7 +152,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
         pred_start_time, pred_end_time = self.trade_calendar.get_step_time(trade_step, shift=1)
         pred_score = self.signal.get_signal(start_time=pred_start_time, end_time=pred_end_time)
         end = time.time()
-        print(f"Get score and signal: {end - begin}s")
+        # print(f"Get score and signal: {end - begin}s")
         # NOTE: the current version of topk dropout strategy can't handle pd.DataFrame(multiple signal)
         # So it only leverage the first col of signal
         if isinstance(pred_score, pd.DataFrame):
@@ -244,7 +244,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
         else:
             raise NotImplementedError(f"This type of input is not supported")
         end = time.time()
-        print(f"Stock selection time: {end - begin}s")
+        # print(f"Stock selection time: {end - begin}s")
 
         begin = time.time()
         # Get the stock list we really want to buy
@@ -281,7 +281,7 @@ class TopkDropoutStrategy(BaseSignalStrategy):
                     # update cash
                     cash += trade_val - trade_cost
         end = time.time()
-        print(f"Generating sell order time: {end - begin}s")
+        # print(f"Generating sell order time: {end - begin}s")
 
         begin = time.time()
         # buy new stock

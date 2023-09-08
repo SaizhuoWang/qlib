@@ -40,10 +40,10 @@ class SoftTopkStrategy(WeightStrategyBase):
         super(SoftTopkStrategy, self).__init__(
             # model,
             # dataset,
-            order_generator_cls_or_obj,
-            trade_exchange,
-            level_infra,
-            common_infra,
+            order_generator_cls_or_obj=order_generator_cls_or_obj,
+            trade_exchange=trade_exchange,
+            level_infra=level_infra,
+            common_infra=common_infra,
             **kwargs,
         )
         self.topk = topk

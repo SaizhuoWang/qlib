@@ -73,6 +73,7 @@ class RecordTemp:
     def __init__(self, recorder, recorder_wrapper=R):
         self._recorder = recorder
         self.recorder_wrapper = recorder_wrapper
+        self.logger = get_module_logger(self.__class__.__name__, logging.INFO)
 
     @property
     def recorder(self):
@@ -257,8 +258,10 @@ class ACRecordTemp(RecordTemp):
             logger.warning("The dependent data does not exists. Generation skipped.")
             return
         artifact_dict = self._generate(*args, **kwargs)
+        self.logger.info(f"Successfully generated artifact objects in mem.")
         if isinstance(artifact_dict, dict):
             self.save(**artifact_dict)
+        self.logger.info(f"Succesfully saved artifact objects to recorder.")
         return artifact_dict
 
     def _generate(self, *args, **kwargs) -> Dict[str, object]:
@@ -385,14 +388,18 @@ class SigAnaRecord(ACRecordTemp):
                 }
             )
 
-        with open(os.path.join(R.artifact_uri, "sig_analysis", "metrics.json"), "w") as f:
+        with open(os.path.join(self.recorder_wrapper.artifact_uri, "sig_analysis", "metrics.json"), "w") as f:
             json.dump(metrics, f)
 
         # Dump files in both csv and pkl format
-        os.makedirs(os.path.join(R.artifact_uri, "sig_analysis", "csv"), exist_ok=True)
+        os.makedirs(os.path.join(self.recorder_wrapper.artifact_uri, "sig_analysis", "csv"), exist_ok=True)
         for metric_name, metric_df in objects.items():
-            metric_df.to_csv(os.path.join(R.artifact_uri, "sig_analysis", "csv", f"{metric_name}.csv"))
-            with open(os.path.join(R.artifact_uri, "sig_analysis", f"{metric_name}.pkl"), "wb") as f:
+            metric_df.to_csv(
+                os.path.join(self.recorder_wrapper.artifact_uri, "sig_analysis", "csv", f"{metric_name}.csv")
+            )
+            with open(
+                os.path.join(self.recorder_wrapper.artifact_uri, "sig_analysis", f"{metric_name}.pkl"), "wb"
+            ) as f:
                 metric_df.to_pickle(f)
         self.recorder.log_metrics(**metrics)
         pprint(metrics)
@@ -543,16 +550,23 @@ class PortAnaRecord(ACRecordTemp):
         )
         for _freq, (report_normal, positions_normal) in portfolio_metric_dict.items():
             self.save(**{f"report_normal_{_freq}.pkl": report_normal})
-            report_normal.to_csv(os.path.join(R.artifact_uri, "portfolio_analysis", f"report_normal_{_freq}.csv"))
+            report_normal.to_csv(
+                os.path.join(self.recorder_wrapper.artifact_uri, "portfolio_analysis", f"report_normal_{_freq}.csv")
+            )
             self.save(**{f"positions_normal_{_freq}.pkl": positions_normal})
             dd = {k.strftime("%Y-%m-%d-%H:%M:%S"): v for k, v in positions_normal.items()}
-            with open(os.path.join(R.artifact_uri, "portfolio_analysis", f"positions_normal_{_freq}.json"), "w") as f:
+            with open(
+                os.path.join(
+                    self.recorder_wrapper.artifact_uri, "portfolio_analysis", f"positions_normal_{_freq}.json"
+                ),
+                "w",
+            ) as f:
                 json.dump(dd, f, default=str)
 
         for _freq, indicators_normal in indicator_dict.items():
             self.save(**{f"indicators_normal_{_freq}.pkl": indicators_normal[0]})
             indicators_normal[0].to_csv(
-                os.path.join(R.artifact_uri, "portfolio_analysis", f"indicators_normal_{_freq}.csv")
+                os.path.join(self.recorder_wrapper.artifact_uri, "portfolio_analysis", f"indicators_normal_{_freq}.csv")
             )
             self.save(**{f"indicators_normal_{_freq}_obj.pkl": indicators_normal[1]})
             artifact_objects.update({f"report_normal_{_freq}.pkl": report_normal})
@@ -584,13 +598,18 @@ class PortAnaRecord(ACRecordTemp):
                 analysis_dict = flatten_dict(analysis_df["risk"].unstack().T.to_dict())
                 # self.recorder.log_metrics(**{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()})
                 with open(
-                    os.path.join(R.artifact_uri, "portfolio_analysis", f"risk_analysis_{_analysis_freq}.json"), "w"
+                    os.path.join(
+                        self.recorder_wrapper.artifact_uri, "portfolio_analysis", f"risk_analysis_{_analysis_freq}.json"
+                    ),
+                    "w",
                 ) as f:
                     json.dump(analysis_dict, f, default=str)
                 # save results
                 self.save(**{f"port_analysis_{_analysis_freq}.pkl": analysis_df})
                 analysis_df.to_csv(
-                    os.path.join(R.artifact_uri, "portfolio_analysis", f"port_analysis_{_analysis_freq}.csv")
+                    os.path.join(
+                        self.recorder_wrapper.artifact_uri, "portfolio_analysis", f"port_analysis_{_analysis_freq}.csv"
+                    )
                 )
                 artifact_objects.update({f"port_analysis_{_analysis_freq}.pkl": analysis_df})
                 logger.info(
@@ -617,13 +636,22 @@ class PortAnaRecord(ACRecordTemp):
                 analysis_dict = analysis_df["value"].to_dict()
                 # self.recorder.log_metrics(**{f"{_analysis_freq}.{k}": v for k, v in analysis_dict.items()})
                 with open(
-                    os.path.join(R.artifact_uri, "portfolio_analysis", f"indicator_analysis_{_analysis_freq}.json"), "w"
+                    os.path.join(
+                        self.recorder_wrapper.artifact_uri,
+                        "portfolio_analysis",
+                        f"indicator_analysis_{_analysis_freq}.json",
+                    ),
+                    "w",
                 ) as f:
                     json.dump(analysis_dict, f, default=str)
                 # save results
                 self.save(**{f"indicator_analysis_{_analysis_freq}.pkl": analysis_df})
                 analysis_df.to_csv(
-                    os.path.join(R.artifact_uri, "portfolio_analysis", f"indicator_analysis_{_analysis_freq}.csv")
+                    os.path.join(
+                        self.recorder_wrapper.artifact_uri,
+                        "portfolio_analysis",
+                        f"indicator_analysis_{_analysis_freq}.csv",
+                    )
                 )
                 artifact_objects.update({f"indicator_analysis_{_analysis_freq}.pkl": analysis_df})
                 logger.info(
