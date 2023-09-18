@@ -25,9 +25,9 @@ from qlib.workflow.task.manage import TaskManager, run_task
 class RollingTaskExample:
     def __init__(
         self,
-        provider_uri="~/.qlib/qlib_data/cn_data",
+        provider_uri="/home/wangsaizhuo/student/Data/qlib/qlib_data/cn_data",
         region=REG_CN,
-        task_url="mongodb://192.168.205.17:9835/",
+        task_url="mongodb://192.168.90.201:45203/",
         task_db_name="rolling_db",
         experiment_name="rolling_exp",
         task_pool=None,  # if user want to  "rolling_task"
@@ -37,10 +37,13 @@ class RollingTaskExample:
     ):
         # TaskManager config
         if task_config is None:
-            task_config = [
-                CSI100_RECORD_XGBOOST_TASK_CONFIG,
-                CSI100_RECORD_LGB_TASK_CONFIG,
-            ]
+            import yaml
+            with open('/student/wangsaizhuo/Codes/qlib/examples/benchmarks/LSTM/workflow_config_lstm_Alpha158.yaml', 'r') as f:
+                task_config = yaml.safe_load(f)['task']
+            # task_config = [
+            #     CSI100_RECORD_XGBOOST_TASK_CONFIG,
+            #     CSI100_RECORD_LGB_TASK_CONFIG,
+            # ]
         mongo_conf = {
             "task_url": task_url,
             "task_db_name": task_db_name,
@@ -53,7 +56,7 @@ class RollingTaskExample:
             self.task_pool = task_pool
             self.trainer = TrainerRM(self.experiment_name, self.task_pool)
         self.task_config = task_config
-        self.rolling_gen = RollingGen(step=rolling_step, rtype=rolling_type)
+        self.rolling_gen = RollingGen(step=task_config["dataset"]["kwargs"]["step_len"], rtype=rolling_type)
 
     # Reset all things to the first status, be careful to save important data
     def reset(self):

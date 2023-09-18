@@ -10,13 +10,13 @@ data_handler_config: &data_handler_config
     fit_end_time: 2014-12-31
     instruments: *market
     infer_processors:
-        - class: FilterCol
-          kwargs:
-              fields_group: feature
-              col_list: ["RESI5", "WVMA5", "RSQR5", "KLEN", "RSQR10", "CORR5", "CORD5", "CORR10", 
-                            "ROC60", "RESI10", "VSTD5", "RSQR60", "CORR60", "WVMA60", "STD5", 
-                            "RSQR20", "CORD60", "CORD10", "CORR20", "KLOW"
-                        ]
+        # - class: FilterCol
+        #   kwargs:
+        #       fields_group: feature
+        #       col_list: ["RESI5", "WVMA5", "RSQR5", "KLEN", "RSQR10", "CORR5", "CORD5", "CORR10", 
+        #                     "ROC60", "RESI10", "VSTD5", "RSQR60", "CORR60", "WVMA60", "STD5", 
+        #                     "RSQR20", "CORD60", "CORD10", "CORR20", "KLOW"
+        #                 ]
         - class: RobustZScoreNorm
           kwargs:
               fields_group: feature
@@ -55,14 +55,14 @@ task:
         class: LSTM
         module_path: qlib.contrib.model.pytorch_lstm_ts
         kwargs:
-            d_feat: 20
-            hidden_size: 64
+            d_feat: 158
+            hidden_size: 256
             num_layers: 2
             dropout: 0.0
-            n_epochs: 200
-            lr: 1e-3
+            n_epochs: 5
+            lr: 1.0e-3
             early_stop: 10
-            batch_size: 800
+            batch_size: 250
             metric: loss
             loss: mse
             n_jobs: 20
@@ -76,10 +76,10 @@ task:
                 module_path: qlib.contrib.data.handler
                 kwargs: *data_handler_config
             segments:
-                train: [2008-01-01, 2014-12-31]
-                valid: [2015-01-01, 2016-12-31]
-                test: [2017-01-01, 2020-08-01]
-            step_len: 20
+                train: [2012-01-01, 2017-12-31]
+                valid: [2018-01-01, 2018-06-30]
+                test: [2018-07-01, 2020-08-01]
+            step_len: 60
     record: 
         - class: SignalRecord
           module_path: qlib.workflow.record_temp
