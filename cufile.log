@@ -1,0 +1,4 @@
+ 18-10-2023 18:53:10:770 [pid=21791 tid=21791] ERROR  cufio-cuda:159 unable to load, symbol  cuDeviceGetUuid_v2 
+
+ 18-10-2023 18:53:10:771 [pid=21791 tid=21791] ERROR  cufio:475 missing cuda symbols while dynamic loading
+ 18-10-2023 18:53:10:771 [pid=21791 tid=21791] ERROR  cufio:587 cuFile initialization failed

@@ -1037,7 +1037,11 @@ class LocalDatasetProvider(DatasetProvider):
         end_time = cal[-1]
         workers = max(min(C.kernels, len(instruments_d)), 1)
 
-        ParallelExt(n_jobs=workers, backend=C.joblib_backend, maxtasksperchild=C.maxtasksperchild,)(
+        ParallelExt(
+            n_jobs=workers,
+            backend=C.joblib_backend,
+            maxtasksperchild=C.maxtasksperchild,
+        )(
             delayed(LocalDatasetProvider.cache_walker)(inst, start_time, end_time, freq, column_names)
             for inst in instruments_d
         )

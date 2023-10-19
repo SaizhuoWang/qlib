@@ -1,11 +1,7 @@
 #  Copyright (c) Microsoft Corporation.
 #  Licensed under the MIT License.
-<<<<<<< HEAD
-
-=======
 import logging
 import sys
->>>>>>> origin/main
 import os
 import sys
 from pathlib import Path

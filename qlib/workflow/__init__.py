@@ -657,10 +657,10 @@ class QlibRecorder:
             Local path of desired artifact.
         """
         self.get_exp(start=True).get_recorder(start=True).download_artifact(path, dst_path)
-    
+
     def set_suffix(self, suffix: str):
         self.suffix = suffix
-    
+
     def get_suffix(self):
         return self.suffix
 

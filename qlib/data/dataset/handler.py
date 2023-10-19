@@ -15,7 +15,6 @@ from typing import Callable, Dict, Iterator, List, Optional, OrderedDict, Tuple,
 from qlib.typehint import Literal
 import filelock
 import numpy as np
-import SharedArray as sa
 import pandas as pd
 from numpy.lib.stride_tricks import sliding_window_view as window_trick
 from ...config import C
